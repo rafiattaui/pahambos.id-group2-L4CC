@@ -21,6 +21,18 @@ This repository must be shared with:
 - Instructor Assistant: Juwono ->
   Email: juwono@binus.edu, GitHub: Juwono136
 ## 3. Project Overview
+PahamBos.id is a web application that takes traditional learning and transforms it to a quiz-based game. This web app is aimed at students and teachers who are eager to learn and teach through games and quizzes. <br>
+<br>
+Problem Statement: <br>
+Learning can become boring and repetitive when all you do is read books and do question sets that may seem endless. Turning it into a score-based quiz will make the process much more fun and engaging for students. Our target users are students that can range from primary school up to university students and teachers who want a fun method of teaching. <br>
+
+Main features:
+* Quiz/game creation interface
+* Question bank with multiple categories
+* Timed quizzes and scoring system
+* Leaderboard and user ranking
+* Student performance analytics
+* Teacher/admin dashboard
 ## 4. Technology Stack (MANDATORY)
 | Layer | Technology|
 |-------|-----------|
@@ -32,6 +44,10 @@ This repository must be shared with:
 |Deployment| Railway
 |Version Control| GitHub
 ## 5. System Architecture
+![](./docs/1.png)
+![](./docs/2.png)
+![](./docs/3.png)
+![](./docs/4.png)
 ## 6. API Design (MANDATORY)
 ## 7. Database Design
 ## 8. AI Features (MANDATORY)

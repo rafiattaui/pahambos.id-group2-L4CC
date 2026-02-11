@@ -48,6 +48,8 @@ Main features:
 ![](./docs/2.png)
 ![](./docs/3.png)
 ![](./docs/4.png)
+![](./docs/5.png)
+![](./docs/6.png)
 ## 6. API Design (MANDATORY)
 ## 7. Database Design
 ## 8. AI Features (MANDATORY)

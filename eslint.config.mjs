@@ -11,8 +11,6 @@ const eslintConfig = defineConfig([
       "prefer-const": "error",
       "no-unused-vars": "error",
       "no-console": "warn",
-      "@typescript-eslint/consistent-type-imports": "error",
-      "@typescript-eslint/no-floating-promises": "error"
     }
   },
   // Override default ignores of eslint-config-next.

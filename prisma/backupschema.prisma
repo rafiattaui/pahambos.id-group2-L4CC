@@ -1,0 +1,97 @@
+generator client {
+  provider = "prisma-client" // Changed to the standard provider
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  Learner
+  Educator
+}
+
+enum Category {
+  Mathematics
+  Science
+  History
+  Language
+  Geography
+  Technology
+  General
+}
+
+model User {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  role       Role
+  username   String   @unique @db.VarChar(100)
+  email      String   @unique @db.VarChar(255)
+  password   String   @db.VarChar(255)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  // Relations
+  classrooms      UserClassroom[]
+  ownedClassrooms Classroom[]       @relation("ClassroomOwner")
+  quizzesCreated  Quiz[]
+  performances    UserPerformance[]
+}
+
+model Classroom {
+  id      String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name    String @db.VarChar(100)
+  ownerID String @db.Uuid // Must match User.id type
+
+  // Relations
+  owner   User            @relation("ClassroomOwner", fields: [ownerID], references: [id])
+  members UserClassroom[]
+}
+
+model UserClassroom {
+  userID      String @db.Uuid
+  classroomID String @db.Uuid
+
+  // Relations
+  user      User      @relation(fields: [userID], references: [id])
+  classroom Classroom @relation(fields: [classroomID], references: [id])
+
+  @@id([userID, classroomID])
+}
+
+model Quiz {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  createdBy    String   @db.Uuid
+  createdAt    DateTime @default(now())
+  numQuestions Int
+  category     Category
+
+  // Relations
+  creator      User              @relation(fields: [createdBy], references: [id])
+  questions    QuizQuestion[]
+  performances UserPerformance[]
+}
+
+model QuizQuestion {
+  id           String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  quizId       String @db.Uuid
+  order        Int
+  questionData Json
+
+  // Relations
+  quiz Quiz @relation(fields: [quizId], references: [id])
+}
+
+model UserPerformance {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  quizId       String   @db.Uuid
+  userId       String   @db.Uuid
+  finalScore   Int
+  accuracyRate Decimal  @db.Decimal(5, 2)
+  timeTaken    Int      // Duration in seconds
+  completedAt  DateTime @default(now())
+
+  // Relations
+  quiz Quiz @relation(fields: [quizId], references: [id])
+  user User @relation(fields: [userId], references: [id])
+}

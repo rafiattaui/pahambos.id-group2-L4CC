@@ -14,11 +14,13 @@ import { authClient } from '@/lib/auth-client';
 import { useState } from 'react';
 import { Alert, AlertDescription } from './ui/alert';
 import { AlertDestructive } from './alert';
+import { useRouter } from 'next/navigation';
 
 export function SignupForm({
   className,
   ...props
 }: React.ComponentProps<'form'>) {
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [formError, setFormError] = useState<{
     title: string;
@@ -50,7 +52,6 @@ export function SignupForm({
           email, // user email address
           password, // user password -> min 8 characters by default
           name: username, // user display name
-          callbackURL: '/dashboard', // A URL to redirect to after the user verifies their email (optional)
         },
         {
           onRequest: (ctx) => {
@@ -58,6 +59,7 @@ export function SignupForm({
           },
           onSuccess: (ctx) => {
             setIsLoading(false);
+            router.push("/dashboard")
           },
           onError: (ctx) => {
             // display the error message
@@ -95,10 +97,10 @@ export function SignupForm({
             </p>
           </div>
           <Field>
-            <FieldLabel htmlFor="name">testUsername</FieldLabel>
+            <FieldLabel htmlFor="name">Username</FieldLabel>
             <Input
               id="name"
-              name="name"
+              name="username"
               type="text"
               placeholder="John Doe"
               required

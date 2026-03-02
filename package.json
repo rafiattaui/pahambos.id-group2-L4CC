@@ -59,6 +59,6 @@
     "typescript": "^5"
   },
   "lint-staged": {
-    "**/*.{js,jsx,ts,tsx}": "pnpx eslint --fix"
+    "**/*.{js,jsx,ts,tsx}": "pnpm exec eslint --fix"
   }
 }

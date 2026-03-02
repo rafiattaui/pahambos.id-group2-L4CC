@@ -95,7 +95,7 @@ export function SignupForm({
             </p>
           </div>
           <Field>
-            <FieldLabel htmlFor="name">Username</FieldLabel>
+            <FieldLabel htmlFor="name">testUsername</FieldLabel>
             <Input
               id="name"
               name="name"

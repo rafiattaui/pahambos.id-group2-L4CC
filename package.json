@@ -8,7 +8,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "prepare": "husky"
+    "prepare": "husky",
+    "format": "prettier --write \"{app,components,lib}/**/*.{ts,tsx,js,jsx,json,css,md}\""
   },
   "dependencies": {
     "@mantine/carousel": "^8.3.15",
@@ -58,6 +59,6 @@
     "typescript": "^5"
   },
   "lint-staged": {
-    "**/*.{js,jsx,ts,tsx}": "eslint --fix"
+    "**/*.{js,jsx,ts,tsx}": "pnpx eslint --fix"
   }
 }

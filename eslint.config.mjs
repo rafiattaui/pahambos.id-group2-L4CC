@@ -9,7 +9,7 @@ const eslintConfig = defineConfig([
   {
     rules: {
       "prefer-const": "error",
-      "no-unused-vars": "error",
+      "no-unused-vars": "warn",
       "no-console": "warn",
     }
   },

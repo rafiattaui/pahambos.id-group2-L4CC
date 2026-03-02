@@ -28,6 +28,7 @@ export function SignupForm({
   } | null>(null);
 
   const onSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
+    setIsLoading(true);
     setFormError(null);
     e.preventDefault();
     const formData = Object.fromEntries(
@@ -60,6 +61,7 @@ export function SignupForm({
           onSuccess: (ctx) => {
             setIsLoading(false);
             router.push("/dashboard")
+            router.refresh()
           },
           onError: (ctx) => {
             // display the error message
@@ -154,7 +156,7 @@ export function SignupForm({
             Sign up with GitHub
           </Button> */}
             <FieldDescription className="px-6 text-center">
-              Already have an account? <a href="#">Sign in</a>
+              Already have an account? <a href="/login">Sign in</a>
             </FieldDescription>
           </Field>
         </FieldGroup>

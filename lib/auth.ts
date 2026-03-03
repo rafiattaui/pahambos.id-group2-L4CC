@@ -8,7 +8,7 @@ export const auth = betterAuth({
     provider: 'postgresql',
   }),
   user: {
-    modelName: "user"
+    modelName: 'user',
   },
   advanced: {
     database: {
@@ -18,8 +18,8 @@ export const auth = betterAuth({
   session: {
     cookieCache: {
       enabled: true,
-      maxAge: 5 * 60
-    }
+      maxAge: 5 * 60,
+    },
   },
   plugins: [nextCookies()],
   emailAndPassword: {

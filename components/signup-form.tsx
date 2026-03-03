@@ -60,8 +60,8 @@ export function SignupForm({
           },
           onSuccess: (ctx) => {
             setIsLoading(false);
-            router.push("/dashboard")
-            router.refresh()
+            router.push('/dashboard');
+            router.refresh();
           },
           onError: (ctx) => {
             // display the error message

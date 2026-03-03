@@ -8,7 +8,7 @@ interface IAlertDestructive {
 
 export function AlertDestructive(props: IAlertDestructive) {
   return (
-    <Alert variant="destructive" className="max-w-md mb-5">
+    <Alert variant="destructive" className="mb-5 max-w-md">
       <AlertCircleIcon />
       <AlertTitle>{props.title}</AlertTitle>
       <AlertDescription>{props.description}</AlertDescription>

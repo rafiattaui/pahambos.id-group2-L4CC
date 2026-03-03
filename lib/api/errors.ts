@@ -1,16 +1,14 @@
-import z, { success } from "zod";
+import z, { success } from 'zod';
 
 export function handleError(error: unknown) {
   if (error instanceof z.ZodError) {
     return Response.json({
-        success: false,
-        message: "Failed to validate schema",
-        code: 400,
-        details: error.issues
-    })
-  }
-
-  else if (error instanceof APIError) {
+      success: false,
+      message: 'Failed to validate schema',
+      code: 400,
+      details: error.issues,
+    });
+  } else if (error instanceof APIError) {
     return Response.json(
       {
         success: false,

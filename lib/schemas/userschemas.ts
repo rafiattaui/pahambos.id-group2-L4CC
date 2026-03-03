@@ -14,7 +14,6 @@ export const UserSchema = z.object({
 // actual user schema to be returned to users
 export const UserPublicSchema = UserSchema.omit({
   updatedAt: true,
-  role: true
 });
 
 // user creation and update schemas are already provided by betterauth

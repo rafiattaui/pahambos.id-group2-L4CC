@@ -16,4 +16,10 @@ export const UserPublicSchema = UserSchema.omit({
   updatedAt: true,
 });
 
-// user creation and update schemas are already provided by betterauth
+export const UserPartialSchema = UserSchema.partial({
+  image: true,
+  name: true,
+  role: true
+});
+
+// user creation schema provided and validated by betterauth functions.

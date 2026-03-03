@@ -12,7 +12,6 @@ import {
 import { Input } from '@/components/ui/input';
 import { authClient } from '@/lib/auth-client';
 import { useState } from 'react';
-import { Alert, AlertDescription } from './ui/alert';
 import { AlertDestructive } from './alert';
 import { useRouter } from 'next/navigation';
 
@@ -48,6 +47,10 @@ export function SignupForm({
         throw new Error('Passwords are different.');
       }
 
+      if (password.length < 8) {
+        throw new Error('Password must be longer than 8 characters.');
+      }
+
       const { data, error } = await authClient.signUp.email(
         {
           email, // user email address
@@ -71,6 +74,7 @@ export function SignupForm({
         }
       );
     } catch (err: any) {
+      setIsLoading(false);
       setFormError({
         title: 'Registration Failed',
         description: err.message,

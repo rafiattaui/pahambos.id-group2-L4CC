@@ -14,6 +14,11 @@ export function parseQueryParams(params: URLSearchParams, schema: ZodObject){
 
 export const QuizListQuerySchema = z.object({
     page: z.coerce.number().default(1),
-    sortBy: z.enum(['newest', 'oldest', 'trending']),
+    sortBy: z.enum([
+        'newest',
+        'oldest',
+        // 'trending,' 
+        // TODO - How to calculate trending?
+    ]).default("newest"),
     tags: z.array(CategoryEnum).optional()
 })

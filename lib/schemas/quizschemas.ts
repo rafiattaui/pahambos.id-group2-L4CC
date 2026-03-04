@@ -6,7 +6,7 @@ export const QuizQuestionSchema = z.object({
   quizId: z.uuid(),
   order: z.int().nonnegative(),
   question: z.string().min(5).max(100),
-  answers: z.array(z.string().min(4)),
+  answers: z.array(z.string().min(2)).min(2),
   correctAnswer: z.int().nonnegative(),
 });
 

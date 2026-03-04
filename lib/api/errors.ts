@@ -1,6 +1,19 @@
-import z, { success } from 'zod';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
+import z from 'zod';
 
 export function handleError(error: unknown) {
+  if (error instanceof PrismaClientKnownRequestError) {
+    return Response.json(
+      {
+        success: false,
+        message: error.message,
+        meta: error.meta,
+        code: error.code,
+      },
+      { status: 500 }
+    );
+  };
+
   if (error instanceof SyntaxError) {
     return Response.json(
       {
@@ -10,7 +23,7 @@ export function handleError(error: unknown) {
       },
       { status: 400 }
     );
-  }
+  };
   if (error instanceof z.ZodError) {
     return Response.json(
       {
@@ -39,8 +52,8 @@ export function handleError(error: unknown) {
       },
       { status: 500 }
     );
-  }
-}
+  };
+};
 
 export class APIError extends Error {
   public readonly statusCode: number;

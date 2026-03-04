@@ -34,7 +34,7 @@ const CategoryEnum = z.enum([
 export const QuizSchema = z.object({
   id: z.uuid(),
   createdBy: z.uuid(),
-  createdAt: z.date(),
+  createdAt: z.coerce.date(),
   title: z.string().min(5),
   description: z.string(),
   category: CategoryEnum,
@@ -49,4 +49,9 @@ export const CreateQuizSchema = QuizSchema.omit({
   createdBy: true,
   numQuestions: true,
   // these are fields that will not be sent by the user, they will be added validated by the backend.
+});
+
+export const CreateQuizAndQuestionsSchema = z.object({
+  quiz: CreateQuizSchema,
+  questions: z.array(CreateQuestionSchema).min(4)
 });

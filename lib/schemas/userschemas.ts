@@ -19,7 +19,7 @@ export const UserPublicSchema = UserSchema.omit({
 export const UserPartialSchema = UserSchema.partial({
   image: true,
   name: true,
-  role: true
+  role: true,
 });
 
 // user creation schema provided and validated by betterauth functions.

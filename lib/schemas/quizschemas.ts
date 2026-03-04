@@ -22,14 +22,14 @@ export const CreateQuestionSchema = QuizQuestionSchema.omit({
 });
 
 const CategoryEnum = z.enum([
-  "Mathematics",
-  "Science",
-  "History",
-  "Language",
-  "Geography",
-  "Technology",
-  "General"
-])
+  'Mathematics',
+  'Science',
+  'History',
+  'Language',
+  'Geography',
+  'Technology',
+  'General',
+]);
 
 export const QuizSchema = z.object({
   id: z.uuid(),
@@ -38,10 +38,10 @@ export const QuizSchema = z.object({
   title: z.string().min(5),
   description: z.string(),
   category: CategoryEnum,
-  numQuestions: z.int().nonnegative()
-})
+  numQuestions: z.int().nonnegative(),
+});
 
-export const PublicQuizSchema = QuizSchema
+export const PublicQuizSchema = QuizSchema;
 
 export const CreateQuizSchema = QuizSchema.omit({
   id: true,
@@ -49,4 +49,4 @@ export const CreateQuizSchema = QuizSchema.omit({
   createdBy: true,
   numQuestions: true,
   // these are fields that will not be sent by the user, they will be added validated by the backend.
-})
+});

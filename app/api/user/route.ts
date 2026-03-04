@@ -26,7 +26,7 @@ export async function GET() {
 
 /*
  * PATCH route handler for updating user data.
- */ 
+ */
 export async function PATCH(request: NextRequest) {
   try {
     const rawData = await request.json();
@@ -34,12 +34,11 @@ export async function PATCH(request: NextRequest) {
 
     const res = await auth.api.updateUser({
       body: data,
-      headers: await headers()
-    })
+      headers: await headers(),
+    });
 
-    return Response.json({...res}, { status: 200 })
-
+    return Response.json({ ...res }, { status: 200 });
   } catch (error) {
-    return handleError(error)
+    return handleError(error);
   }
 }

@@ -3,7 +3,10 @@ import { handleError } from '@/lib/api/errors';
 import { CreateQuizAndQuestionsSchema } from '@/lib/schemas/quizschemas';
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { parseQueryParams, QuizListQuerySchema } from '@/lib/schemas/queryparams';
+import {
+  parseQueryParams,
+  QuizListQuerySchema,
+} from '@/lib/schemas/queryparams';
 
 export const POST = WithAuth(async (req, { user, params }) => {
   try {
@@ -18,21 +21,29 @@ export const POST = WithAuth(async (req, { user, params }) => {
         data: {
           ...data.quiz,
           numQuestions,
-          creator: { connect: { id: user.id } }
-        }
+          creator: { connect: { id: user.id } },
+        },
       });
 
       const questions = await tx.quizQuestion.createMany({
         data: data.questions.map((element) => ({
-          ...element,
-          quizId: quiz.id
-        }))
+          quizId: quiz.id,
+          order: element.order,
+          questionData: {
+            question: element.question,
+            answers: element.answers,
+            correctAnswer: element.correctAnswer,
+          },
+        })),
       });
 
       return { quiz, questions };
     });
 
-    return NextResponse.json({success: true, quizId: result.quiz.id}, { status: 200 });
+    return NextResponse.json(
+      { success: true, quizId: result.quiz.id },
+      { status: 200 }
+    );
   } catch (error) {
     return handleError(error);
   }
@@ -40,9 +51,12 @@ export const POST = WithAuth(async (req, { user, params }) => {
 
 export const GET = WithAuth(async (req, { user, params }) => {
   try {
-    const searchParams = parseQueryParams(req.nextUrl.searchParams, QuizListQuerySchema)
-    // TODO - logic
+    const searchParams = parseQueryParams(
+      req.nextUrl.searchParams,
+      QuizListQuerySchema
+    );
+    return NextResponse.json({}, { status: 200 });
   } catch (error) {
-    return handleError(error)
+    return handleError(error);
   }
-})
+});

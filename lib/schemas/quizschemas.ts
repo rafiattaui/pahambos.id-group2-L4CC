@@ -21,7 +21,7 @@ export const CreateQuestionSchema = QuizQuestionSchema.omit({
   quizId: true,
 });
 
-const CategoryEnum = z.enum([
+export const CategoryEnum = z.enum([
   'Mathematics',
   'Science',
   'History',

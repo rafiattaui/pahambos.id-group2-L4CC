@@ -16,8 +16,8 @@ export const auth = betterAuth({
     },
   },
   advanced: {
-    defaultCookieAttributes:{
-      secure: process.env.NODE_ENV === "production"
+    defaultCookieAttributes: {
+      secure: process.env.NODE_ENV === 'production',
     },
     database: {
       generateId: 'uuid',

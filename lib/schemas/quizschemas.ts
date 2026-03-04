@@ -53,5 +53,5 @@ export const CreateQuizSchema = QuizSchema.omit({
 
 export const CreateQuizAndQuestionsSchema = z.object({
   quiz: CreateQuizSchema,
-  questions: z.array(CreateQuestionSchema).min(4)
+  questions: z.array(CreateQuestionSchema).min(4),
 });

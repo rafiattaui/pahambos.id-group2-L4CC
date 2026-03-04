@@ -1,0 +1,159 @@
+
+generator client {
+  provider = "prisma-client"
+  output = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  Learner
+  Educator
+}
+
+enum Category {
+  Mathematics
+  Science
+  History
+  Language
+  Geography
+  Technology
+  General
+}
+
+model User {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name          String
+  email         String
+  emailVerified Boolean   @default(false)
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  role          Role      @default(Learner)
+  sessions      Session[]
+  accounts      Account[]
+
+  @@unique([email])
+  @@map("user")
+
+  // Relations
+  classrooms      UserClassroom[]
+  ownedClassrooms Classroom[]       @relation("ClassroomOwner")
+  quizzesCreated  Quiz[]
+  performances    UserPerformance[]
+}
+
+model Session {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  expiresAt DateTime
+  token     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String   @db.Uuid
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([token])
+  @@index([userId])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  accountId             String
+  providerId            String
+  userId                String    @db.Uuid
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@map("verification")
+}
+
+model Classroom {
+  id      String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name    String @db.VarChar(100)
+  ownerId String @db.Uuid // Must match User.id type
+
+  // Relations
+  owner   User            @relation("ClassroomOwner", fields: [ownerId], references: [id])
+  members UserClassroom[]
+
+  @@index([ownerId])
+}
+
+model UserClassroom {
+  userId      String @db.Uuid
+  classroomId String @db.Uuid
+
+  // Relations
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  classroom Classroom @relation(fields: [classroomId], references: [id], onDelete: Cascade)
+
+  @@id([userId, classroomId])
+}
+
+model Quiz {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  createdBy    String   @db.Uuid
+  createdAt    DateTime @default(now())
+  title        String   @db.VarChar(255)
+  description  String?
+  numQuestions Int
+  category     Category
+
+  // Relations
+  creator      User              @relation(fields: [createdBy], references: [id])
+  questions    QuizQuestion[]
+  performances UserPerformance[]
+}
+
+model QuizQuestion {
+  id           String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  quizId       String @db.Uuid
+  order        Int
+  questionData Json
+
+  // Relations
+  quiz Quiz @relation(fields: [quizId], references: [id], onDelete: Cascade)
+}
+
+model UserPerformance {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  quizId       String   @db.Uuid
+  userId       String   @db.Uuid
+  finalScore   Int
+  accuracyRate Decimal  @db.Decimal(5, 2)
+  timeTaken    Int      // Duration in seconds
+  completedAt  DateTime @default(now())
+
+  // Relations
+  quiz Quiz @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([quizId])
+}

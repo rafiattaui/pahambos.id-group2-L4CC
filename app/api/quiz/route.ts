@@ -29,11 +29,9 @@ export const POST = WithAuth(async (req, { user, params }) => {
         data: data.questions.map((element) => ({
           quizId: quiz.id,
           order: element.order,
-          questionData: {
-            question: element.question,
-            answers: element.answers,
-            correctAnswer: element.correctAnswer,
-          },
+          question: element.question,
+          answers: element.answers,
+          correctAnswer: element.correctAnswer,
         })),
       });
 

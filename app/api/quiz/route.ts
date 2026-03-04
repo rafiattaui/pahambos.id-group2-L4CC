@@ -8,6 +8,12 @@ import {
   QuizListQuerySchema,
 } from '@/lib/schemas/queryparams';
 
+const PAGE_SIZE = 10; // quizzes per page.
+
+/*
+ * Protected Route,
+ * Route for creating a quiz.
+ */
 export const POST = WithAuth(async (req, { user, params }) => {
   try {
     const rawData = await req.json();
@@ -47,13 +53,37 @@ export const POST = WithAuth(async (req, { user, params }) => {
   }
 });
 
+/*
+ * Protected Route,
+ * Route for retrieving a list of quiz
+ */
 export const GET = WithAuth(async (req, { user, params }) => {
   try {
-    const searchParams = parseQueryParams(
+    const { limit, cursor, sortBy, tags } = parseQueryParams(
       req.nextUrl.searchParams,
       QuizListQuerySchema
     );
-    return NextResponse.json({}, { status: 200 });
+
+    const quizList = await prisma.quiz.findMany({
+      take: limit + 1,
+      cursor: cursor ? { id: cursor } : undefined,
+      skip: cursor ? 1 : 0,
+      orderBy: {
+        id: sortBy,
+      },
+      where: {
+        category: { in: tags },
+      },
+    });
+
+    let nextCursor: typeof cursor | null = null;
+
+    if (quizList.length > limit) {
+      const nextQuiz = quizList.pop();
+      nextCursor = nextQuiz!.id;
+    }
+
+    return NextResponse.json({ data: quizList, nextCursor }, { status: 200 });
   } catch (error) {
     return handleError(error);
   }

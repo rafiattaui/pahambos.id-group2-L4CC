@@ -2,23 +2,29 @@ import { z, ZodObject } from 'zod';
 import { CategoryEnum } from './quizschemas';
 import { APIError } from '../api/errors';
 
-export function parseQueryParams(params: URLSearchParams, schema: ZodObject){
-    const result = schema.safeParse(Object.fromEntries(params));
+export function parseQueryParams<T extends ZodObject>(
+  params: URLSearchParams,
+  schema: T
+): z.infer<T> {
+  const result = schema.safeParse(Object.fromEntries(params));
 
-    if (!result.success) {
-        throw new APIError("Invalid query parameters", 400)
-    }
+  if (!result.success) {
+    throw new APIError('Invalid query parameters', 400);
+  }
 
-    return result.data
+  return result.data;
 }
 
 export const QuizListQuerySchema = z.object({
-    page: z.coerce.number().default(1),
-    sortBy: z.enum([
-        'newest',
-        'oldest',
-        // 'trending,' 
-        // TODO - How to calculate trending?
-    ]).default("newest"),
-    tags: z.array(CategoryEnum).optional()
-})
+  limit: z.coerce.number().min(1).max(20).default(10),
+  cursor: z.uuid().optional(),
+  sortBy: z
+    .enum([
+      'asc',
+      'desc',
+      // 'trending,'
+      // TODO - How to calculate trending?
+    ])
+    .default('asc'),
+  tags: z.array(CategoryEnum).optional(),
+});

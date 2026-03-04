@@ -74,6 +74,12 @@
     "@vitest/coverage-v8": "^4.0.18"
   },
   "lint-staged": {
-    "**/*.{js,jsx,ts,tsx}": "pnpm exec eslint --fix"
+    "**/*.(js|jsx|ts|tsx)": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "**/*.(md|json|css)": [
+      "prettier --write"
+    ]
   }
 }

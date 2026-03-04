@@ -3,7 +3,6 @@ import { handleError } from '@/lib/api/errors';
 import { CreateQuizAndQuestionsSchema } from '@/lib/schemas/quizschemas';
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { request } from 'http';
 import { parseQueryParams, QuizListQuerySchema } from '@/lib/schemas/queryparams';
 
 export const POST = WithAuth(async (req, { user, params }) => {
@@ -42,8 +41,7 @@ export const POST = WithAuth(async (req, { user, params }) => {
 export const GET = WithAuth(async (req, { user, params }) => {
   try {
     const searchParams = parseQueryParams(req.nextUrl.searchParams, QuizListQuerySchema)
-
-    
+    // TODO - logic
   } catch (error) {
     return handleError(error)
   }

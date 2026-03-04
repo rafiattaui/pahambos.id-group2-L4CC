@@ -4,10 +4,10 @@ import { z } from 'zod';
 export const QuizQuestionSchema = z.object({
   id: z.uuid(),
   quizId: z.uuid(),
-  order: z.number().int().nonnegative(),
+  order: z.int().nonnegative(),
   question: z.string().min(5).max(100),
   answers: z.array(z.string().min(1)),
-  correctAnswer: z.number().int().nonnegative(),
+  correctAnswer: z.int().nonnegative(),
 });
 
 // student view, omits correct answer
@@ -21,4 +21,32 @@ export const CreateQuestionSchema = QuizQuestionSchema.omit({
   quizId: true,
 });
 
-export const QuizSchema = z.object;
+const CategoryEnum = z.enum([
+  "Mathematics",
+  "Science",
+  "History",
+  "Language",
+  "Geography",
+  "Technology",
+  "General"
+])
+
+export const QuizSchema = z.object({
+  id: z.uuid(),
+  createdBy: z.uuid(),
+  createdAt: z.date(),
+  title: z.string().min(5),
+  description: z.string(),
+  category: CategoryEnum,
+  numQuestions: z.int().nonnegative()
+})
+
+export const PublicQuizSchema = QuizSchema
+
+export const CreateQuizSchema = QuizSchema.omit({
+  id: true,
+  createdAt: true,
+  createdBy: true,
+  numQuestions: true,
+  // these are fields that will not be sent by the user, they will be added validated by the backend.
+})

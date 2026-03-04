@@ -1,7 +1,6 @@
 
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Fredoka, Quicksand } from "next/font/google";
-import Navbar from "@/components/header/navbar";
 import AnimatedBackground from "@/components/header/animation";
 import "./globals.css";
 
@@ -41,9 +40,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${fredoka.variable} ${quicksand.variable} antialiased`}
       >
-          <header className="sticky top-0 z-50 w-full bg-white backdrop-blur-md">
-          <Navbar />
-          </header>
+          
           {children}
 
         <div className="fixed top-0 left-0 w-full h-full -z-10">

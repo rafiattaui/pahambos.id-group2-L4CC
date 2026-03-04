@@ -13,9 +13,9 @@ export default function Navbar() {
   };
 
   return (
-    <div className="flex flex-row">
+    <nav className="flex flex-row">
       <Logo></Logo>
-      <div className="font-body-bold items-center-safe flex flex-1 flex-row">
+      <div className=" hidden font-body-bold items-center-safe md:flex flex-1 flex-row">
         <Button variant="ghost" onClick={handleClick}>
           Discover
         </Button>
@@ -29,7 +29,7 @@ export default function Navbar() {
           
         </div>
         <div className="flex flex-row ml-auto gap-2 items-center">
-          <Button onClick={handleClick} className="bg-blue-500 text-white hover:bg-blue-400">
+          <Button onClick={handleClick} className="bg-blue-500 text-white hover:bg-blue-700">
             Sign Up
           </Button>
           <Button variant="ghost" onClick={handleClick}>
@@ -40,6 +40,6 @@ export default function Navbar() {
           </div>
         </div>
       </div>
-    </div>
+    </nav>
   );
 }

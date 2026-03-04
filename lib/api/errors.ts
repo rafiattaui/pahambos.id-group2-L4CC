@@ -1,13 +1,26 @@
 import z, { success } from 'zod';
 
 export function handleError(error: unknown) {
+  if (error instanceof SyntaxError) {
+    return Response.json(
+      {
+        success: false,
+        message: 'Invalid JSON format in request body',
+        code: 400,
+      },
+      { status: 400 }
+    );
+  }
   if (error instanceof z.ZodError) {
-    return Response.json({
-      success: false,
-      message: 'Failed to validate schema',
-      code: 400,
-      details: error.issues,
-    });
+    return Response.json(
+      {
+        success: false,
+        message: 'Failed to validate schema',
+        code: 400,
+        details: z.flattenError(error),
+      },
+      { status: 400 }
+    );
   } else if (error instanceof APIError) {
     return Response.json(
       {

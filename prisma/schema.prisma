@@ -135,7 +135,9 @@ model QuizQuestion {
   id           String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   quizId       String @db.Uuid
   order        Int
-  questionData Json
+  question     String
+  answers      String[]
+  correctAnswer Int
 
   // Relations
   quiz Quiz @relation(fields: [quizId], references: [id], onDelete: Cascade)

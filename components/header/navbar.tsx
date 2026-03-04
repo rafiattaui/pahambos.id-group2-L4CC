@@ -15,17 +15,19 @@ export default function Navbar() {
   return (
     <nav className="flex flex-row">
       <Logo></Logo>
-      <div className=" hidden font-body-bold items-center-safe md:flex flex-1 flex-row">
-        <Button variant="ghost" onClick={handleClick}>
-          Discover
-        </Button>
-        <Button variant="ghost" onClick={handleClick}>
-          Learn
-        </Button>
-        <div className="flex flex-row">
+      <div className=" font-body-bold items-center-safe">
+        <div className="hidden md:flex flex-row gap-4">
           <Button variant="ghost" onClick={handleClick}>
-            Create <Plus />
+            Discover
           </Button>
+          <Button variant="ghost" onClick={handleClick}>
+            Learn
+          </Button>
+          <div className="flex flex-row">
+            <Button variant="ghost" onClick={handleClick}>
+              Create <Plus />
+            </Button>
+        </div>
           
         </div>
         <div className="flex flex-row ml-auto gap-2 items-center">

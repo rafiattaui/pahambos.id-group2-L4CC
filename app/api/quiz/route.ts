@@ -8,7 +8,7 @@ export const POST = WithAuth(async (req, { user, params }) => {
         const rawData = await req.json();
         const data = CreateQuizAndQuestionsSchema.parse(rawData);
 
-        // quiz creation logic.
+        // TODO - quiz creation logic.
 
         return NextResponse.json({...data}, {status: 200})
     } catch (error) {   

@@ -17,7 +17,7 @@ export default function HeroSect() {
         </p>
         <div className="mt-10 flex flex-row gap-4">
           <a href="/register">
-            <Button className="items-center bg-blue-500 px-6 py-6 hover:scale-110 hover:bg-blue-700">
+            <Button className="items-center bg-blue-500 px-6 py-6 hover:scale-110 hover:bg-blue-700 active:scale-120">
               Get Started <ArrowRight />
             </Button>
           </a>

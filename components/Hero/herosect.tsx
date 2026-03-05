@@ -16,9 +16,11 @@ export default function HeroSect() {
           Join us today and unlock your full potential!
         </p>
         <div className="mt-10 flex flex-row gap-4">
-          <Button className="items-center bg-blue-500 px-6 py-6 hover:scale-110 hover:bg-blue-700">
-            Get Started <ArrowRight />
-          </Button>
+          <a href="/register">
+            <Button className="items-center bg-blue-500 px-6 py-6 hover:scale-110 hover:bg-blue-700">
+              Get Started <ArrowRight />
+            </Button>
+          </a>
           <Button className="bg-white px-6 py-6 text-black hover:scale-110 hover:bg-gray-400">
             Learn More
           </Button>

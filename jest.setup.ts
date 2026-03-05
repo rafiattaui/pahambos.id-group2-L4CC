@@ -18,4 +18,6 @@ jest.mock('lucide-react', () => ({
     React.createElement('div', { ...props, 'data-testid': 'user-icon' }),
   Plus: (props: Record<string, unknown>) =>
     React.createElement('div', { ...props, 'data-testid': 'plus-icon' }),
+  ArrowRight: (props: Record<string, unknown>) =>
+    React.createElement('div', { ...props, 'data-testid': 'arrow-right-icon' }),
 }));

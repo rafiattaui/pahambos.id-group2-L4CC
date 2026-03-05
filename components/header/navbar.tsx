@@ -24,7 +24,7 @@ export default function Navbar() {
         </Button>
         <div className="flex flex-row">
           <Button variant="ghost" onClick={handleClick}>
-            Discover
+            Create <Plus />
           </Button>
         </div>
       </div>
@@ -42,10 +42,10 @@ export default function Navbar() {
             Log In
           </Button>
         </a>
-        </div>
         <div className="mr-4 flex h-10 w-10 items-center justify-center rounded hover:bg-gray-200">
           <CircleUserRound className="h-max w-max" />
         </div>
+      </div>
     </nav>
   );
 }

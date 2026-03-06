@@ -24,7 +24,7 @@ export default function Navbar() {
         </Button>
         <div className="flex flex-row">
           <Button variant="ghost" onClick={handleClick}>
-            Discover
+            Create <Plus />
           </Button>
         </div>
       </div>

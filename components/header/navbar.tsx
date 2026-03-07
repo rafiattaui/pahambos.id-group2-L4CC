@@ -12,16 +12,34 @@ export default function Navbar() {
     setIsClicked(!isClicked);
   };
 
+  const scrollToSection = (sectionId: string) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      const offset = 80;
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - offset;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth',
+      });
+    }
+  };
+
   return (
     <nav className="container flex max-w-full flex-row items-center">
       <Logo></Logo>
       <div className="hidden flex-1 items-center gap-4 md:flex">
-        <Button variant="ghost" onClick={handleClick}>
-          Discover
-        </Button>
-        <Button variant="ghost" onClick={handleClick}>
-          Learn
-        </Button>
+        <a href="#discover">
+          <Button variant="ghost" onClick={() => scrollToSection('discover')}>
+            Discover
+          </Button>
+        </a>
+        <a href="#learn">
+          <Button variant="ghost" onClick={handleClick}>
+            Learn
+          </Button>
+        </a>
         <div className="flex flex-row">
           <Button variant="ghost" onClick={handleClick}>
             Create <Plus />

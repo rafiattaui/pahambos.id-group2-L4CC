@@ -31,30 +31,28 @@ export default function Discover() {
   }, [api]);
 
   return (
-    <div className="container my-16 border-2">
-      <section className="">
-        <h2 className="font-heading text-4xl font-bold text-white">Discover</h2>
-        <p className="mt-6 mb-6 text-white">
+    <div id="discover" className="my-16">
+      <section className="container mx-auto w-full">
+        <h2 className="font-heading ml-4 text-4xl font-bold text-white">
+          Discover
+        </h2>
+        <p className="mt-6 mb-6 ml-4 text-white">
           Explore many quizzes based on your preferred categories
         </p>
         <Carousel
-          opts={{ loop: true, align: 'center' }}
+          opts={{ loop: true, align: 'start' }}
           setApi={setApi}
           plugins={[Autoplay({ delay: 3000, stopOnInteraction: true })]}
-          className="mx-auto w-full max-w-100 sm:max-w-350"
+          className="mx-auto w-full max-w-96 md:max-w-7xl"
         >
-          <CarouselContent className="">
+          <CarouselContent className="-ml-2 md:-ml-4">
             {Array.from({ length: 5 }).map((_, index) => (
-              <CarouselItem key={index} className="sm:basis-1/3">
-                <div className="">
-                  <Card>
-                    <CardContent className="flex items-center justify-center p-6 md:h-48">
-                      <span className="text-4xl font-semibold">
-                        {index + 1}
-                      </span>
-                    </CardContent>
-                  </Card>
-                </div>
+              <CarouselItem key={index} className="basis-full sm:basis-1/3">
+                <Card>
+                  <CardContent className="flex h-40 items-center justify-center p-6">
+                    <span className="text-4xl font-semibold">{index + 1}</span>
+                  </CardContent>
+                </Card>
               </CarouselItem>
             ))}
           </CarouselContent>

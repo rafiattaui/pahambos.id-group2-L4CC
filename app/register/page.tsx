@@ -1,5 +1,5 @@
 import { GalleryVerticalEnd } from 'lucide-react';
-
+import ImageSlideshow from '@/components/image-slideshow';
 import { SignupForm } from '@/components/signup-form';
 
 export default async function SignupPage() {
@@ -21,11 +21,7 @@ export default async function SignupPage() {
         </div>
       </div>
       <div className="bg-muted relative hidden lg:block">
-        <img
-          src="/placeholder.svg"
-          alt="Image"
-          className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
-        />
+        <ImageSlideshow />
       </div>
     </div>
   );

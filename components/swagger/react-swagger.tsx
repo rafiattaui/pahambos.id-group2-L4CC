@@ -2,13 +2,20 @@
 
 import SwaggerUI from 'swagger-ui-react';
 import 'swagger-ui-react/swagger-ui.css';
+import '@/app/api-doc/swagger-fix.css';
 
-type Props = {
-  spec: Record<string, unknown>;
-};
-
-function ReactSwagger({ spec }: Props) {
-  return <SwaggerUI spec={spec} />;
+function ReactSwagger() {
+  return (
+    <div className="swagger-initializer">
+      <SwaggerUI
+        url="/openapi.json"
+        requestInterceptor={(req) => {
+          req.credentials = 'include';
+          return req;
+        }}
+      />
+    </div>
+  );
 }
 
 export default ReactSwagger;

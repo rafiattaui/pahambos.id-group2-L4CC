@@ -1,54 +1,131 @@
 {
-  "swagger": "2.0",
+  "openapi": "3.0.0",
   "info": {
     "title": "Quiz and User API",
     "description": "Combined API documentation for Quiz management and User profile services.",
     "version": "1.0.0"
   },
-  "securityDefinitions": {
-    "BearerAuth": {
-      "type": "apiKey",
-      "name": "Authorization",
-      "in": "header",
-      "description": "Enter your bearer token in the format: Bearer <token>"
-    }
-  },
-  "basePath": "/",
-  "tags": [
+  "servers": [
     {
-      "name": "Quiz"
-    },
-    {
-      "name": "User"
+      "url": "/",
+      "description": "Base Server"
     }
   ],
+  "tags": [{ "name": "Auth" }, { "name": "Quiz" }, { "name": "User" }],
+  "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Enter your bearer token in the format: <token>"
+      }
+    },
+    "schemas": {
+      "User": {
+        "type": "object",
+        "required": [
+          "id",
+          "email",
+          "name",
+          "image",
+          "emailVerified",
+          "role",
+          "createdAt"
+        ],
+        "properties": {
+          "id": { "type": "string" },
+          "email": { "type": "string", "format": "email" },
+          "name": { "type": "string" },
+          "image": { "type": "string" },
+          "emailVerified": { "type": "boolean" },
+          "role": { "type": "string", "enum": ["Learner", "Educator"] },
+          "createdAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "Quiz": {
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "createdBy",
+          "createdAt",
+          "numQuestions",
+          "category"
+        ],
+        "properties": {
+          "id": { "type": "string" },
+          "title": { "type": "string" },
+          "createdBy": { "type": "string" },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "numQuestions": { "type": "integer" },
+          "category": { "type": "string" }
+        }
+      },
+      "QuizDetailed": {
+        "allOf": [
+          { "$ref": "#/components/schemas/Quiz" },
+          {
+            "type": "object",
+            "properties": {
+              "questions": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": { "type": "string" },
+                    "quizId": { "type": "string" },
+                    "order": { "type": "integer" },
+                    "question": { "type": "string" },
+                    "answers": {
+                      "type": "array",
+                      "items": { "type": "string" }
+                    },
+                    "correctAnswer": { "type": "integer" }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "QuizList": {
+        "type": "object",
+        "required": ["data", "nextCursor"],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Quiz" }
+          },
+          "nextCursor": { "type": "string", "nullable": true }
+        }
+      }
+    }
+  },
   "paths": {
     "/api/auth/sign-up/email": {
       "post": {
         "summary": "Register new user",
         "tags": ["Auth"],
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "required": ["email", "password", "name"],
-              "properties": {
-                "email": { "type": "string", "format": "email" },
-                "password": { "type": "string", "minLength": 8 },
-                "name": { "type": "string" },
-                "image": {
-                  "type": "string",
-                  "description": "Optional profile image URL"
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["email", "password", "name"],
+                "properties": {
+                  "email": { "type": "string", "format": "email" },
+                  "password": { "type": "string", "minLength": 8 },
+                  "name": { "type": "string" },
+                  "image": { "type": "string" }
                 }
               }
             }
           }
-        ],
+        },
         "responses": {
-          "200": { "description": "User created and session started" }
+          "200": { "description": "User created" }
         }
       }
     },
@@ -56,21 +133,21 @@
       "post": {
         "summary": "Login with email",
         "tags": ["Auth"],
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "required": ["email", "password"],
-              "properties": {
-                "email": { "type": "string", "format": "email" },
-                "password": { "type": "string" }
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["email", "password"],
+                "properties": {
+                  "email": { "type": "string", "format": "email" },
+                  "password": { "type": "string" }
+                }
               }
             }
           }
-        ],
+        },
         "responses": {
           "200": { "description": "Successful login" }
         }
@@ -78,298 +155,186 @@
     },
     "/api/quiz": {
       "get": {
-        "summary": "GetQuizList",
-        "description": "Retrieve a list of quizzes based on filters and sorting provided via query parameters.",
+        "summary": "Get Quiz List",
         "tags": ["Quiz"],
         "security": [{ "BearerAuth": [] }],
         "parameters": [
           {
             "name": "sortBy",
             "in": "query",
-            "description": "asc, desc",
-            "required": false,
-            "type": "string",
-            "x-example": "desc"
+            "schema": { "type": "string", "enum": ["asc", "desc"] }
           },
           {
             "name": "tags",
             "in": "query",
-            "required": false,
-            "type": "array",
-            "items": { "type": "string" },
-            "collectionFormat": "multi",
-            "x-example": ["math, science"]
+            "style": "form",
+            "explode": true,
+            "schema": { "type": "array", "items": { "type": "string" } }
           },
-          {
-            "name": "limit",
-            "in": "query",
-            "description": "for cursor based pagination",
-            "required": false,
-            "type": "integer"
-          },
-          {
-            "name": "cursor",
-            "in": "query",
-            "description": "for cursor based pagination",
-            "required": false,
-            "type": "string"
-          }
+          { "name": "limit", "in": "query", "schema": { "type": "integer" } },
+          { "name": "cursor", "in": "query", "schema": { "type": "string" } }
         ],
         "responses": {
           "200": {
-            "description": "Successful retrieval",
-            "schema": { "$ref": "#/definitions/QuizList" }
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/QuizList" }
+              }
+            }
           }
         }
       },
       "post": {
-        "summary": "PostQuiz",
-        "description": "Creates a new quiz along with its questions, requires auth.",
+        "summary": "Create Quiz",
         "tags": ["Quiz"],
         "security": [{ "BearerAuth": [] }],
-        "parameters": [
-          {
-            "required": true,
-            "name": "body",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "required": ["quiz", "questions"],
-              "properties": {
-                "quiz": {
-                  "type": "object",
-                  "required": ["title", "description", "category"],
-                  "properties": {
-                    "title": { "type": "string" },
-                    "description": { "type": "string" },
-                    "category": { "type": "string" }
-                  }
-                },
-                "questions": {
-                  "type": "array",
-                  "items": {
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["quiz", "questions"],
+                "properties": {
+                  "quiz": {
                     "type": "object",
-                    "required": [
-                      "order",
-                      "question",
-                      "answers",
-                      "correctAnswer"
-                    ],
+                    "required": ["title", "description", "category"],
                     "properties": {
-                      "order": { "type": "integer" },
-                      "question": { "type": "string" },
-                      "answers": {
-                        "type": "array",
-                        "items": { "type": "string" }
-                      },
-                      "correctAnswer": { "type": "integer" }
+                      "title": { "type": "string" },
+                      "description": { "type": "string" },
+                      "category": { "type": "string" }
+                    }
+                  },
+                  "questions": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "order",
+                        "question",
+                        "answers",
+                        "correctAnswer"
+                      ],
+                      "properties": {
+                        "order": { "type": "integer" },
+                        "question": { "type": "string" },
+                        "answers": {
+                          "type": "array",
+                          "items": { "type": "string" }
+                        },
+                        "correctAnswer": { "type": "integer" }
+                      }
                     }
                   }
                 }
               }
             }
           }
-        ],
+        },
         "responses": {
-          "200": {
-            "description": "Quiz created",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "success": { "type": "boolean" },
-                "quizId": { "type": "string" }
-              }
-            }
-          }
+          "200": { "description": "Quiz created" }
         }
       }
     },
-    "/api/quiz/{quizId}": {
+    "/api/quiz/{id}": {
       "get": {
-        "summary": "GetQuiz",
-        "description": "Retrieve a quiz and its full list of questions.",
+        "summary": "Get Detailed Quiz",
         "tags": ["Quiz"],
         "security": [{ "BearerAuth": [] }],
         "parameters": [
-          { "name": "quizId", "in": "path", "required": true, "type": "string" }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful retrieval",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "quiz": { "$ref": "#/definitions/QuizDetailed" }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/user": {
-      "get": {
-        "summary": "GetUser",
-        "description": "Retrieve user details based on session token within their headers.",
-        "tags": ["User"],
-        "security": [{ "BearerAuth": [] }],
-        "parameters": [
           {
-            "name": "session_token",
-            "in": "cookie",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "session_data",
-            "in": "cookie",
-            "required": false,
-            "type": "string"
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
           }
         ],
         "responses": {
           "200": {
             "description": "Success",
-            "schema": { "$ref": "#/definitions/User" }
-          }
-        }
-      },
-      "patch": {
-        "summary": "EditUser",
-        "description": "Updates user details.",
-        "tags": ["User"],
-        "security": [{ "BearerAuth": [] }],
-        "parameters": [
-          {
-            "name": "session_token",
-            "in": "cookie",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "properties": {
-                "image": { "type": "string" },
-                "name": { "type": "string" },
-                "role": { "type": "string", "enum": ["Learner", "Educator"] }
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/QuizDetailed" }
               }
             }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "User updated",
-            "schema": { "$ref": "#/definitions/User" }
           }
         }
       },
       "delete": {
-        "summary": "DeleteUser",
-        "description": "Deletes the user's account.",
-        "tags": ["User"],
+        "summary": "Delete a quiz",
+        "tags": ["Quiz"],
         "security": [{ "BearerAuth": [] }],
         "parameters": [
           {
-            "name": "session_token",
-            "in": "cookie",
-            "required": false,
-            "type": "string"
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
           }
         ],
         "responses": {
           "200": {
-            "description": "Account deleted",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "success": { "type": "boolean" }
+            "description": "Quiz successfully deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": { "success": { "type": "boolean" } }
+                }
+              }
+            }
+          },
+          "401": { "description": "Unauthorized" },
+          "404": { "description": "Quiz not found" }
+        }
+      }
+    },
+    "/api/user": {
+      "get": {
+        "summary": "Get User Profile",
+        "tags": ["User"],
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/User" }
               }
             }
           }
         }
-      }
-    }
-  },
-  "definitions": {
-    "User": {
-      "type": "object",
-      "required": [
-        "emailVerified",
-        "image",
-        "email",
-        "name",
-        "createdAt",
-        "id",
-        "role"
-      ],
-      "properties": {
-        "id": { "type": "string" },
-        "email": { "type": "string" },
-        "name": { "type": "string" },
-        "image": { "type": "string" },
-        "emailVerified": { "type": "boolean" },
-        "role": { "type": "string", "enum": ["Learner", "Educator"] },
-        "createdAt": { "type": "string" }
-      }
-    },
-    "Quiz": {
-      "type": "object",
-      "required": [
-        "id",
-        "createdBy",
-        "createdAt",
-        "numQuestions",
-        "category",
-        "title"
-      ],
-      "properties": {
-        "id": { "type": "string" },
-        "title": { "type": "string" },
-        "createdBy": { "type": "string" },
-        "createdAt": { "type": "string" },
-        "numQuestions": { "type": "integer" },
-        "category": { "type": "string" }
-      }
-    },
-    "QuizDetailed": {
-      "allOf": [
-        { "$ref": "#/definitions/Quiz" },
-        {
-          "type": "object",
-          "properties": {
-            "questions": {
-              "type": "array",
-              "items": {
+      },
+      "patch": {
+        "summary": "Edit User Profile",
+        "tags": ["User"],
+        "security": [{ "BearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
                 "type": "object",
                 "properties": {
-                  "id": { "type": "string" },
-                  "quizId": { "type": "string" },
-                  "order": { "type": "integer" },
-                  "question": { "type": "string" },
-                  "answers": { "type": "array", "items": { "type": "string" } },
-                  "correctAnswer": { "type": "integer" }
+                  "image": { "type": "string" },
+                  "name": { "type": "string" },
+                  "role": { "type": "string", "enum": ["Learner", "Educator"] }
                 }
               }
             }
           }
-        }
-      ]
-    },
-    "QuizList": {
-      "type": "object",
-      "required": ["data", "nextCursor"],
-      "properties": {
-        "data": {
-          "type": "array",
-          "items": { "$ref": "#/definitions/Quiz" }
         },
-        "nextCursor": {
-          "type": "string",
-          "description": "for pagination",
-          "nullable": true
+        "responses": {
+          "200": { "description": "User updated" }
+        }
+      },
+      "delete": {
+        "summary": "Delete Account",
+        "tags": ["User"],
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Account deleted" }
         }
       }
     }

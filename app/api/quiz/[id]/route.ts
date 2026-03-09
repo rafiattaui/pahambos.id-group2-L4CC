@@ -20,3 +20,21 @@ export const GET = WithAuth(async (req, { user, params }) => {
     return handleError(error);
   }
 });
+
+/*
+ * Delete a quiz based on its ID.
+ */
+export const DELETE = WithAuth(async (req, { params }) => {
+  try {
+    const { id } = await params;
+    await prisma.quiz.delete({
+      where: {
+        id,
+      },
+    });
+
+    return NextResponse.json({ sucess: true }, { status: 200 });
+  } catch (error) {
+    return handleError(error);
+  }
+});

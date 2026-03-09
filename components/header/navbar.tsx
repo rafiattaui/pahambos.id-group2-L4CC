@@ -15,7 +15,7 @@ export default function Navbar() {
   const scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId);
     if (element) {
-      const offset = 80;
+      const offset = 200;
       const elementPosition = element.getBoundingClientRect().top;
       const offsetPosition = elementPosition + window.pageYOffset - offset;
 
@@ -30,18 +30,14 @@ export default function Navbar() {
     <nav className="container flex max-w-full flex-row items-center">
       <Logo></Logo>
       <div className="hidden flex-1 items-center gap-4 md:flex">
-        <a href="#discover">
-          <Button variant="ghost" onClick={() => scrollToSection('discover')}>
-            Discover
-          </Button>
-        </a>
-        <a href="#learn">
-          <Button variant="ghost" onClick={handleClick}>
-            Learn
-          </Button>
-        </a>
+        <Button variant="ghost" onClick={() => scrollToSection('discover')}>
+          Discover
+        </Button>
+        <Button variant="ghost" onClick={() => scrollToSection('learn')}>
+          Learn
+        </Button>
         <div className="flex flex-row">
-          <Button variant="ghost" onClick={handleClick}>
+          <Button variant="ghost" onClick={() => scrollToSection('create')}>
             Create <Plus />
           </Button>
         </div>

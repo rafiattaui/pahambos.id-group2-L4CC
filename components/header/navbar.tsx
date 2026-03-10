@@ -27,7 +27,7 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="container flex max-w-full flex-row items-center">
+    <nav className="flex w-full flex-row items-center">
       <Logo></Logo>
       <div className="hidden flex-1 items-center gap-4 md:flex">
         <Button variant="ghost" onClick={() => scrollToSection('discover')}>
@@ -43,7 +43,7 @@ export default function Navbar() {
         </div>
       </div>
       <div className="ml-auto flex items-center gap-2">
-        <a href="/register">
+        <a href="/register" className="">
           <Button
             onClick={handleClick}
             className="bg-blue-500 text-white hover:bg-blue-700"
@@ -51,7 +51,7 @@ export default function Navbar() {
             Register
           </Button>
         </a>
-        <a href="/login">
+        <a href="/login" className="hidden sm:inline-block">
           <Button variant="ghost" onClick={handleClick}>
             Log In
           </Button>

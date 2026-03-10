@@ -6,7 +6,7 @@ import Create from '@/components/landing/create';
 
 export default function Home() {
   return (
-    <div>
+    <div className="overflow-x-hidden">
       <header className="sticky top-0 z-50 w-full bg-white backdrop-blur-md">
         <Navbar />
       </header>

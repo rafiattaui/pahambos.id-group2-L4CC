@@ -1,7 +1,7 @@
 import { WithAuth } from '@/lib/api/auth-protected';
 import { handleError } from '@/lib/api/errors';
 import { CreateQuizAndQuestionsSchema } from '@/lib/schemas/quizschemas';
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import {
   parseQueryParams,
@@ -47,7 +47,7 @@ export const POST = WithAuth(async (req, { user }) => {
   }
 });
 
-export const GET = WithAuth(async (req) => {
+export async function GET(req: NextRequest) {
   try {
     const { limit, cursor, sortBy, tags } = parseQueryParams(
       req.nextUrl.searchParams,
@@ -77,4 +77,4 @@ export const GET = WithAuth(async (req) => {
   } catch (error) {
     return handleError(error);
   }
-});
+};

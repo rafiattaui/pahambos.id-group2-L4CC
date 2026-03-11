@@ -1,12 +1,13 @@
 import { WithAuth } from '@/lib/api/auth-protected';
 import { APIError, handleError } from '@/lib/api/errors';
 import { prisma } from '@/lib/prisma';
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
 /*
  * Retrieve a quiz and its contents via its UUID.
  */
-export const GET = WithAuth(async (req, { user, params }) => {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string}>}) {
+
   try {
     const { id } = await params;
 
@@ -19,7 +20,7 @@ export const GET = WithAuth(async (req, { user, params }) => {
   } catch (error) {
     return handleError(error);
   }
-});
+};
 
 /*
  * Delete a quiz based on its ID.

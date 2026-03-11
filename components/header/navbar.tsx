@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { CircleUserRound, Plus } from 'lucide-react';
 import Logo from './logo';
+import Link from 'next/link';
 
 export default function Navbar() {
   const [isClicked, setIsClicked] = useState(false);
@@ -14,8 +15,11 @@ export default function Navbar() {
 
   return (
     <nav className="flex flex-row">
-      <Logo></Logo>
-      <div className=" hidden font-body-bold items-center-safe md:flex flex-1 flex-row">
+      <Link href="/">
+        <Logo />
+      </Link>
+
+      <div className="font-body-bold hidden flex-1 flex-row items-center-safe md:flex">
         <Button variant="ghost" onClick={handleClick}>
           Discover
         </Button>
@@ -26,16 +30,18 @@ export default function Navbar() {
           <Button variant="ghost" onClick={handleClick}>
             Create <Plus />
           </Button>
-          
         </div>
-        <div className="flex flex-row ml-auto gap-2 items-center">
-          <Button onClick={handleClick} className="bg-blue-500 text-white hover:bg-blue-700">
+        <div className="ml-auto flex flex-row items-center gap-2">
+          <Button
+            onClick={handleClick}
+            className="bg-blue-500 text-white hover:bg-blue-700"
+          >
             Sign Up
           </Button>
           <Button variant="ghost" onClick={handleClick}>
             Log In
           </Button>
-          <div className="ml-auto flex h-10 w-10 items-center justify-center rounded hover:bg-gray-200 mr-4">
+          <div className="mr-4 ml-auto flex h-10 w-10 items-center justify-center rounded hover:bg-gray-200">
             <CircleUserRound className="h-max w-max" />
           </div>
         </div>

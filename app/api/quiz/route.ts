@@ -16,7 +16,7 @@ export const POST = WithAuth(async (req, { user }) => {
     const numQuestions = data.questions.length;
 
     // use transaction to prevent zombie transaction where one transaction succeeds and the other fails.
-    const result = await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx: any) => {
       const quiz = await tx.quiz.create({
         data: {
           ...data.quiz,

@@ -62,6 +62,9 @@ importers:
       next:
         specifier: 16.1.6
         version: 16.1.6(@babel/core@7.29.0)(@playwright/test@1.58.2)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      next-openapi-gen:
+        specifier: ^0.10.3
+        version: 0.10.3
       next-swagger-doc:
         specifier: ^0.4.1
         version: 0.4.1(next@16.1.6(@babel/core@7.29.0)(@playwright/test@1.58.2)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(openapi-types@12.1.3)
@@ -4992,6 +4995,11 @@ packages:
   neotraverse@0.6.18:
     resolution: {integrity: sha512-Z4SmBUweYa09+o6pG+eASabEpP6QkQ70yHj351pQoEXIs8uHbaU2DWVmzBANKgflPa47A50PtB2+NgRpQvr7vA==}
     engines: {node: '>= 10'}
+
+  next-openapi-gen@0.10.3:
+    resolution: {integrity: sha512-bdhMHORXXUE2PpsBcbsos/a1pAp+N2HE+gDaOABkW9LApqWy2YMmNaHauUguXbe5hGiOIrNrF2LiEXjVwlPsug==}
+    engines: {node: '>=18.0.0'}
+    hasBin: true
 
   next-swagger-doc@0.4.1:
     resolution: {integrity: sha512-pFmFUOwNlJh7mr9P6b2obAHa9JAwgPK3oNTIzE9g/Gs+h2OG1T3C5SanzrqGA3dDncagyf/DbO5U+ZzNxKadWg==}
@@ -12184,6 +12192,18 @@ snapshots:
   negotiator@1.0.0: {}
 
   neotraverse@0.6.18: {}
+
+  next-openapi-gen@0.10.3:
+    dependencies:
+      '@babel/parser': 7.29.0
+      '@babel/traverse': 7.29.0
+      '@babel/types': 7.29.0
+      commander: 14.0.3
+      fs-extra: 11.3.3
+      js-yaml: 4.1.1
+      ora: 8.2.0
+    transitivePeerDependencies:
+      - supports-color
 
   next-swagger-doc@0.4.1(next@16.1.6(@babel/core@7.29.0)(@playwright/test@1.58.2)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(openapi-types@12.1.3):
     dependencies:

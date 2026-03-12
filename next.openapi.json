@@ -22,20 +22,9 @@
   },
   "defaultResponseSet": "common",
   "responseSets": {
-    "common": [
-      "400",
-      "500"
-    ],
-    "auth": [
-      "400",
-      "401",
-      "403",
-      "500"
-    ],
-    "public": [
-      "400",
-      "500"
-    ]
+    "common": ["400", "500"],
+    "auth": ["400", "401", "403", "500"],
+    "public": ["400", "500"]
   },
   "errorConfig": {
     "template": {
@@ -96,15 +85,15 @@
       }
     }
   },
-  "apiDir": "./app/api",
+  "apiDir": "./app/api/",
   "schemaDir": "./lib/schemas/",
   "schemaType": "zod",
-  "schemaFiles": [],
+  "schemaFiles": ["./public/auth-spec.json"],
   "docsUrl": "api-docs",
   "ui": "swagger",
   "outputFile": "openapi.json",
   "outputDir": "./public",
-  "includeOpenApiRoutes": false,
+  "includeOpenApiRoutes": true,
   "ignoreRoutes": [],
   "debug": false
 }

@@ -5,12 +5,16 @@ import { NextRequest, NextResponse } from 'next/server';
 
 /**
  * @description Returns a quiz and its questions and possible answers.
- * @pathParams { id: string }
- * @response QuizDetailResponseSchema
+ * @params IDSchema
+ * @response 200:QuizDetailResponseSchema
+ * @add 404:APIErrorSchema
+ * @tag Quiz
  * @openapi
  */
-export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string}>}) {
-
+export async function GET(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
     const { id } = await params;
 
@@ -23,10 +27,17 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   } catch (error) {
     return handleError(error);
   }
-};
+}
 
-/*
- * Delete a quiz based on its ID.
+/**
+ * @description Deletes a quiz.
+ * @params IDSchema
+ * @response 200:ResponseBase
+ * @add 404:APIErrorSchema
+ * @add 401:APIErrorSchema
+ * @tag Quiz
+ * @auth bearer
+ * @openapi
  */
 export const DELETE = WithAuth(async (req, { user, params }) => {
   try {

@@ -4,6 +4,14 @@ import { APIError, handleError } from '@/lib/api/errors';
 import { UserPartialSchema, UserPublicSchema } from '@/lib/schemas/userschemas';
 import { NextRequest } from 'next/server';
 
+/**
+ * @summary Get current session user
+ * @description Retrieves the authenticated user's profile information using Better-Auth session.
+ * @response 200:UserPublicSchema
+ * @add 401:APIErrorSchema
+ * @tag User
+ * @openapi
+ */
 export async function GET() {
   try {
     const session = await auth.api.getSession({
@@ -21,6 +29,16 @@ export async function GET() {
   }
 }
 
+/**
+ * @summary Update user profile
+ * @description Updates the current user's information. Only partial data is required.
+ * @body UserPartialSchema
+ * @response 200:UserPublicSchema
+ * @add 400:APIErrorSchema
+ * @add 401:APIErrorSchema
+ * @tag User
+ * @openapi
+ */
 export async function PATCH(request: NextRequest) {
   try {
     const rawData = await request.json();

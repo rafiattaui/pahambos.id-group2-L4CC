@@ -57,15 +57,33 @@ export const CreateQuizAndQuestionsSchema = z.object({
   questions: z.array(CreateQuestionSchema).min(4),
 });
 
-// not exported schemas are meant to be used in api docs
+// schemas below are meant to be used in api docs
+export const ResponseBase = z.object({
+  success: z.boolean(),
+});
 
-const QuizDetailResponseSchema = z.object({
+export const APIErrorSchema = z.object({
+  message: z.string(),
+  details: z.string().optional(),
+  code: z.string().optional(),
+  meta: z.string().optional(),
+});
+
+export const IDSchema = z.object({
+  id: z.uuid(),
+});
+
+export const QuizDetailResponseSchema = z.object({
   quiz: PublicQuizSchema.extend({
-    questions: z.array(PublicQuestionSchema)
-  })
-})
+    questions: z.array(PublicQuestionSchema),
+  }),
+});
 
-const QuizListResponseSchema = z.object({
+export const QuizListResponseSchema = z.object({
   data: z.array(PublicQuizSchema),
   nextCursor: z.string().nullable().optional(),
-})
+});
+
+export const QuizCreationSuccessResponseSchema = ResponseBase.extend({
+  quizId: z.uuid(),
+});

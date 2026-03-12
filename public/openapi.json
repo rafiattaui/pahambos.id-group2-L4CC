@@ -20,6 +20,34 @@
       }
     },
     "schemas": {
+      "CreateQuizAndQuestionsSchema": {
+        "type": "object",
+        "properties": {
+          "quiz": {
+            "$ref": "#/components/schemas/CreateQuizSchema"
+          },
+          "questions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CreateQuestionSchema"
+            },
+            "minItems": 4
+          }
+        },
+        "required": ["quiz", "questions"]
+      },
+      "QuizCreationSuccessResponseSchema": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "quizId": {
+            "type": "string"
+          }
+        },
+        "required": ["success", "quizId"]
+      },
       "QuizListQuerySchema": {
         "type": "object",
         "properties": {
@@ -27,30 +55,28 @@
             "type": "number",
             "minimum": 1,
             "maximum": 20,
-            "default": 10
+            "default": 10,
+            "description": "Max quizzes returned per query"
           },
           "cursor": {
-            "type": "string"
+            "type": "string",
+            "description": "Cursor for Pagination"
           },
           "sortBy": {
             "type": "string",
-            "enum": [
-              "asc",
-              "desc"
-            ],
-            "default": "asc"
+            "enum": ["asc", "desc"],
+            "default": "asc",
+            "description": "Sort based on creation date"
           },
           "tags": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/CategoryEnum"
-            }
+            },
+            "description": "Only return quizzes containing these tags"
           }
         },
-        "required": [
-          "limit",
-          "sortBy"
-        ]
+        "required": ["limit", "sortBy"]
       },
       "QuizListResponseSchema": {
         "type": "object",
@@ -66,9 +92,16 @@
             "nullable": true
           }
         },
-        "required": [
-          "data"
-        ]
+        "required": ["data"]
+      },
+      "IDSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          }
+        },
+        "required": ["id"]
       },
       "QuizDetailResponseSchema": {
         "type": "object",
@@ -83,14 +116,87 @@
                 }
               }
             },
-            "required": [
-              "questions"
-            ]
+            "required": ["questions"]
+          }
+        },
+        "required": ["quiz"]
+      },
+      "ResponseBase": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          }
+        },
+        "required": ["success"]
+      },
+      "UserPublicSchema": {
+        "type": "object",
+        "properties": {
+          "emailVerified": {
+            "type": "boolean"
+          },
+          "image": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "id": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string",
+            "enum": ["Learner", "Educator"]
           }
         },
         "required": [
-          "quiz"
+          "emailVerified",
+          "email",
+          "name",
+          "createdAt",
+          "id",
+          "role"
         ]
+      },
+      "UserPartialSchema": {
+        "type": "object",
+        "properties": {
+          "emailVerified": {
+            "type": "boolean"
+          },
+          "image": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "id": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string",
+            "enum": ["Learner", "Educator"]
+          }
+        }
       },
       "QuizQuestionSchema": {
         "type": "object",
@@ -182,27 +288,23 @@
           "numQuestions"
         ]
       },
-      "CreateQuizAndQuestionsSchema": {
+      "APIErrorSchema": {
         "type": "object",
         "properties": {
-          "quiz": {
-            "$ref": "#/components/schemas/CreateQuizSchema"
+          "message": {
+            "type": "string"
           },
-          "questions": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/CreateQuestionSchema"
-            },
-            "minItems": 4
+          "details": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "meta": {
+            "type": "string"
           }
         },
-        "required": [
-          "quiz",
-          "questions"
-        ]
-      },
-      "PublicQuizSchema": {
-        "$ref": "#/components/schemas/QuizSchema"
+        "required": ["message"]
       },
       "PublicQuestionSchema": {
         "type": "object",
@@ -231,13 +333,10 @@
             "minItems": 2
           }
         },
-        "required": [
-          "id",
-          "quizId",
-          "order",
-          "question",
-          "answers"
-        ]
+        "required": ["id", "quizId", "order", "question", "answers"]
+      },
+      "PublicQuizSchema": {
+        "$ref": "#/components/schemas/QuizSchema"
       },
       "CreateQuestionSchema": {
         "type": "object",
@@ -264,12 +363,7 @@
             "minimum": 0
           }
         },
-        "required": [
-          "order",
-          "question",
-          "answers",
-          "correctAnswer"
-        ]
+        "required": ["order", "question", "answers", "correctAnswer"]
       },
       "CreateQuizSchema": {
         "type": "object",
@@ -285,11 +379,7 @@
             "$ref": "#/components/schemas/CategoryEnum"
           }
         },
-        "required": [
-          "title",
-          "description",
-          "category"
-        ]
+        "required": ["title", "description", "category"]
       },
       "UserSchema": {
         "type": "object",
@@ -319,10 +409,7 @@
           },
           "role": {
             "type": "string",
-            "enum": [
-              "Learner",
-              "Educator"
-            ]
+            "enum": ["Learner", "Educator"]
           }
         },
         "required": [
@@ -333,6 +420,167 @@
           "createdAt",
           "id",
           "role"
+        ]
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "emailVerified": {
+            "type": "boolean",
+            "default": false,
+            "readOnly": true
+          },
+          "image": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "default": "Generated at runtime"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "default": "Generated at runtime"
+          },
+          "role": {
+            "type": "string"
+          }
+        },
+        "required": ["name", "email", "createdAt", "updatedAt"]
+      },
+      "Session": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "token": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "default": "Generated at runtime"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "ipAddress": {
+            "type": "string"
+          },
+          "userAgent": {
+            "type": "string"
+          },
+          "userId": {
+            "type": "string"
+          }
+        },
+        "required": ["expiresAt", "token", "createdAt", "updatedAt", "userId"]
+      },
+      "Account": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "accountId": {
+            "type": "string"
+          },
+          "providerId": {
+            "type": "string"
+          },
+          "userId": {
+            "type": "string"
+          },
+          "accessToken": {
+            "type": "string"
+          },
+          "refreshToken": {
+            "type": "string"
+          },
+          "idToken": {
+            "type": "string"
+          },
+          "accessTokenExpiresAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "refreshTokenExpiresAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "scope": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "default": "Generated at runtime"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "accountId",
+          "providerId",
+          "userId",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "Verification": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "identifier": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "default": "Generated at runtime"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "default": "Generated at runtime"
+          }
+        },
+        "required": [
+          "identifier",
+          "value",
+          "expiresAt",
+          "createdAt",
+          "updatedAt"
         ]
       }
     },
@@ -464,12 +712,34 @@
       "post": {
         "operationId": "post-quiz",
         "summary": "",
-        "description": "",
-        "tags": [
-          "Quiz"
-        ],
+        "description": "Creates a new quiz",
+        "tags": ["Quiz"],
         "parameters": [],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateQuizAndQuestionsSchema"
+              }
+            }
+          }
+        },
         "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuizCreationSuccessResponseSchema"
+                }
+              }
+            }
+          },
           "400": {
             "$ref": "#/components/responses/400"
           },
@@ -482,49 +752,48 @@
         "operationId": "get-quiz",
         "summary": "",
         "description": "Returns a list of quizzes",
-        "tags": [
-          "Quiz"
-        ],
+        "tags": ["Quiz"],
         "parameters": [
           {
-            "in": "path",
+            "in": "query",
             "name": "limit",
             "schema": {
-              "type": "number"
+              "type": "number",
+              "description": "Max quizzes returned per query"
             },
-            "required": true,
-            "example": 1
+            "required": false,
+            "description": "Max quizzes returned per query"
           },
           {
-            "in": "path",
+            "in": "query",
             "name": "cursor",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "description": "Cursor for Pagination"
             },
-            "required": true,
-            "example": "example"
+            "required": false,
+            "description": "Cursor for Pagination"
           },
           {
-            "in": "path",
+            "in": "query",
             "name": "sortBy",
             "schema": {
               "type": "string",
-              "enum": [
-                "asc",
-                "desc"
-              ]
+              "enum": ["asc", "desc"],
+              "description": "Sort based on creation date"
             },
-            "required": true,
-            "example": "example"
+            "required": false,
+            "description": "Sort based on creation date"
           },
           {
-            "in": "path",
+            "in": "query",
             "name": "tags",
             "schema": {
-              "type": "array"
+              "type": "array",
+              "description": "Only return quizzes containing these tags"
             },
-            "required": true,
-            "example": "example"
+            "required": false,
+            "description": "Only return quizzes containing these tags"
           }
         ],
         "responses": {
@@ -552,10 +821,17 @@
         "operationId": "get-quiz-{id}",
         "summary": "",
         "description": "Returns a quiz and its questions and possible answers.",
-        "tags": [
-          "Quiz"
+        "tags": ["Quiz"],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "id",
+            "schema": {
+              "type": "string"
+            },
+            "required": false
+          }
         ],
-        "parameters": [],
         "responses": {
           "200": {
             "description": "Successful response",
@@ -570,6 +846,16 @@
           "400": {
             "$ref": "#/components/responses/400"
           },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIErrorSchema"
+                }
+              }
+            }
+          },
           "500": {
             "$ref": "#/components/responses/500"
           }
@@ -577,18 +863,47 @@
       },
       "delete": {
         "operationId": "delete-quiz-{id}",
-        "summary": "Delete a quiz based on its ID.",
-        "description": "",
-        "tags": [
-          "Quiz"
+        "summary": "",
+        "description": "Deletes a quiz.",
+        "tags": ["Quiz"],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "id",
+            "schema": {
+              "type": "string"
+            },
+            "required": false
+          }
         ],
-        "parameters": [],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "responses": {
-          "204": {
-            "description": "No Content"
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseBase"
+                }
+              }
+            }
           },
           "400": {
             "$ref": "#/components/responses/400"
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIErrorSchema"
+                }
+              }
+            }
           },
           "500": {
             "$ref": "#/components/responses/500"
@@ -600,14 +915,32 @@
       "get": {
         "operationId": "get-user",
         "summary": "",
-        "description": "",
-        "tags": [
-          "User"
-        ],
+        "description": "Retrieves the authenticated user's profile information using Better-Auth session.",
+        "tags": ["User"],
         "parameters": [],
         "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserPublicSchema"
+                }
+              }
+            }
+          },
           "400": {
             "$ref": "#/components/responses/400"
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIErrorSchema"
+                }
+              }
+            }
           },
           "500": {
             "$ref": "#/components/responses/500"
@@ -617,14 +950,38 @@
       "patch": {
         "operationId": "patch-user",
         "summary": "",
-        "description": "",
-        "tags": [
-          "User"
-        ],
+        "description": "Updates the current user's information. Only partial data is required.",
+        "tags": ["User"],
         "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserPartialSchema"
+              }
+            }
+          }
+        },
         "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserPublicSchema"
+                }
+              }
+            }
+          },
           "400": {
-            "$ref": "#/components/responses/400"
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIErrorSchema"
+                }
+              }
+            }
           },
           "500": {
             "$ref": "#/components/responses/500"

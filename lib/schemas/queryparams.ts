@@ -16,8 +16,13 @@ export function parseQueryParams<T extends ZodObject>(
 }
 
 export const QuizListQuerySchema = z.object({
-  limit: z.coerce.number().min(1).max(20).default(10),
-  cursor: z.uuid().optional(),
+  limit: z.coerce
+    .number()
+    .min(1)
+    .max(20)
+    .default(10)
+    .describe('Max quizzes returned per query'),
+  cursor: z.uuid().optional().describe('Cursor for Pagination'),
   sortBy: z
     .enum([
       'asc',
@@ -25,6 +30,10 @@ export const QuizListQuerySchema = z.object({
       // 'trending,'
       // TODO - How to calculate trending?
     ])
-    .default('asc'),
-  tags: z.array(CategoryEnum).optional(),
+    .default('asc')
+    .describe('Sort based on creation date'),
+  tags: z
+    .array(CategoryEnum)
+    .optional()
+    .describe('Only return quizzes containing these tags'),
 });

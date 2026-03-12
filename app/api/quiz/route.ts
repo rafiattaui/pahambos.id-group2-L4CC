@@ -8,6 +8,15 @@ import {
   QuizListQuerySchema,
 } from '@/lib/schemas/queryparams';
 
+/**
+ * @description Creates a new quiz
+ * @body CreateQuizAndQuestionsSchema
+ * @response 200:QuizCreationSuccessResponseSchema
+ * @auth bearer
+ * @tag Quiz
+ * @contentType application/json
+ * @openapi
+ */
 export const POST = WithAuth(async (req, { user }) => {
   try {
     const rawData = await req.json();
@@ -49,8 +58,10 @@ export const POST = WithAuth(async (req, { user }) => {
 
 /**
  * @description Returns a list of quizzes
- * @pathParams QuizListQuerySchema
- * @response QuizListResponseSchema
+ * @params QuizListQuerySchema
+ * @response 200:QuizListResponseSchema
+ * @contentType application/json
+ * @tag Quiz
  * @openapi
  */
 export async function GET(req: NextRequest) {
@@ -83,4 +94,4 @@ export async function GET(req: NextRequest) {
   } catch (error) {
     return handleError(error);
   }
-};
+}

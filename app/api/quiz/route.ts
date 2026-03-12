@@ -47,6 +47,12 @@ export const POST = WithAuth(async (req, { user }) => {
   }
 });
 
+/**
+ * @description Returns a list of quizzes
+ * @pathParams QuizListQuerySchema
+ * @response QuizListResponseSchema
+ * @openapi
+ */
 export async function GET(req: NextRequest) {
   try {
     const { limit, cursor, sortBy, tags } = parseQueryParams(

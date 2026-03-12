@@ -56,3 +56,16 @@ export const CreateQuizAndQuestionsSchema = z.object({
   quiz: CreateQuizSchema,
   questions: z.array(CreateQuestionSchema).min(4),
 });
+
+// not exported schemas are meant to be used in api docs
+
+const QuizDetailResponseSchema = z.object({
+  quiz: PublicQuizSchema.extend({
+    questions: z.array(PublicQuestionSchema)
+  })
+})
+
+const QuizListResponseSchema = z.object({
+  data: z.array(PublicQuizSchema),
+  nextCursor: z.string().nullable().optional(),
+})

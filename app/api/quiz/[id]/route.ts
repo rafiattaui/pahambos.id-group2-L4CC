@@ -3,8 +3,11 @@ import { APIError, handleError } from '@/lib/api/errors';
 import { prisma } from '@/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server';
 
-/*
- * Retrieve a quiz and its contents via its UUID.
+/**
+ * @description Returns a quiz and its questions and possible answers.
+ * @pathParams { id: string }
+ * @response QuizDetailResponseSchema
+ * @openapi
  */
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string}>}) {
 

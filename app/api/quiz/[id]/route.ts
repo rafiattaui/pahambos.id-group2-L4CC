@@ -36,7 +36,7 @@ export async function GET(
  * @add 404:APIErrorSchema
  * @add 401:APIErrorSchema
  * @tag Quiz
- * @auth bearer
+ * @auth cookieAuth
  * @openapi
  */
 export const DELETE = WithAuth(async (req, { user, params }) => {

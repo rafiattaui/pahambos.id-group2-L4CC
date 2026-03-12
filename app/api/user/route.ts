@@ -9,6 +9,7 @@ import { NextRequest } from 'next/server';
  * @description Retrieves the authenticated user's profile information using Better-Auth session.
  * @response 200:UserPublicSchema
  * @add 401:APIErrorSchema
+ * @auth cookieAuth
  * @tag User
  * @openapi
  */
@@ -36,6 +37,7 @@ export async function GET() {
  * @response 200:UserPublicSchema
  * @add 400:APIErrorSchema
  * @add 401:APIErrorSchema
+ * @auth cookieAuth
  * @tag User
  * @openapi
  */

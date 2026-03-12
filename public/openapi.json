@@ -13,10 +13,10 @@
   ],
   "components": {
     "securitySchemes": {
-      "BearerAuth": {
-        "type": "http",
-        "scheme": "bearer",
-        "bearerFormat": "JWT"
+      "cookieAuth": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "better-auth.session_token"
       }
     },
     "schemas": {
@@ -717,7 +717,7 @@
         "parameters": [],
         "security": [
           {
-            "BearerAuth": []
+            "cookieAuth": []
           }
         ],
         "requestBody": {
@@ -878,7 +878,7 @@
         ],
         "security": [
           {
-            "BearerAuth": []
+            "cookieAuth": []
           }
         ],
         "responses": {
@@ -918,6 +918,11 @@
         "description": "Retrieves the authenticated user's profile information using Better-Auth session.",
         "tags": ["User"],
         "parameters": [],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
         "responses": {
           "200": {
             "description": "Successful response",
@@ -953,6 +958,11 @@
         "description": "Updates the current user's information. Only partial data is required.",
         "tags": ["User"],
         "parameters": [],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {

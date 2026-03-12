@@ -12,7 +12,7 @@ import {
  * @description Creates a new quiz
  * @body CreateQuizAndQuestionsSchema
  * @response 200:QuizCreationSuccessResponseSchema
- * @auth bearer
+ * @auth cookieAuth
  * @tag Quiz
  * @contentType application/json
  * @openapi
@@ -25,7 +25,7 @@ export const POST = WithAuth(async (req, { user }) => {
     const numQuestions = data.questions.length;
 
     // use transaction to prevent zombie transaction where one transaction succeeds and the other fails.
-    const result = await prisma.$transaction(async (tx: any) => {
+    const result = await prisma.$transaction(async (tx) => {
       const quiz = await tx.quiz.create({
         data: {
           ...data.quiz,

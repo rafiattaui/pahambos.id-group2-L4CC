@@ -7,8 +7,9 @@ export default function HeroSect() {
   return (
     <div>
       <section className="flex min-h-screen flex-col items-center justify-center">
-        <h1 className="font-heading text-5xl font-black text-white sm:text-6xl">
-          PahamBos.id
+        <h1 className="font-heading text-5xl font-black text-white text-shadow-[-2px_2px_4px_rgba(0,0,0,0.5)] sm:text-6xl">
+          <span className="text-blue-400">Paham</span>
+          <span className="text-orange-400">Bos</span>.id
         </h1>
         <p className="font-body mt-6 text-center text-lg text-indigo-100">
           The Learning platform for everyone, where you can discover, learn, and

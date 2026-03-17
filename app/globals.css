@@ -71,6 +71,46 @@
   }
 }
 
+@layer utilities {
+  .reveal {
+    --reveal-x: 0px;
+    --reveal-y: 28px;
+    opacity: 0;
+    transform: translateX(var(--reveal-x)) translateY(var(--reveal-y));
+    transition:
+      opacity 700ms cubic-bezier(0.22, 1, 0.36, 1),
+      transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: opacity, transform;
+  }
+
+  .reveal-left {
+    --reveal-x: -100px;
+    --reveal-y: 0px;
+  }
+
+  .reveal-right {
+    --reveal-x: 100px;
+    --reveal-y: 0px;
+  }
+
+  .reveal-visible {
+    opacity: 1;
+    --reveal-x: 0px;
+    --reveal-y: 0px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .reveal,
+    .reveal-visible,
+    .reveal-left,
+    .reveal-right {
+      opacity: 1;
+      transform: none;
+      transition: none;
+    }
+  }
+}
+
 :root {
   --radius: 0.625rem;
   --background: oklch(1 0 0);

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { CircleUserRound, Plus } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Logo from './logo';
 
 export default function Navbar() {
@@ -56,9 +57,10 @@ export default function Navbar() {
             Log In
           </Button>
         </a>
-        <div className="mr-4 flex h-10 w-10 items-center justify-center rounded hover:bg-gray-200">
-          <CircleUserRound className="h-max w-max" />
-        </div>
+        <Avatar className="mr-4 flex h-10 w-10 items-center justify-center rounded hover:bg-gray-200">
+          <AvatarImage src="/not_logged_in_avatar.jpg" />
+          <AvatarFallback>CN</AvatarFallback>
+        </Avatar>
       </div>
     </nav>
   );

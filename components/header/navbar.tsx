@@ -39,7 +39,7 @@ export default function Navbar() {
         </Button>
         <div className="flex flex-row">
           <Button variant="ghost" onClick={() => scrollToSection('create')}>
-            Create <Plus />
+            Create
           </Button>
         </div>
       </div>

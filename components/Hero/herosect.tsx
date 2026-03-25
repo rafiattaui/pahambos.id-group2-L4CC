@@ -26,15 +26,12 @@ export default function HeroSect() {
           create with ease. <br />
           Join us today and unlock your full potential!
         </p>
-        <div className="mt-10 flex flex-row gap-4">
-          <a href="/register">
-            <Button className="cursor-pointer items-center bg-blue-500 px-6 py-6 hover:scale-110 hover:bg-blue-700 active:scale-120">
+        <div className="mt-10 flex w-full max-w-md flex-row items-center justify-center gap-4">
+          <a href="/register" className="w-full max-w-72 sm:w-auto">
+            <Button className="w-full max-w-72 cursor-pointer items-center bg-blue-500 px-6 py-6 hover:scale-110 hover:bg-blue-700 active:scale-120 sm:w-72">
               Get Started <ArrowRight />
             </Button>
           </a>
-          <Button className="cursor-pointer bg-white px-6 py-6 text-black hover:scale-110 hover:bg-gray-400">
-            Learn More
-          </Button>
         </div>
       </section>
     </div>

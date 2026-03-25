@@ -11,6 +11,7 @@ import {
 import { Card, CardContent } from '../ui/card';
 import Autoplay from 'embla-carousel-autoplay';
 import { useEffect, useState } from 'react';
+import Category, { categories } from '../category_carousel/category';
 
 export default function Discover() {
   const [api, setApi] = useState<CarouselApi>();
@@ -49,13 +50,14 @@ export default function Discover() {
             className="mx-auto w-full max-w-72 md:max-w-7xl"
           >
             <CarouselContent className="md:-ml-4">
-              <CarouselItem></CarouselItem>
-              <CarouselItem></CarouselItem>
-              <CarouselItem></CarouselItem>
-              <CarouselItem></CarouselItem>
-              <CarouselItem></CarouselItem>
-              <CarouselItem></CarouselItem>
-              <CarouselItem></CarouselItem>
+              {categories.map((cat) => (
+                <CarouselItem
+                  key={cat.name}
+                  className="md:basis-1/2 lg:basis-1/3"
+                >
+                  <Category name={cat.name} image={cat.image} />
+                </CarouselItem>
+              ))}
             </CarouselContent>
             <CarouselPrevious className="hidden sm:flex" />
             <CarouselNext className="hidden sm:flex" />

@@ -49,20 +49,13 @@ export default function Discover() {
             className="mx-auto w-full max-w-72 md:max-w-7xl"
           >
             <CarouselContent className="md:-ml-4">
-              {Array.from({ length: 5 }).map((_, index) => (
-                <CarouselItem
-                  key={index}
-                  className="basis-full md:basis-1/2 lg:basis-1/3"
-                >
-                  <Card>
-                    <CardContent className="flex h-40 items-center justify-center p-6">
-                      <span className="text-4xl font-semibold">
-                        {index + 1}
-                      </span>
-                    </CardContent>
-                  </Card>
-                </CarouselItem>
-              ))}
+              <CarouselItem></CarouselItem>
+              <CarouselItem></CarouselItem>
+              <CarouselItem></CarouselItem>
+              <CarouselItem></CarouselItem>
+              <CarouselItem></CarouselItem>
+              <CarouselItem></CarouselItem>
+              <CarouselItem></CarouselItem>
             </CarouselContent>
             <CarouselPrevious className="hidden sm:flex" />
             <CarouselNext className="hidden sm:flex" />

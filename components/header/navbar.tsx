@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { CircleUserRound, Plus } from 'lucide-react';
+import { CircleUserRound } from 'lucide-react';
 import Logo from './logo';
 
 export default function Navbar() {
@@ -38,7 +38,7 @@ export default function Navbar() {
         </Button>
         <div className="flex flex-row">
           <Button variant="ghost" onClick={() => scrollToSection('create')}>
-            Create <Plus />
+            Create
           </Button>
         </div>
       </div>

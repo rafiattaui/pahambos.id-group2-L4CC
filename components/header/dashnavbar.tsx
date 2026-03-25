@@ -32,12 +32,11 @@ export default function DashNavbar() {
       <div className="ml-auto flex items-center gap-2">
         <a
           href="/dashboard/create"
-          className="flex flex-row rounded-md transition-all duration-300 hover:border active:translate-y-1 active:bg-gray-400"
+          className="flex flex-row rounded-md transition-[transform,background-color] duration-300 hover:border-2 active:translate-y-1 active:bg-gray-400"
         >
           <Button className="bg-transparent text-black hover:bg-transparent">
-            Create
+            Create <Plus />
           </Button>
-          <Plus className="my-auto mr-2" />
         </a>
         <Avatar className="mr-4 h-10 w-10 cursor-pointer rounded-full hover:brightness-75">
           <AvatarImage src="/avatar_placeholder.jpg" />

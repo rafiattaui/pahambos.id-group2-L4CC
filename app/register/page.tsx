@@ -5,7 +5,7 @@ import Navbar from '@/components/header/navbar';
 export default async function SignupPage() {
   return (
     <div className="flex min-h-svh flex-col">
-      <header className="sticky top-0 z-50 w-full bg-white/30 backdrop-blur-md">
+      <header className="sticky top-0 z-50 w-full bg-white backdrop-blur-md">
         <Navbar />
       </header>
       <div className="grid flex-1 lg:grid-cols-2">

@@ -41,8 +41,8 @@ export default function Navbar() {
           Learn
         </Button>
         <div className="flex flex-row">
-          <Button variant="ghost" onClick={handleClick}>
-            Create <Plus />
+          <Button variant="ghost" onClick={() => scrollToSection('create')}>
+            Create
           </Button>
         </div>
         <div className="ml-auto flex flex-row items-center gap-2">

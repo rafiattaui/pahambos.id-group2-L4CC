@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -8,8 +9,9 @@ import {
   InputGroupInput,
   InputGroupAddon,
 } from '@/components/ui/input-group';
-import { CircleUserRound, Plus, Search } from 'lucide-react';
-import Logo from './logo';
+import { Plus, Search } from 'lucide-react';
+import { dashboardHref } from '@/app/dashboard/layout';
+import Logo from '../header/logo';
 
 export default function DashNavbar() {
   const [isClicked, setIsClicked] = useState(false);
@@ -30,18 +32,20 @@ export default function DashNavbar() {
         </InputGroup>
       </div>
       <div className="ml-auto flex items-center gap-2">
-        <a
-          href="/dashboard/create"
-          className="flex flex-row rounded-md transition-[transform,background-color] duration-300 hover:border-2 active:translate-y-1 active:bg-gray-400"
+        <Link
+          href={dashboardHref('create')}
+          className="flex flex-row rounded-md transition-[transform,background-color] duration-200 hover:border-2 active:translate-y-1 active:bg-gray-400"
         >
           <Button className="bg-transparent text-black hover:bg-transparent">
             Create <Plus />
           </Button>
-        </a>
-        <Avatar className="mr-4 h-10 w-10 cursor-pointer rounded-full hover:brightness-75">
-          <AvatarImage src="/avatar_placeholder.jpg" />
-          <AvatarFallback>CN</AvatarFallback>
-        </Avatar>
+        </Link>
+        <Link href={dashboardHref('profile')}>
+          <Avatar className="mr-4 h-10 w-10 cursor-pointer rounded-full hover:brightness-75">
+            <AvatarImage src="/avatar_placeholder.jpg" />
+            <AvatarFallback>CN</AvatarFallback>
+          </Avatar>
+        </Link>
       </div>
     </nav>
   );

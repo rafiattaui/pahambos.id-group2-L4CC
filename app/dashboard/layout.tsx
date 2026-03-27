@@ -1,4 +1,12 @@
-import DashNavbar from '@/components/header/dashnavbar';
+'use client';
+
+import DashNavbar from '@/components/dashboardComp/dashnavbar';
+import Link from 'next/link';
+
+export function dashboardHref(path: string) {
+  if (!path || path === '/') return '/dashboard';
+  return `/dashboard/${path.replace(/^\/+/, '')}`;
+}
 
 export default function DashboardLayout({
   children,

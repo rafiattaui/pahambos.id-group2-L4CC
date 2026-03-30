@@ -6,7 +6,7 @@ export const QuizQuestionSchema = z.object({
   quizId: z.uuid(),
   order: z.int().nonnegative(),
   question: z.string().min(5).max(100),
-  answers: z.array(z.string().min(2)).min(2),
+  answers: z.array(z.string()).min(2),
   correctAnswer: z.int().nonnegative(),
 });
 
@@ -19,6 +19,11 @@ export const PublicQuestionSchema = QuizQuestionSchema.omit({
 export const CreateQuestionSchema = QuizQuestionSchema.omit({
   id: true,
   quizId: true,
+});
+
+export const CreateQuestionListSchema = z.object({
+  questions: z.array(CreateQuestionSchema),
+  quizId: z.uuid(),
 });
 
 export const CategoryEnum = z.enum([

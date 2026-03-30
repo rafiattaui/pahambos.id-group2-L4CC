@@ -141,6 +141,8 @@ model QuizQuestion {
 
   // Relations
   quiz Quiz @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  
+  @@unique([quizId, order])
 }
 
 model UserPerformance {

@@ -1,5 +1,5 @@
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime/client";
-import z from "zod";
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
+import z, { success } from 'zod';
 
 export class APIError extends Error {
   public readonly statusCode: number;
@@ -10,7 +10,7 @@ export class APIError extends Error {
     message: string,
     statusCode: number = 500,
     code?: string,
-    details?: any,
+    details?: any
   ) {
     super(message);
     this.name = this.constructor.name;
@@ -35,30 +35,40 @@ const ERROR_HANDLERS: Array<{
     check: (err) => err instanceof PrismaClientKnownRequestError,
     handle: (err: PrismaClientKnownRequestError) => {
       switch (err.code) {
-        case "P2025":
+        case 'P2025':
           return Response.json(
             {
               success: false,
-              message: "Failed to find record",
+              message: 'Failed to find record',
               code: err.code,
               meta: err.meta,
             },
-            { status: 404 },
+            { status: 404 }
           );
 
-        case "P2002":
+        case 'P2002':
           return Response.json({
             success: false,
             message:
               (err.meta?.driverAdapterError as any)?.cause?.originalMessage ||
-              "Unique constraint failed",
+              'Unique constraint failed',
             code: err.code,
           });
 
+        case 'P2007':
+          return Response.json(
+            {
+              success: false,
+              message: 'Query validation error, invalid UUID',
+              code: err.code,
+            },
+            { status: 404 }
+          );
+
         default: {
           return Response.json(
-            { success: false, message: "An unexpected error occurred" },
-            { status: 500 },
+            { success: false, code: err.code },
+            { status: 500 }
           );
         }
       }
@@ -70,10 +80,10 @@ const ERROR_HANDLERS: Array<{
       Response.json(
         {
           success: false,
-          message: "Validation failed",
+          message: 'Validation failed',
           details: z.flattenError(err),
         },
-        { status: 400 },
+        { status: 400 }
       ),
   },
   {
@@ -86,7 +96,7 @@ const ERROR_HANDLERS: Array<{
           code: err.code,
           details: err.details,
         },
-        { status: err.statusCode },
+        { status: err.statusCode }
       ),
   },
   {
@@ -95,9 +105,9 @@ const ERROR_HANDLERS: Array<{
       Response.json(
         {
           success: false,
-          message: "Invalid JSON format",
+          message: 'Invalid JSON format',
         },
-        { status: 400 },
+        { status: 400 }
       ),
   },
 ];
@@ -111,9 +121,9 @@ export function handleError(error: unknown) {
   }
 
   // Fallback for truly unknown errors
-  console.error("[Unhandled Error]:", error);
+  console.error('[Unhandled Error]:', error);
   return Response.json(
-    { success: false, message: "An unexpected error occurred" },
-    { status: 500 },
+    { success: false, message: 'An unexpected error occurred' },
+    { status: 500 }
   );
 }

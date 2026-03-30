@@ -10,10 +10,8 @@ export const QuizQuestionSchema = z.object({
   correctAnswer: z.int().nonnegative(),
 });
 
-// student view, omits correct answer
-export const PublicQuestionSchema = QuizQuestionSchema.omit({
-  correctAnswer: true,
-});
+// public view
+export const PublicQuestionSchema = QuizQuestionSchema;
 
 // database id's are not provided so we omit them
 export const CreateQuestionSchema = QuizQuestionSchema.omit({
@@ -21,8 +19,12 @@ export const CreateQuestionSchema = QuizQuestionSchema.omit({
   quizId: true,
 });
 
-export const CreateQuestionListSchema = z.object({
-  questions: z.array(CreateQuestionSchema),
+export const CreateOrUpdateQuestionListSchema = z.object({
+  questions: z.array(
+    QuizQuestionSchema.omit({
+      quizId: true,
+    })
+  ),
   quizId: z.uuid(),
 });
 

@@ -1,3 +1,4 @@
+import { WithAuth } from '@/lib/api/auth-protected';
 import { handleError } from '@/lib/api/errors';
 import { prisma } from '@/lib/prisma';
 import { PublicQuestionSchema } from '@/lib/schemas/quizschemas';

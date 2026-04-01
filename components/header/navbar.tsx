@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { CircleUserRound, Plus } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Logo from './logo';
 
@@ -30,15 +29,31 @@ export default function Navbar() {
   return (
     <nav className="flex w-full flex-row items-center">
       <Logo></Logo>
-      <div className="hidden flex-1 items-center gap-4 md:flex">
-        <Button variant="ghost" onClick={() => scrollToSection('discover')}>
-          Discover
-        </Button>
-        <Button variant="ghost" onClick={() => scrollToSection('learn')}>
-          Learn
-        </Button>
-        <div className="flex flex-row">
-          <Button variant="ghost" onClick={() => scrollToSection('create')}>
+      <div className="hidden flex-1 items-center justify-center md:flex">
+        <div className="flex h-14.5 w-32 items-center justify-center hover:bg-gray-200">
+          <Button
+            variant="ghost"
+            className="hover:bg-transparent"
+            onClick={() => scrollToSection('discover')}
+          >
+            Discover
+          </Button>
+        </div>
+        <div className="flex h-14.5 w-32 items-center justify-center hover:bg-gray-200">
+          <Button
+            variant="ghost"
+            className="hover:bg-transparent"
+            onClick={() => scrollToSection('learn')}
+          >
+            Learn
+          </Button>
+        </div>
+        <div className="flex h-14.5 w-32 items-center justify-center hover:bg-gray-200">
+          <Button
+            variant="ghost"
+            className="hover:bg-transparent`"
+            onClick={() => scrollToSection('create')}
+          >
             Create
           </Button>
         </div>

@@ -3,7 +3,7 @@ import { Placeholder } from './placeholder';
 
 export default function Learn() {
   return (
-    <div className="mx-auto my-32 items-center">
+    <div className="mx-auto my-32 max-w-4xl items-center rounded-lg bg-white/10 py-16">
       <section
         id="learn"
         className="container mx-auto flex flex-col justify-center gap-10 sm:w-full sm:flex-row"

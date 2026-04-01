@@ -4,7 +4,7 @@ import { Placeholder } from './placeholder';
 
 export default function Create() {
   return (
-    <div className="my-32">
+    <div className="mx-auto my-32 max-w-4xl items-center rounded-lg bg-white/10 py-16">
       <section
         id="create"
         className="container mx-auto flex flex-col-reverse justify-center gap-10 sm:w-full sm:flex-row"

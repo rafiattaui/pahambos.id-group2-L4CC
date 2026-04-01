@@ -4,9 +4,6 @@ import Image from 'next/image';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, EffectFade } from 'swiper/modules';
 
-import 'swiper/css';
-import 'swiper/css/effect-fade';
-
 const slides = [
   { src: '/slideshow.svg', alt: 'Slide 1' },
   { src: '/slideshow2.svg', alt: 'Slide 2' },

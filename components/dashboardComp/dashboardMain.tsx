@@ -47,9 +47,9 @@ export default function DashboardMain({ userName }: DashboardMainProps) {
             >
               Browse Quiz
             </Button>
+            <Button variant="outline">Browse Quiz Sets</Button>
           </div>
         </div>
-      </div>
 
       <div className="space-y-4"></div>
     </section>

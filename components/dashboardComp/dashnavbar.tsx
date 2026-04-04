@@ -16,10 +16,10 @@ import Logo from '../header/logo';
 export default function DashNavbar() {
   const [isClicked, setIsClicked] = useState(false);
 
-  const handleClick = () => {
+  /* const handleClick = () => {
     setIsClicked(!isClicked);
   };
-
+*/
   return (
     <nav className="flex w-full flex-row items-center">
       <Logo></Logo>

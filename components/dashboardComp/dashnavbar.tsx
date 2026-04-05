@@ -9,7 +9,7 @@ import {
   InputGroupInput,
   InputGroupAddon,
 } from '@/components/ui/input-group';
-import { Plus, Search } from 'lucide-react';
+import { ClipboardPlus, Search, House, Users, History } from 'lucide-react';
 import { dashboardHref } from '@/app/dashboard/layout';
 import Logo from '../header/logo';
 
@@ -23,6 +23,26 @@ export default function DashNavbar() {
   return (
     <nav className="flex w-full flex-row items-center">
       <Logo></Logo>
+      <div className="ml-4 hidden flex-row gap-6 md:flex">
+        <Link href="/dashboard" className="flex flex-wrap items-center gap-2">
+          <House className="h-5 w-5" />
+          <span className="font-body-bold">Home</span>
+        </Link>
+        <Link
+          href={dashboardHref('class')}
+          className="flex flex-wrap items-center gap-2"
+        >
+          <Users className="h-5 w-5" />
+          <span className="font-body-bold">Class</span>
+        </Link>
+        <Link
+          href={dashboardHref('history')}
+          className="flex flex-wrap items-center gap-2"
+        >
+          <History className="h-5 w-5" />
+          <span className="font-body-bold">History</span>
+        </Link>
+      </div>
       <div className="hidden flex-1 justify-center md:flex">
         <InputGroup className="w-full max-w-sm">
           <InputGroupAddon align={'inline-start'}>
@@ -37,7 +57,7 @@ export default function DashNavbar() {
           className="flex flex-row rounded-md transition-[transform,background-color] duration-200 hover:border-2 active:translate-y-1 active:bg-gray-400"
         >
           <Button className="bg-transparent text-black hover:bg-transparent">
-            Create <Plus />
+            <span className="font-body-bold">Create</span> <ClipboardPlus />
           </Button>
         </Link>
         <Link href={dashboardHref('profile')}>

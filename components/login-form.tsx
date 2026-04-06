@@ -7,7 +7,6 @@ import {
   FieldDescription,
   FieldGroup,
   FieldLabel,
-  FieldSeparator,
 } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { useRouter } from 'next/navigation';
@@ -42,16 +41,16 @@ export function LoginForm({
         throw new Error('All fields must be answered.');
       }
 
-      const { data, error } = await authClient.signIn.email(
+      await authClient.signIn.email(
         {
           email, // user email address
           password, // user password -> min 8 characters by default
         },
         {
-          onRequest: (ctx) => {
+          onRequest: () => {
             setIsLoading(true);
           },
-          onSuccess: (ctx) => {
+          onSuccess: () => {
             setIsLoading(false);
             router.refresh();
             router.push('/dashboard');
@@ -63,10 +62,10 @@ export function LoginForm({
           },
         }
       );
-    } catch (err: any) {
+    } catch (err: unknown) {
       setFormError({
         title: 'Login Failed',
-        description: err.message,
+        description: (err as Error).message,
       });
     }
   };
@@ -86,35 +85,52 @@ export function LoginForm({
       >
         <FieldGroup>
           <div className="flex flex-col items-center gap-1 text-center">
-            <h1 className="text-2xl font-bold">Login to your account</h1>
-            <p className="text-muted-foreground text-sm text-balance">
+            <h1 className="font-body text-2xl font-bold">
+              Login to your account
+            </h1>
+            <p className="font-body text-sm text-balance text-black">
               Enter your email below to login to your account
             </p>
           </div>
           <Field>
-            <FieldLabel htmlFor="email">Email</FieldLabel>
+            <FieldLabel htmlFor="email" className="font-body">
+              Email
+            </FieldLabel>
             <Input
               name="email"
               id="email"
               type="email"
               placeholder="m@example.com"
+              className="font-body bg-white/10"
               required
             />
           </Field>
           <Field>
             <div className="flex items-center">
-              <FieldLabel htmlFor="password">Password</FieldLabel>
+              <FieldLabel htmlFor="password" className="font-body">
+                Password
+              </FieldLabel>
               <a
                 href="#"
-                className="ml-auto text-sm underline-offset-4 hover:underline"
+                className="font-body ml-auto text-sm underline-offset-4 hover:underline"
               >
                 Forgot your password?
               </a>
             </div>
-            <Input name="password" id="password" type="password" required />
+            <Input
+              name="password"
+              id="password"
+              type="password"
+              className="font-body bg-white/10"
+              required
+            />
           </Field>
           <Field>
-            <Button disabled={isLoading} type="submit">
+            <Button
+              disabled={isLoading}
+              type="submit"
+              className="font-body w-full"
+            >
               Login
             </Button>
           </Field>
@@ -129,9 +145,12 @@ export function LoginForm({
             </svg>
             Login with GitHub
           </Button> */}
-            <FieldDescription className="text-center">
+            <FieldDescription className="font-body text-center text-black">
               Don&apos;t have an account?{' '}
-              <a href="/register" className="underline underline-offset-4">
+              <a
+                href="/register"
+                className="underline underline-offset-4 hover:text-white!"
+              >
                 Sign up
               </a>
             </FieldDescription>

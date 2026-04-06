@@ -51,17 +51,17 @@ export function SignupForm({
         throw new Error('Password must be longer than 8 characters.');
       }
 
-      const { data, error } = await authClient.signUp.email(
+      await authClient.signUp.email(
         {
           email, // user email address
           password, // user password -> min 8 characters by default
           name: username, // user display name
         },
         {
-          onRequest: (ctx) => {
+          onRequest: () => {
             setIsLoading(true);
           },
-          onSuccess: (ctx) => {
+          onSuccess: () => {
             setIsLoading(false);
             router.push('/dashboard');
             router.refresh();
@@ -73,11 +73,11 @@ export function SignupForm({
           },
         }
       );
-    } catch (err: any) {
+    } catch (err: unknown) {
       setIsLoading(false);
       setFormError({
         title: 'Registration Failed',
-        description: err.message,
+        description: (err as Error).message,
       });
     }
   };
@@ -97,51 +97,72 @@ export function SignupForm({
       >
         <FieldGroup>
           <div className="flex flex-col items-center gap-1 text-center">
-            <h1 className="text-2xl font-bold">Create your account</h1>
-            <p className="text-muted-foreground text-sm text-balance">
+            <h1 className="font-body text-2xl font-bold">
+              Create your account
+            </h1>
+            <p className="font-body text-sm text-balance text-black">
               Fill in the form below to create your account
             </p>
           </div>
           <Field>
-            <FieldLabel htmlFor="name">Username</FieldLabel>
+            <FieldLabel htmlFor="name" className="font-body">
+              Username
+            </FieldLabel>
             <Input
               id="name"
               name="username"
               type="text"
               placeholder="John Doe"
+              className="font-body bg-white/10"
               required
             />
           </Field>
           <Field>
-            <FieldLabel htmlFor="email">Email</FieldLabel>
+            <FieldLabel htmlFor="email" className="font-body">
+              Email
+            </FieldLabel>
             <Input
               id="email"
               name="email"
               type="email"
               placeholder="m@example.com"
+              className="font-body bg-white/10"
               required
             />
-            <FieldDescription>
+            <FieldDescription className="font-body text-black">
               We&apos;ll use this to contact you. We will not share your email
               with anyone else.
             </FieldDescription>
           </Field>
           <Field>
-            <FieldLabel htmlFor="password">Password</FieldLabel>
-            <Input name="password" id="password" type="password" required />
-            <FieldDescription>
+            <FieldLabel htmlFor="password" className="font-body">
+              Password
+            </FieldLabel>
+            <Input
+              name="password"
+              id="password"
+              type="password"
+              className="font-body bg-white/10"
+              required
+            />
+            <FieldDescription className="font-body text-black">
               Must be at least 8 characters long.
             </FieldDescription>
           </Field>
           <Field>
-            <FieldLabel htmlFor="confirm-password">Confirm Password</FieldLabel>
+            <FieldLabel htmlFor="confirm-password" className="font-body">
+              Confirm Password
+            </FieldLabel>
             <Input
               name="confirmpw"
               id="confirm-password"
               type="password"
+              className="font-body bg-white/10"
               required
             />
-            <FieldDescription>Please confirm your password.</FieldDescription>
+            <FieldDescription className="font-body text-black">
+              Please confirm your password.
+            </FieldDescription>
           </Field>
           <Field>
             <Button disabled={isLoading} type="submit">
@@ -159,8 +180,11 @@ export function SignupForm({
             </svg>
             Sign up with GitHub
           </Button> */}
-            <FieldDescription className="px-6 text-center">
-              Already have an account? <a href="/login">Sign in</a>
+            <FieldDescription className="font-body px-6 text-center text-black">
+              Already have an account?{' '}
+              <a href="/login" className="underline hover:text-white!">
+                Sign in
+              </a>
             </FieldDescription>
           </Field>
         </FieldGroup>

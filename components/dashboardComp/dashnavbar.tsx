@@ -54,11 +54,9 @@ export default function DashNavbar() {
       <div className="ml-auto flex items-center gap-2">
         <Link
           href={dashboardHref('create')}
-          className="flex flex-row rounded-md transition-[transform,background-color] duration-200 hover:border-2 active:translate-y-1 active:bg-gray-400"
+          className="gap-2 h-10 items-center mx-4 p-2 flex flex-row rounded-md transition-[transform,background-color] duration-200 hover:border-2 active:translate-y-1 active:bg-gray-400"
         >
-          <Button className="bg-transparent text-black hover:bg-transparent">
             <span className="font-body-bold">Create</span> <ClipboardPlus />
-          </Button>
         </Link>
         <Link href={dashboardHref('profile')}>
           <Avatar className="mr-4 h-10 w-10 cursor-pointer rounded-full hover:brightness-75">

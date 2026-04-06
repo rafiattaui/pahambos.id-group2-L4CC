@@ -149,7 +149,7 @@ export function LoginForm({
               Don&apos;t have an account?{' '}
               <a
                 href="/register"
-                className="underline underline-offset-4 hover:text-white!"
+                className="underline underline-offset-4 hover:text-blue-600!"
               >
                 Sign up
               </a>

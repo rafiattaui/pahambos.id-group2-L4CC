@@ -182,7 +182,10 @@ export function SignupForm({
           </Button> */}
             <FieldDescription className="font-body px-6 text-center text-black">
               Already have an account?{' '}
-              <a href="/login" className="underline hover:text-white!">
+              <a
+                href="/login"
+                className="underline underline-offset-4 hover:text-blue-600!"
+              >
                 Sign in
               </a>
             </FieldDescription>

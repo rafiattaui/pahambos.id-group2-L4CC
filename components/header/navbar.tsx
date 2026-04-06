@@ -29,7 +29,7 @@ export default function Navbar() {
   return (
     <nav className="flex w-full flex-row items-center">
       <Logo></Logo>
-      <div className="hidden flex-1 items-center justify-center md:flex">
+      <div className="ml-28 hidden flex-1 items-center justify-center md:flex">
         <div className="flex h-14.5 w-32 items-center justify-center hover:bg-gray-200">
           <Button
             variant="ghost"

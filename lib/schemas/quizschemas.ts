@@ -6,14 +6,12 @@ export const QuizQuestionSchema = z.object({
   quizId: z.uuid(),
   order: z.int().nonnegative(),
   question: z.string().min(5).max(100),
-  answers: z.array(z.string().min(2)).min(2),
+  answers: z.array(z.string()).min(2),
   correctAnswer: z.int().nonnegative(),
 });
 
-// student view, omits correct answer
-export const PublicQuestionSchema = QuizQuestionSchema.omit({
-  correctAnswer: true,
-});
+// public view
+export const PublicQuestionSchema = QuizQuestionSchema;
 
 // database id's are not provided so we omit them
 export const CreateQuestionSchema = QuizQuestionSchema.omit({
@@ -21,7 +19,16 @@ export const CreateQuestionSchema = QuizQuestionSchema.omit({
   quizId: true,
 });
 
-const CategoryEnum = z.enum([
+export const CreateOrUpdateQuestionListSchema = z.object({
+  questions: z.array(
+    QuizQuestionSchema.omit({
+      quizId: true,
+    })
+  ),
+  quizId: z.uuid(),
+});
+
+export const CategoryEnum = z.enum([
   'Mathematics',
   'Science',
   'History',
@@ -55,4 +62,35 @@ export const CreateQuizSchema = QuizSchema.omit({
 export const CreateQuizAndQuestionsSchema = z.object({
   quiz: CreateQuizSchema,
   questions: z.array(CreateQuestionSchema).min(4),
+});
+
+// schemas below are meant to be used in api docs
+export const ResponseBase = z.object({
+  success: z.boolean(),
+});
+
+export const APIErrorSchema = z.object({
+  message: z.string(),
+  details: z.string().optional(),
+  code: z.string().optional(),
+  meta: z.string().optional(),
+});
+
+export const IDSchema = z.object({
+  id: z.uuid(),
+});
+
+export const QuizDetailResponseSchema = z.object({
+  quiz: PublicQuizSchema.extend({
+    questions: z.array(PublicQuestionSchema),
+  }),
+});
+
+export const QuizListResponseSchema = z.object({
+  data: z.array(PublicQuizSchema),
+  nextCursor: z.string().nullable().optional(),
+});
+
+export const QuizCreationSuccessResponseSchema = ResponseBase.extend({
+  quizId: z.uuid(),
 });

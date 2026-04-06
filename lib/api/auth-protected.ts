@@ -4,9 +4,9 @@ import { headers } from 'next/headers';
 import { APIError, handleError } from './errors';
 import { User } from '@/generated/prisma/client';
 
-type AuthenticatedHandler = (
+type AuthenticatedHandler<T = Record<string, string>> = (
   request: NextRequest,
-  context: { params: Promise<Record<string, string>>; user: User }
+  context: { params: Promise<T>; user: User }
 ) => Promise<Response>;
 
 export function WithAuth(handler: AuthenticatedHandler) {

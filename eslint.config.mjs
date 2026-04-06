@@ -8,6 +8,7 @@ const eslintConfig = defineConfig([...nextVitals, ...nextTs, {
     "prefer-const": "error",
     "no-unused-vars": "warn",
     "no-console": "warn",
+    "@typescript-eslint/no-explicit-any": "warn"
   }
 }, // Override default ignores of eslint-config-next.
 globalIgnores([

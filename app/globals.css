@@ -49,13 +49,64 @@
   --radius-3xl: calc(var(--radius) + 12px);
   --radius-4xl: calc(var(--radius) + 16px);
   --animate-gradient-slow: gradient 15s ease infinite;
+  --animate-spin-slow: spin 12s linear infinite;
 
   @keyframes gradient {
-    0%, 100% {
+    0%,
+    100% {
       background-position: 0% 50%;
     }
     50% {
       background-position: 100% 50%;
+    }
+  }
+}
+
+@keyframes shadow-orbit {
+  from {
+    transform: rotate(0deg) translateX(6px) rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg) translateX(6px) rotate(-360deg);
+  }
+}
+
+@layer utilities {
+  .reveal {
+    --reveal-x: 0px;
+    --reveal-y: 28px;
+    opacity: 0;
+    transform: translateX(var(--reveal-x)) translateY(var(--reveal-y));
+    transition:
+      opacity 700ms cubic-bezier(0.22, 1, 0.36, 1),
+      transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: opacity, transform;
+  }
+
+  .reveal-left {
+    --reveal-x: -100px;
+    --reveal-y: 0px;
+  }
+
+  .reveal-right {
+    --reveal-x: 100px;
+    --reveal-y: 0px;
+  }
+
+  .reveal-visible {
+    opacity: 1;
+    --reveal-x: 0px;
+    --reveal-y: 0px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .reveal,
+    .reveal-visible,
+    .reveal-left,
+    .reveal-right {
+      opacity: 1;
+      transform: none;
+      transition: none;
     }
   }
 }

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { CircleUserRound, Plus } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Logo from './logo';
 import Link from 'next/link';
 
@@ -11,6 +11,20 @@ export default function Navbar() {
 
   const handleClick = () => {
     setIsClicked(!isClicked);
+  };
+
+  const scrollToSection = (sectionId: string) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      const offset = 200;
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - offset;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth',
+      });
+    }
   };
 
   return (
@@ -38,6 +52,18 @@ export default function Navbar() {
           >
             Sign Up
           </Button>
+        </div>
+      </div>
+      <div className="ml-auto flex items-center gap-2">
+        <a href="/register" className="">
+          <Button
+            onClick={handleClick}
+            className="bg-blue-500 text-white hover:bg-blue-700"
+          >
+            Register
+          </Button>
+        </a>
+        <a href="/login" className="hidden sm:inline-block">
           <Button variant="ghost" onClick={handleClick}>
             Log In
           </Button>

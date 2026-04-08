@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Logo from './logo';
 
-export default function Navbar() {
+export default function Navbar(props: { sections: string[] }) {
   const [isClicked, setIsClicked] = useState(false);
 
   const handleClick = () => {
@@ -30,33 +30,20 @@ export default function Navbar() {
     <nav className="flex w-full flex-row items-center">
       <Logo></Logo>
       <div className="hidden flex-1 items-center justify-center md:flex">
-        <div className="flex h-14.5 w-32 items-center justify-center hover:bg-gray-200">
-          <Button
-            variant="ghost"
-            className="hover:bg-transparent"
-            onClick={() => scrollToSection('discover')}
+        {props.sections.map((section, index) => (
+          <div
+            key={index}
+            className="flex h-14.5 w-32 items-center justify-center hover:bg-gray-200"
           >
-            Discover
-          </Button>
-        </div>
-        <div className="flex h-14.5 w-32 items-center justify-center hover:bg-gray-200">
-          <Button
-            variant="ghost"
-            className="hover:bg-transparent"
-            onClick={() => scrollToSection('learn')}
-          >
-            Learn
-          </Button>
-        </div>
-        <div className="flex h-14.5 w-32 items-center justify-center hover:bg-gray-200">
-          <Button
-            variant="ghost"
-            className="hover:bg-transparent`"
-            onClick={() => scrollToSection('create')}
-          >
-            Create
-          </Button>
-        </div>
+            <Button
+              variant="ghost"
+              className="hover:bg-transparent"
+              onClick={() => scrollToSection(section.toLowerCase())}
+            >
+              {section}
+            </Button>
+          </div>
+        ))}
       </div>
       <div className="ml-auto flex items-center gap-2">
         <a href="/register" className="">

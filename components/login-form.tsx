@@ -129,7 +129,7 @@ export function LoginForm({
             <Button
               disabled={isLoading}
               type="submit"
-              className="font-body w-full"
+              className="font-body w-full bg-blue-500 hover:bg-blue-700"
             >
               Login
             </Button>

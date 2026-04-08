@@ -9,7 +9,7 @@ export default function Home() {
   return (
     <div className="overflow-x-hidden">
       <header className="sticky top-0 z-50 w-full bg-white backdrop-blur-md">
-        <Navbar />
+        <Navbar sections={['Discover', 'Learn', 'Create']} />
       </header>
 
       <HeroSect />

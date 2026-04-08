@@ -3,10 +3,13 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { authClient } from '@/lib/auth-client';
 import Logo from './logo';
 
 export default function Navbar(props: { sections: string[] }) {
   const [isClicked, setIsClicked] = useState(false);
+  const { data: session } = authClient.useSession();
+  const isAuthenticated = !!session;
 
   const handleClick = () => {
     setIsClicked(!isClicked);
@@ -46,22 +49,35 @@ export default function Navbar(props: { sections: string[] }) {
         ))}
       </div>
       <div className="ml-auto flex items-center gap-2">
-        <a href="/register" className="">
-          <Button
-            onClick={handleClick}
-            className="bg-blue-500 text-white hover:bg-blue-700"
-          >
-            Register
-          </Button>
-        </a>
-        <a href="/login" className="hidden sm:inline-block">
-          <Button variant="ghost" onClick={handleClick}>
-            Log In
-          </Button>
-        </a>
+        {!isAuthenticated ? (
+          <>
+            <a href="/profile">
+              <Button
+                onClick={handleClick}
+                className="bg-blue-500 text-white hover:bg-blue-700"
+              >
+                Register
+              </Button>
+            </a>
+            <a href="/login" className="hidden sm:inline-block">
+              <Button variant="ghost" onClick={handleClick}>
+                Log In
+              </Button>
+            </a>
+          </>
+        ) : (
+          <>
+            <span className="text-sm font-medium">
+              Hi, {session?.user?.name}!
+            </span>
+          </>
+        )}
+
         <Avatar className="mr-4 flex h-10 w-10 items-center justify-center rounded hover:bg-gray-200">
           <AvatarImage src="/not_logged_in_avatar.jpg" />
-          <AvatarFallback>CN</AvatarFallback>
+          <AvatarFallback>
+            {isAuthenticated ? session?.user?.name?.charAt(0) : 'CN'}
+          </AvatarFallback>
         </Avatar>
       </div>
     </nav>

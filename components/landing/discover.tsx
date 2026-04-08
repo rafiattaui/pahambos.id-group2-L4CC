@@ -8,7 +8,6 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from '../ui/carousel';
-import { Card, CardContent } from '../ui/card';
 import Autoplay from 'embla-carousel-autoplay';
 import { useEffect, useState } from 'react';
 import Category, { categories } from '../category_carousel/category';

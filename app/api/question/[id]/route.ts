@@ -92,10 +92,38 @@ export const DELETE = WithAuth(async (req, { user, params }) => {
   }
 });
 
-// TODO - Implement QuizQuestion PATCH
 export const PATCH = WithAuth(async (req, { user, params }) => {
-  return NextResponse.json(
-    { success: false, message: 'Not implemented' },
-    { status: 501 }
-  );
+  try {
+    const rawData = await req.json();
+    const data = UpdateQuestionSchema.parse(rawData);
+    const { id } = await params;
+
+    const question = await prisma.quizQuestion.findUnique({
+      where: { id },
+    });
+
+    if (!question) {
+      throw new APIError('Question not found', 404);
+    }
+
+    const updatedQuestion = await prisma.quizQuestion.update({
+      where: { id },
+      data: {
+        question: data.question,
+        answers: data.answers,
+        correctAnswer: data.correctAnswer,
+      },
+    });
+
+    const res = PublicQuestionSchema.parse(updatedQuestion);
+    return NextResponse.json(
+      {
+        success: true,
+        ...res,
+      },
+      { status: 200 }
+    );
+  } catch (err) {
+    return handleError(err);
+  }
 });

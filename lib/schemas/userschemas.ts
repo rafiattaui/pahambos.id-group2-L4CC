@@ -2,7 +2,6 @@ import { z } from 'zod';
 
 export const UserSchema = z.object({
   emailVerified: z.boolean(),
-  image: z.string().optional(), // fix
   email: z.email(),
   name: z.string(),
   updatedAt: z.date(),

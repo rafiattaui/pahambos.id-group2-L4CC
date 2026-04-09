@@ -5,9 +5,9 @@ import Image from 'next/image';
 
 export default function DashCarItem({ quiz }: { quiz: Quiz }) {
   return (
-    <div className="group relative w-fit overflow-hidden rounded-2xl">
+    <div className="group relative h-36 w-full overflow-hidden rounded-2xl md:h-40">
       <Image
-        className="rounded-2xl"
+        className="h-full w-full rounded-2xl object-cover"
         src={'/placeholderquiz.png'}
         alt={quiz.title}
         width={400}

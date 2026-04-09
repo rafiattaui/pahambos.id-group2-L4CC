@@ -58,6 +58,8 @@ export const CreateQuizSchema = QuizSchema.omit({
   // these are fields that will not be sent by the user, they will be added validated by the backend.
 });
 
+export const UpdateQuizSchema = CreateQuizSchema.partial();
+
 // actual quiz creation schema.
 export const CreateQuizAndQuestionsSchema = z.object({
   quiz: CreateQuizSchema,

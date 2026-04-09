@@ -2,6 +2,7 @@ import { WithAuth } from '@/lib/api/auth-protected';
 import { APIError, handleError } from '@/lib/api/errors';
 import { prisma } from '@/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server';
+import { UpdateQuizSchema } from '@/lib/schemas/quizschemas';
 
 /**
  * @description Returns a quiz and its questions and possible answers.
@@ -61,5 +62,39 @@ export const DELETE = WithAuth(async (req, { user, params }) => {
     return NextResponse.json({ sucess: true }, { status: 200 });
   } catch (error) {
     return handleError(error);
+  }
+});
+
+export const PATCH = WithAuth(async (req, { user, params }) => {
+  try {
+    const rawData = await req.json();
+    const data = UpdateQuizSchema.parse(rawData);
+
+    const { id } = await params;
+
+    const quiz = await prisma.quiz.findUnique({
+      where: { id },
+    });
+
+    if (!quiz) {
+      throw new APIError('Invalid Quiz ID', 404);
+    }
+
+    if (quiz.createdBy !== user.id) {
+      throw new APIError('User must be owner of the quiz.', 401);
+    }
+
+    await prisma.quiz.update({
+      where: { id },
+      data: {
+        title: data.title,
+        description: data.description,
+        category: data.category,
+      },
+    });
+
+    return NextResponse.json({ success: true }, { status: 200 });
+  } catch (err) {
+    return handleError(err);
   }
 });

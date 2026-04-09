@@ -2,7 +2,6 @@ import { z } from 'zod';
 
 export const UserSchema = z.object({
   emailVerified: z.boolean(),
-  image: z.string().optional(), // fix
   email: z.email(),
   name: z.string(),
   updatedAt: z.date(),
@@ -16,10 +15,16 @@ export const UserPublicSchema = UserSchema.omit({
   updatedAt: true,
 });
 
-export const UserPartialSchema = UserSchema.partial({
-  image: true,
-  name: true,
-  role: true,
+export const UserUpdateSchema = z.object({
+  name: z.string().optional(),
+  role: z.enum(['Learner', 'Educator']).optional(),
+});
+
+export const UserChangePasswordSchema = z.object({
+  currentPassword: z.string(),
+  newPassword: z
+    .string()
+    .min(8, 'New password must be at least 8 characters long'),
 });
 
 // user creation schema provided and validated by betterauth functions.

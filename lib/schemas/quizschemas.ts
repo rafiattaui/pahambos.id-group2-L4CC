@@ -19,6 +19,10 @@ export const CreateQuestionSchema = QuizQuestionSchema.omit({
   quizId: true,
 });
 
+export const UpdateQuestionSchema = CreateQuestionSchema.partial().omit({
+  order: true, // order should not be updated directly, it is managed by the backend.
+});
+
 export const CreateOrUpdateQuestionListSchema = z.object({
   questions: z.array(
     QuizQuestionSchema.omit({

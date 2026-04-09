@@ -1,7 +1,7 @@
 import { headers } from 'next/headers';
 import { auth } from '@/lib/auth';
 import { APIError, handleError } from '@/lib/api/errors';
-import { UserPartialSchema, UserPublicSchema } from '@/lib/schemas/userschemas';
+import { UserPublicSchema, UserUpdateSchema } from '@/lib/schemas/userschemas';
 import { NextRequest } from 'next/server';
 
 /**
@@ -33,7 +33,7 @@ export async function GET() {
 /**
  * @summary Update user profile
  * @description Updates the current user's information. Only partial data is required.
- * @body UserPartialSchema
+ * @body UserUpdateSchema
  * @response 200:UserPublicSchema
  * @add 400:APIErrorSchema
  * @add 401:APIErrorSchema
@@ -44,7 +44,7 @@ export async function GET() {
 export async function PATCH(request: NextRequest) {
   try {
     const rawData = await request.json();
-    const data = UserPartialSchema.parse(rawData);
+    const data = UserUpdateSchema.parse(rawData);
 
     const res = await auth.api.updateUser({
       body: data,

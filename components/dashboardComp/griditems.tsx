@@ -39,14 +39,24 @@ export default function GridItems({ quiz }: { quiz: Quiz }) {
         className="block h-full w-full text-left"
       >
         <Card className="relative flex h-full flex-col overflow-hidden rounded-2xl border-2 border-gray-300 shadow-xl">
-          <CardHeader>
+          <CardHeader className="relative p-0">
             <Image
               src={'/placeholderquiz.png'}
               alt={quiz.title}
               width={300}
               height={200}
-              className="object-cover"
+              className="h-48 w-full object-cover"
             />
+            <div className="absolute inset-x-4 bottom-3 flex items-center justify-between">
+              <span
+                className={`font-body text-xs sm:text-sm ${categoriesText.find((c) => c.category === quiz.category)?.textColor || 'text-gray-500'}`}
+              >
+                {quiz.category}
+              </span>
+              <span className="font-body text-xs sm:text-sm">
+                {quiz.numQuestions} Qs
+              </span>
+            </div>
           </CardHeader>
           <CardContent className="flex-1">
             <CardTitle className="font-heading line-clamp-2">
@@ -56,15 +66,6 @@ export default function GridItems({ quiz }: { quiz: Quiz }) {
               {quiz.description}
             </CardDescription>
           </CardContent>
-
-          <span className="font-body absolute top-40 right-4 text-sm">
-            {quiz.numQuestions} Qs
-          </span>
-          <span
-            className={`font-body absolute top-40 left-4 text-sm ${categoriesText.find((c) => c.category === quiz.category)?.textColor || 'text-gray-500'}`}
-          >
-            {quiz.category}
-          </span>
         </Card>
       </button>
 

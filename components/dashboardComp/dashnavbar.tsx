@@ -1,8 +1,8 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   InputGroup,
@@ -14,7 +14,13 @@ import { dashboardHref } from '@/app/dashboard/layout';
 import Logo from '../header/logo';
 
 export default function DashNavbar() {
-  const [isClicked, setIsClicked] = useState(false);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [query, setQuery] = useState(searchParams.get('q') ?? '');
+
+  const handleSearch = () => {
+    router.push(dashboardHref(`search?q=${encodeURIComponent(query)}`));
+  };
 
   /* const handleClick = () => {
     setIsClicked(!isClicked);
@@ -44,19 +50,26 @@ export default function DashNavbar() {
         </Link>
       </div>
       <div className="hidden flex-1 justify-center md:flex">
-        <InputGroup className="w-full max-w-sm">
+        <InputGroup className="w-full max-w-sm" onClick={handleSearch}>
           <InputGroupAddon align={'inline-start'}>
             <Search className="h-4 w-4" />
           </InputGroupAddon>
-          <InputGroupInput placeholder="Search..." />
+          <InputGroupInput
+            placeholder="Search..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') handleSearch();
+            }}
+          />
         </InputGroup>
       </div>
       <div className="ml-auto flex items-center gap-2">
         <Link
           href={dashboardHref('create')}
-          className="gap-2 h-10 items-center mx-4 p-2 flex flex-row rounded-md transition-[transform,background-color] duration-200 hover:border-2 active:translate-y-1 active:bg-gray-400"
+          className="mx-4 flex h-10 flex-row items-center gap-2 rounded-md p-2 transition-[transform,background-color] duration-200 hover:border-2 active:translate-y-1 active:bg-gray-400"
         >
-            <span className="font-body-bold">Create</span> <ClipboardPlus />
+          <span className="font-body-bold">Create</span> <ClipboardPlus />
         </Link>
         <Link href={dashboardHref('profile')}>
           <Avatar className="mr-4 h-10 w-10 cursor-pointer rounded-full hover:brightness-75">

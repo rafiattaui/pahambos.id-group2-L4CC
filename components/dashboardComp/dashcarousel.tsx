@@ -24,11 +24,12 @@ import {
 import { Button } from '../ui/button';
 import { randomizedArray } from './randomized';
 
+export type CategoryTextColor = {
+  category: string;
+  textColor: string;
+};
+
 export default function DashCarousel() {
-  type CategoryTextColor = {
-    category: string;
-    textColor: string;
-  };
   const [displayedQuizzes] = useState<Quiz[]>(() =>
     randomizedArray(mockQuizzes).slice(0, 6)
   );
@@ -170,8 +171,8 @@ export default function DashCarousel() {
                       type="button"
                       onClick={() => setSelectedQuiz(quiz)}
                       className="w-full text-left"
-                      aria-label={'Open quiz ' + quiz.title}
-                      title={'Open quiz ' + quiz.title}
+                      aria-label={'Open quiz'}
+                      title={'Open quiz '}
                     >
                       <DashCarItem quiz={quiz} />
                     </button>

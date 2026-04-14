@@ -21,7 +21,6 @@ export default function DashNavbar() {
   const handleSearch = () => {
     router.push(dashboardHref(`search?q=${encodeURIComponent(query)}`));
   };
-*/
   return (
     <nav className="flex w-full flex-row items-center">
       <Logo></Logo>

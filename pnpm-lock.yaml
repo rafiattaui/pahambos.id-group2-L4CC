@@ -88,6 +88,7 @@ importers:
         version: 19.2.3(react@19.2.3)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
       react-easy-crop:
         specifier: ^5.5.7
         version: 5.5.7(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
@@ -98,6 +99,8 @@ importers:
         specifier: ^5.5.7
         version: 5.5.7(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
 >>>>>>> 76c9346 (quiz creation form done (awaiting API))
+=======
+>>>>>>> 459a020 (added search page and corresponding search logic category filter and sort will soon be added)
       swagger-ui-react:
         specifier: ^5.32.0
         version: 5.32.0(@types/react@19.2.13)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)

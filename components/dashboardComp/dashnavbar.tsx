@@ -57,32 +57,56 @@ export function MobileBottomNav() {
 
 export default function DashNavbar() {
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const [query, setQuery] = useState(searchParams.get('q') ?? '');
   const hasMounted = useRef(false);
 
-  const handleSearch = () => {
-    router.push(dashboardHref(`search?q=${encodeURIComponent(query)}`));
-  };
+  const isActive = (href: string) =>
+    href === '/dashboard'
+      ? pathname === href
+      : pathname === href || pathname.startsWith(`${href}/`);
+
+  useEffect(() => {
+    if (!hasMounted.current) {
+      hasMounted.current = true;
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      const q = query.trim();
+      const href = q
+        ? dashboardHref(`search?q=${encodeURIComponent(q)}`)
+        : dashboardHref('search');
+
+      router.replace(href);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [query, router]);
+
   return (
     <>
       <nav className="flex w-full flex-row items-center">
         <Logo></Logo>
-        <div className="ml-4 hidden flex-row gap-4 md:flex">
-          <Link href="/dashboard" className="flex flex-wrap items-center gap-2">
+        <div className="ml-4 hidden flex-row gap-6 md:flex">
+          <Link
+            href="/dashboard"
+            className={`flex flex-wrap items-center gap-2 transition-colors hover:text-blue-600 ${isActive('/dashboard') ? 'border-b-2 border-b-blue-600 text-blue-600' : 'text-slate-700'}`}
+          >
             <House className="h-5 w-5" />
             <span className="font-body-bold">Home</span>
           </Link>
           <Link
             href={dashboardHref('class')}
-            className="flex flex-wrap items-center gap-2"
+            className={`flex flex-wrap items-center gap-2 transition-colors hover:text-blue-600 ${isActive(dashboardHref('class')) ? 'border-b-2 border-b-blue-600 text-blue-600' : 'text-slate-700'}`}
           >
             <Users className="h-5 w-5" />
             <span className="font-body-bold">Class</span>
           </Link>
           <Link
             href={dashboardHref('history')}
-            className="flex flex-wrap items-center gap-2"
+            className={`flex flex-wrap items-center gap-2 transition-colors hover:text-blue-600 ${isActive(dashboardHref('history')) ? 'border-b-2 border-b-blue-600 text-blue-600' : 'text-slate-700'}`}
           >
             <History className="h-5 w-5" />
             <span className="font-body-bold">History</span>

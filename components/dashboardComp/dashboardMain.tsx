@@ -48,7 +48,7 @@ export default function DashboardMain() {
         <div className="flex items-center justify-center overflow-hidden rounded-2xl bg-white p-6">
           <InputGroup className="h-14 max-w-2xs inset-shadow-sm">
             <InputGroupInput placeholder="Enter a code to join a quiz" />
-            <InputGroupButton className="m-2 aspect-square h-9 w-12 bg-blue-400 text-white">
+            <InputGroupButton className="m-2 aspect-square h-9 w-12 bg-blue-400 text-white hover:bg-blue-600 hover:text-white active:translate-y-1">
               Join
             </InputGroupButton>
           </InputGroup>

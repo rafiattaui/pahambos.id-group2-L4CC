@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   InputGroup,
@@ -18,9 +18,18 @@ export default function DashNavbar() {
   const searchParams = useSearchParams();
   const [query, setQuery] = useState(searchParams.get('q') ?? '');
 
-  const handleSearch = () => {
-    router.push(dashboardHref(`search?q=${encodeURIComponent(query)}`));
-  };
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const q = query.trim();
+      const href = q
+        ? dashboardHref(`search?q=${encodeURIComponent(q)}`)
+        : dashboardHref('search');
+
+      router.replace(href);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [query, router]);
 
   return (
     <nav className="flex w-full flex-row items-center">
@@ -46,7 +55,7 @@ export default function DashNavbar() {
         </Link>
       </div>
       <div className="hidden flex-1 justify-center md:flex">
-        <InputGroup className="w-full max-w-sm" onClick={handleSearch}>
+        <InputGroup className="w-full max-w-sm">
           <InputGroupAddon align={'inline-start'}>
             <Search className="h-4 w-4" />
           </InputGroupAddon>
@@ -54,9 +63,6 @@ export default function DashNavbar() {
             placeholder="Search..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') handleSearch();
-            }}
           />
         </InputGroup>
       </div>

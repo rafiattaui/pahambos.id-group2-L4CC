@@ -54,6 +54,53 @@ const CameraIcon = () => (
   </svg>
 );
 
+const PencilIcon = () => (
+  <svg
+    width="14"
+    height="14"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+  </svg>
+);
+
+const CheckIcon = () => (
+  <svg
+    width="14"
+    height="14"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <polyline points="20 6 9 17 4 12" />
+  </svg>
+);
+
+const XIcon = () => (
+  <svg
+    width="14"
+    height="14"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <line x1="18" y1="6" x2="6" y2="18" />
+    <line x1="6" y1="6" x2="18" y2="18" />
+  </svg>
+);
+
 const EyeIcon = ({ show }: { show: boolean }) =>
   show ? (
     <svg
@@ -98,6 +145,7 @@ function Field({
   showToggle,
   onToggle,
   showing,
+  readOnly,
 }: {
   label: string;
   id: string;
@@ -109,6 +157,7 @@ function Field({
   showToggle?: boolean;
   onToggle?: () => void;
   showing?: boolean;
+  readOnly?: boolean;
 }) {
   return (
     <div className="flex flex-col gap-1.5">
@@ -122,7 +171,8 @@ function Field({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
-          className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-900 transition-all outline-none placeholder:text-gray-400 focus:border-violet-400 focus:bg-white focus:ring-2 focus:ring-violet-100"
+          readOnly={readOnly}
+          className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-900 transition-all outline-none placeholder:text-gray-400 read-only:cursor-default read-only:bg-gray-100 read-only:text-gray-400 focus:border-violet-400 focus:bg-white focus:ring-2 focus:ring-violet-100 read-only:focus:border-gray-200 read-only:focus:ring-0"
         />
         {showToggle && (
           <button
@@ -187,12 +237,14 @@ function StrengthBar({ password }: { password: string }) {
 }
 
 // ── main component ───────────────────────────────────────────────────────────
-export default function ProfileCard() {
+export default function AccountCard() {
   const [tab, setTab] = useState<Tab>('profile');
 
   // profile state
-  const [username, setUsername] = useState('CoolNinja');
-  const [email, setEmail] = useState('coolninja@example.com');
+  const [username, setUsername] = useState('JohnDoe');
+  const [email, setEmail] = useState('john.doe@example.com');
+  const [editingUsername, setEditingUsername] = useState(false);
+  const [draftUsername, setDraftUsername] = useState('');
   const [avatarSrc, setAvatarSrc] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const [profileSaving, setProfileSaving] = useState(false);
@@ -229,6 +281,8 @@ export default function ProfileCard() {
     setProfileSaved(false);
     // TODO: wire up to your server action / API route
     await new Promise((r) => setTimeout(r, 900));
+    setUsername(draftUsername);
+    setEditingUsername(false);
     setProfileSaving(false);
     setProfileSaved(true);
     setTimeout(() => setProfileSaved(false), 2500);
@@ -322,39 +376,81 @@ export default function ProfileCard() {
 
           {/* fields */}
           <div className="flex flex-col gap-4">
-            <Field
-              label="Username"
-              id="username"
-              value={username}
-              onChange={setUsername}
-              placeholder="Your display name"
-            />
+            {/* username with inline edit */}
+            <div className="flex flex-col gap-1.5">
+              <label
+                htmlFor="username"
+                className="text-sm font-medium text-gray-700"
+              >
+                Username
+              </label>
+              <div className="flex items-center gap-2">
+                <div className="relative flex-1">
+                  <input
+                    id="username"
+                    type="text"
+                    value={editingUsername ? draftUsername : username}
+                    onChange={(e) => setDraftUsername(e.target.value)}
+                    readOnly={!editingUsername}
+                    placeholder="Your display name"
+                    className={`w-full rounded-xl border px-4 py-2.5 text-sm text-gray-900 transition-all outline-none placeholder:text-gray-400 ${
+                      editingUsername
+                        ? 'border-violet-400 bg-white ring-2 ring-violet-100'
+                        : 'cursor-default border-gray-200 bg-gray-100 text-gray-400'
+                    }`}
+                  />
+                </div>
+                {editingUsername ? (
+                  <div className="flex gap-1">
+                    <button
+                      onClick={handleProfileSave}
+                      disabled={profileSaving}
+                      className="flex h-9 w-9 items-center justify-center rounded-lg bg-violet-600 text-white shadow-sm transition-all hover:bg-violet-700 active:scale-95 disabled:opacity-60"
+                      aria-label="Save username"
+                    >
+                      {profileSaving ? <Spinner /> : <CheckIcon />}
+                    </button>
+                    <button
+                      onClick={() => {
+                        setEditingUsername(false);
+                        setDraftUsername(username);
+                      }}
+                      className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-400 transition-colors hover:text-gray-600"
+                      aria-label="Cancel"
+                    >
+                      <XIcon />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => {
+                      setEditingUsername(true);
+                      setDraftUsername(username);
+                    }}
+                    className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-400 transition-colors hover:border-violet-300 hover:text-violet-500"
+                    aria-label="Edit username"
+                  >
+                    <PencilIcon />
+                  </button>
+                )}
+              </div>
+              {profileSaved && (
+                <p className="text-xs font-medium text-emerald-500">
+                  ✓ Username updated!
+                </p>
+              )}
+            </div>
+
             <Field
               label="Email address"
               id="email"
               type="email"
               value={email}
-              onChange={setEmail}
+              onChange={() => {}}
               placeholder="you@example.com"
-              hint="We'll send a verification link if you change this."
+              readOnly
             />
           </div>
-
-          <button
-            onClick={handleProfileSave}
-            disabled={profileSaving}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-500 py-2.5 text-sm font-semibold text-white shadow-md shadow-violet-400/30 transition-all hover:bg-blue-700 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {profileSaving ? (
-              <>
-                <Spinner /> Saving…
-              </>
-            ) : profileSaved ? (
-              '✓ Saved!'
-            ) : (
-              'Save changes'
-            )}
-          </button>
         </div>
       )}
 
@@ -406,7 +502,7 @@ export default function ProfileCard() {
           <button
             onClick={handleSecuritySave}
             disabled={securitySaving}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-500 py-2.5 text-sm font-semibold text-white shadow-md shadow-violet-400/30 transition-all hover:bg-blue-700 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-violet-600 py-2.5 text-sm font-semibold text-white shadow-md shadow-violet-400/30 transition-all hover:bg-violet-700 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
           >
             {securitySaving ? (
               <>

@@ -1,6 +1,8 @@
 'use client';
 
-import DashNavbar from '@/components/dashboardComp/dashnavbar';
+import DashNavbar, {
+  MobileBottomNav,
+} from '@/components/dashboardComp/dashnavbar';
 
 export function dashboardHref(path: string) {
   if (!path || path === '/') return '/dashboard';
@@ -20,7 +22,10 @@ export default function DashboardLayout({
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-4 py-6">{children}</main>
+      <main className="mx-auto max-w-7xl px-4 py-6 pb-28 md:pb-6">
+        {children}
+      </main>
+      <MobileBottomNav />
     </div>
   );
 }

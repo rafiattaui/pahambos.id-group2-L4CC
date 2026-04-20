@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Button } from '../ui/button';
 import {
   DropdownMenu,
@@ -18,7 +19,12 @@ import {
   PaginationPrevious,
   PaginationEllipsis,
 } from '../ui/pagination';
-import { SlidersVertical } from 'lucide-react';
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from '../ui/input-group';
+import { SlidersVertical, Search } from 'lucide-react';
 import { Quiz, mockQuizzes } from '../dashboardComp/quizmockup';
 import GridItems from './griditems';
 
@@ -70,7 +76,9 @@ function getPageItems(
 
 type SortOption = 'a-z' | 'z-a' | 'most-questions' | 'least-questions';
 
-export default function SearchPage({ query = '' }: SearchQuery) {
+export default function SearchPage({ query: initialQuery = '' }: SearchQuery) {
+  const searchParams = useSearchParams();
+  const [query, setQuery] = useState(searchParams.get('q') ?? initialQuery);
   const normalizedQuery = query.trim().toLowerCase();
   const categories = [
     'All',
@@ -130,6 +138,19 @@ export default function SearchPage({ query = '' }: SearchQuery) {
 
   return (
     <div className="mt-4 items-stretch rounded-2xl bg-white p-4 shadow">
+      <InputGroup className="mb-4 md:hidden">
+        <InputGroupAddon align={'inline-start'}>
+          <Search className="h-4 w-4" />
+        </InputGroupAddon>
+        <InputGroupInput
+          placeholder="Search... "
+          value={query}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            setCurrentPage(1);
+          }}
+        />
+      </InputGroup>
       <div className="mb-4">
         <div className="flex flex-wrap gap-2">
           {categories.map((category) => (

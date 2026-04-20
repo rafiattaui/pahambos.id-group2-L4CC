@@ -9,12 +9,63 @@ import {
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
 } from '../ui/dropdown-menu';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationLink,
+  PaginationItem,
+  PaginationNext,
+  PaginationPrevious,
+  PaginationEllipsis,
+} from '../ui/pagination';
 import { SlidersVertical } from 'lucide-react';
 import { Quiz, mockQuizzes } from '../dashboardComp/quizmockup';
 import GridItems from './griditems';
 
 interface SearchQuery {
   query?: string;
+}
+
+type PageItem = number | 'ellipsis';
+
+function getPageItems(
+  currentPage: number,
+  totalPages: number,
+  siblingCount = 1
+): PageItem[] {
+  const totalPagesToShow = siblingCount * 2 + 5;
+
+  if (totalPages <= totalPagesToShow) {
+    return Array.from({ length: totalPages }, (_, i) => i + 1);
+  }
+
+  const leftSibling = Math.max(currentPage - siblingCount, 1);
+  const rightSibling = Math.min(currentPage + siblingCount, totalPages);
+
+  const showLeftEllipsis = leftSibling > 2;
+  const showRightEllipsis = rightSibling < totalPages - 1;
+
+  const items: PageItem[] = [1];
+
+  if (showLeftEllipsis) {
+    items.push('ellipsis');
+  } else {
+    for (let p = 2; p < leftSibling; p++) items.push(p);
+  }
+
+  for (let p = leftSibling; p <= rightSibling; p++) {
+    if (p !== 1 && p !== totalPages) items.push(p);
+  }
+
+  if (showRightEllipsis) {
+    items.push('ellipsis');
+  } else {
+    for (let p = rightSibling + 1; p < totalPages; p++) items.push(p);
+  }
+
+  if (totalPages > 1) items.push(totalPages);
+
+  return items;
 }
 
 type SortOption = 'a-z' | 'z-a' | 'most-questions' | 'least-questions';
@@ -59,6 +110,24 @@ export default function SearchPage({ query = '' }: SearchQuery) {
 
   const emptySearch = normalizedQuery !== '' && filteredItems.length === 0;
 
+  const ITEMS_PER_PAGE = 12;
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(sortedItems.length / ITEMS_PER_PAGE)
+  );
+
+  const paginatedItems = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    return sortedItems.slice(start, start + ITEMS_PER_PAGE);
+  }, [sortedItems, currentPage, ITEMS_PER_PAGE]);
+
+  const pageItems = useMemo(
+    () => getPageItems(currentPage, totalPages, 1),
+    [currentPage, totalPages]
+  );
+
   return (
     <div className="mt-4 items-stretch rounded-2xl bg-white p-4 shadow">
       <div className="mb-4">
@@ -71,7 +140,10 @@ export default function SearchPage({ query = '' }: SearchQuery) {
                   ? 'bg-blue-500 text-white'
                   : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
               }`}
-              onClick={() => setSelectedCategory(category)}
+              onClick={() => {
+                setSelectedCategory(category);
+                setCurrentPage(1);
+              }}
             >
               {category}
             </button>
@@ -80,7 +152,7 @@ export default function SearchPage({ query = '' }: SearchQuery) {
       </div>
       <div className="mb-4">
         <DropdownMenu>
-          <DropdownMenuTrigger className="flex flex-wrap">
+          <DropdownMenuTrigger asChild className="flex flex-wrap">
             <Button
               variant="outline"
               className="font-body rounded-xl px-4 py-2 text-sm hover:border-0 hover:bg-gray-300"
@@ -95,7 +167,10 @@ export default function SearchPage({ query = '' }: SearchQuery) {
           <DropdownMenuContent>
             <DropdownMenuRadioGroup
               value={sortOption}
-              onValueChange={(value) => setSortOption(value as SortOption)}
+              onValueChange={(value) => {
+                setSortOption(value as SortOption);
+                setCurrentPage(1);
+              }}
             >
               <DropdownMenuRadioItem value="a-z">A to Z</DropdownMenuRadioItem>
               <DropdownMenuRadioItem value="z-a">Z to A</DropdownMenuRadioItem>
@@ -109,8 +184,8 @@ export default function SearchPage({ query = '' }: SearchQuery) {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
-        {sortedItems.map((quiz: Quiz) => (
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+        {paginatedItems.map((quiz: Quiz) => (
           <GridItems key={quiz.id} quiz={quiz} />
         ))}
 
@@ -121,6 +196,57 @@ export default function SearchPage({ query = '' }: SearchQuery) {
             </h2>
           </div>
         )}
+      </div>
+      <div className="flex w-full">
+        <Pagination className="mt-6 justify-center">
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setCurrentPage((p) => Math.max(1, p - 1));
+                }}
+                className={`font-body ${currentPage === 1 ? 'pointer-events-none opacity-50' : ''}`}
+              />
+            </PaginationItem>
+            {pageItems.map((item, index) => (
+              <PaginationItem
+                key={typeof item === 'number' ? item : `ellipsis-${index}`}
+              >
+                {item === 'ellipsis' ? (
+                  <PaginationEllipsis />
+                ) : (
+                  <PaginationLink
+                    href="#"
+                    isActive={currentPage === item}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setCurrentPage(item);
+                    }}
+                    className={`font-body ${currentPage === item ? 'bg-blue-500 text-white' : 'hover:bg-gray-300'}`}
+                  >
+                    {item}
+                  </PaginationLink>
+                )}
+              </PaginationItem>
+            ))}
+            <PaginationItem>
+              <PaginationNext
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setCurrentPage((p) => Math.min(totalPages, p + 1));
+                }}
+                className={`font-body ${
+                  currentPage === totalPages
+                    ? 'pointer-events-none opacity-50'
+                    : ''
+                }`}
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
       </div>
     </div>
   );

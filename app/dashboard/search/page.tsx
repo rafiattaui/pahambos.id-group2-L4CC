@@ -10,7 +10,7 @@ export default async function Search({ searchParams }: Props) {
 
   return (
     <div>
-      <SearchPage query={q} />
+      <SearchPage key={q} query={q} />
     </div>
   );
 }

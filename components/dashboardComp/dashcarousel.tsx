@@ -30,9 +30,10 @@ export type CategoryTextColor = {
 };
 
 export default function DashCarousel() {
-  const [displayedQuizzes] = useState<Quiz[]>(() =>
-    randomizedArray(mockQuizzes).slice(0, 6)
+  const sortedQuiz = [...mockQuizzes].sort((a, b) =>
+    a.title.localeCompare(b.title)
   );
+
   const [selectedQuiz, setSelectedQuiz] = useState<Quiz | null>(null);
 
   const categoriesText: CategoryTextColor[] = [
@@ -62,7 +63,7 @@ export default function DashCarousel() {
           <div className="relative z-10">
             <Carousel opts={{ loop: true }}>
               <CarouselContent>
-                {displayedQuizzes.map((quiz) => (
+                {sortedQuiz.map((quiz) => (
                   <CarouselItem
                     key={quiz.id}
                     className="basis-1/2 p-4 md:basis-1/3 lg:basis-1/4"

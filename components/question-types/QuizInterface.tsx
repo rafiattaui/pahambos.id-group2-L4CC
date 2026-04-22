@@ -10,7 +10,7 @@ export type QuestionType = 'multiple-choice' | 'multi-select' | 'true-false';
 export interface QuizQuestion {
   id: string;
   quizId: string;
-  order: number;
+  order: number; // 1-based (question 1, question 2, …)
   question: string;
   answers: string[];
   correctAnswers: number[]; // index of the correct answer in the answers array, multi select included

@@ -5,22 +5,34 @@ import { resolve } from 'path';
 import { useState, useCallback, useRef, use, useEffect } from 'react';
 import { set } from 'zod';
 
-export type QuestionType = 'SingleSelect' | 'MultiSelect' | 'TrueFalse';
+export type QuestionType = 'multiple-choice' | 'true-false' | 'multi-select';
 
-export interface QuizQuestion {
+export type QuizQuestion = {
   id: string;
   quizId: string;
   order: number; // 1-based (question 1, question 2, …)
   question: string;
   answers: string[];
-  correctAnswers: number[]; // index of the correct answer in the answers array, multi select included
-  imageUrl?: string;
+  correctAnswer: number;
 
-  // additional fields for type and time limit
   type?: QuestionType;
-  timeLimit?: number; // in seconds
-}
+  correctAnswers?: number[];
+  timeLimit?: number;
+};
 
+export type QuizResult = {
+  questionId: string;
+  order: number;
+  correct: boolean;
+  timeTaken: number;
+};
+
+type Props = {
+  questions: QuizQuestion[];
+  onComplete?: (results: QuizResult[]) => void;
+};
+
+// checks for type because type is not explicitly defined in the db
 function resolveType(q: QuizQuestion): QuestionType {
   if (q.type) return q.type;
   // Auto-detect true/false: exactly 2 answers that are "true"/"false"
@@ -36,11 +48,12 @@ function resolveType(q: QuizQuestion): QuestionType {
 function checkCorrect(q: QuizQuestion, selectedIndices: number[]): boolean {
   const type = resolveType(q);
 
-  if (type === 'SingleSelect' || type === 'TrueFalse') {
-    return selectedIndices[0] === q.correctAnswers[0];
+  if (type === 'true-false' || type === 'multiple-choice') {
+    return selectedIndices[0] === q.correctAnswer;
   }
-  if (type === 'MultiSelect') {
-    const correctSet = q.correctAnswers ?? [q.correctAnswers[0]];
+
+  if (type === 'multi-select') {
+    const correctSet = q.correctAnswers ?? [q.correctAnswer];
     const sorted = [...selectedIndices].sort((a, b) => a - b);
     const sortedCorrect = [...correctSet].sort((a, b) => a - b);
     return (

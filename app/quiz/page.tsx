@@ -1,5 +1,5 @@
-import QuizWrapper from '@/components/QuizWrapper';
+import QuizInterface from '@/components/question-types/QuizInterface';
 
-export default function Home() {
-  return <QuizWrapper />;
+export default function QuizPage() {
+  return <QuizInterface />;
 }

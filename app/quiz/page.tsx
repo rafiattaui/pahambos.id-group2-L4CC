@@ -1,5 +1,5 @@
-import { MultiChoice } from '@/components/question-types/MultiChoice';
+import QuizWrapper from '@/components/QuizWrapper';
 
-export default async function QuizPage() {
-  return <MultiChoice />;
+export default function Home() {
+  return <QuizWrapper />;
 }

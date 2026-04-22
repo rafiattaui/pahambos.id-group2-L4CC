@@ -85,7 +85,7 @@ export default function QuizInterface({
 
   const bgMusicRef = useRef<HTMLAudioElement | null>(null);
 
-  // Initialize audio once on mount
+  // Initialize audio once
   useEffect(() => {
     bgMusicRef.current = new Audio('/audio/quizmusic.mp3');
     bgMusicRef.current.loop = true;

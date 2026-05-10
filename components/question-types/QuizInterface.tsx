@@ -108,27 +108,27 @@ export default function QuizInterface({ questions = MOCK_QUESTIONS }) {
   const progress = (timeLeft / 30) * 100;
 
   return (
-    <div className="relative top-20 left-1/2 h-full w-full max-w-4xl -translate-x-1/2 px-4">
-      <div className="mb-6 flex flex-col items-center">
+    <div className="relative top-20 left-1/2 h-full w-full max-w-4xl -translate-x-1/2 rounded-2xl border border-white bg-white/40 px-4">
+      <div className="mt-6 mb-6 flex flex-col items-center">
         <div className="mb-2 flex items-center gap-2">
-          <span className="font-body rounded-full border border-black/20 bg-white/20 px-4 py-1 text-2xl text-black backdrop-blur-md">
+          <span className="font-body 0 rounded-full border border-black/20 bg-purple-300 px-4 py-1 text-2xl text-black backdrop-blur-md">
             00:{timeLeft < 10 ? `0${timeLeft}` : timeLeft}
           </span>
         </div>
       </div>
 
-      <div className="h-3 w-full overflow-hidden rounded-full border border-white/30 bg-white/30">
+      <div className="h-3 w-full overflow-hidden rounded-full border border-black/30 bg-white/30">
         <div
-          className="h-full bg-gradient-to-r from-yellow-400 to-orange-500 transition-all duration-1000 ease-linear"
+          className="h-full bg-gradient-to-r from-yellow-400 to-green-500 transition-all duration-1000 ease-linear"
           style={{ width: `${progress}%` }}
         ></div>
       </div>
 
-      <div className="mt-15 mb-10 rounded-4xl border border-white/30 bg-white/30 p-16 text-black shadow-xl backdrop-blur-md">
+      <div className="mt-15 mb-10 rounded-4xl border border-white/30 bg-purple-300 p-16 text-black shadow-xl backdrop-blur-md">
         <h2 className="font-heading text-center text-xl">Question 1</h2>
       </div>
 
-      <div className="font-body grid grid-cols-2 gap-5">
+      <div className="font-body mb-10 grid grid-cols-2 gap-5">
         {currentData.answers.map((answerText, index) => (
           <button
             key={index}

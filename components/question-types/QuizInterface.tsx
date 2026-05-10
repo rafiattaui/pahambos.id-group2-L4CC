@@ -2,7 +2,7 @@
 
 import { time } from 'console';
 import { resolve } from 'path';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { set } from 'zod';
 
 export type QuestionType = 'multiple-choice' | 'multi-select' | 'true-false';
@@ -143,11 +143,19 @@ export default function QuizInterface({ questions = MOCK_QUESTIONS }) {
     [currentIndex, currentQuestion, questions]
   );
 
+  const commitRef = useRef(commitAndAdvance);
+  useEffect(() => {
+    commitRef.current = commitAndAdvance;
+  }, [commitAndAdvance]);
+
   // Handle timer
   useEffect(() => {
     if (isSubmitted || quizFinished) return;
-    if (timeLeft <= 0) return;
-    const id = setTimeout(() => setTimeLeft((t) => t - 1), 1000);
+    if (timeLeft <= 0) {
+      commitRef.current([], true);
+      return;
+    }
+    const id = setTimeout(() => setTimeLeft((prev) => prev - 1), 1000);
     return () => clearTimeout(id);
   }, [timeLeft, isSubmitted, quizFinished]);
 
@@ -155,7 +163,7 @@ export default function QuizInterface({ questions = MOCK_QUESTIONS }) {
   function handleSingleSelect(index: number) {
     if (isSubmitted) return;
     setSelectedIndices([index]);
-    commitAndAdvance([index]);
+    commitRef.current([index]);
   }
 
   function handleMultiToggle(index: number) {
@@ -167,7 +175,7 @@ export default function QuizInterface({ questions = MOCK_QUESTIONS }) {
 
   function handleMultiSubmit() {
     if (isSubmitted || selectedIndices.length === 0) return;
-    commitAndAdvance(selectedIndices);
+    commitRef.current(selectedIndices);
   }
 
   // Score screen

@@ -116,6 +116,36 @@ export default function QuizInterface({
     setCountdown(3);
   }
 
+  // Commit answer and advance to next question
+  const commitAndAdvance = useCallback(
+    (indices: number[], timedOut = false) => {
+      const isCorrect = timedOut
+        ? null
+        : checkCorrect(currentQuestion, indices);
+
+      setResults((prev) => {
+        const next = [...prev];
+        next[currentIndex] = { selectedIndices: indices, isCorrect, timedOut };
+        return next;
+      });
+      setIsSubmitted(true);
+
+      // Auto-advance after 1.4 s
+      setTimeout(() => {
+        if (currentIndex + 1 < questions.length) {
+          setCurrentIndex((i) => i + 1);
+          setSelectedIndices([]);
+          setIsSubmitted(false);
+          setTimeLeft(questions[currentIndex + 1]?.timeLimit ?? 30);
+        } else {
+          setQuizFinished(true);
+        }
+      }, 1400);
+    },
+    [currentIndex, currentQuestion, questions]
+  );
+
+  // Handle timer
   useEffect(() => {
     if (countdown === null) return;
     const id = setTimeout(() => {

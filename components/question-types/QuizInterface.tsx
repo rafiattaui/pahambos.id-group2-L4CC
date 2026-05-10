@@ -145,6 +145,11 @@ export default function QuizInterface({
     [currentIndex, currentQuestion, questions]
   );
 
+  const commitRef = useRef(commitAndAdvance);
+  useEffect(() => {
+    commitRef.current = commitAndAdvance;
+  }, [commitAndAdvance]);
+
   // Handle timer
   useEffect(() => {
     if (countdown === null) return;

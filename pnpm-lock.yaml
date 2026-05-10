@@ -65,6 +65,9 @@ importers:
       next:
         specifier: 16.1.6
         version: 16.1.6(@babel/core@7.29.0)(@playwright/test@1.58.2)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      next-cloudinary:
+        specifier: ^6.17.5
+        version: 6.17.5(next@16.1.6(@babel/core@7.29.0)(@playwright/test@1.58.2)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)
       next-openapi-gen:
         specifier: ^0.10.3
         version: 0.10.3
@@ -83,12 +86,12 @@ importers:
       react-dom:
         specifier: 19.2.3
         version: 19.2.3(react@19.2.3)
-      swiper:
-        specifier: ^12.1.2
-        version: 12.1.2
       swagger-ui-react:
         specifier: ^5.32.0
         version: 5.32.0(@types/react@19.2.13)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      swiper:
+        specifier: ^12.1.2
+        version: 12.1.2
       tailwind-merge:
         specifier: ^3.5.0
         version: 3.5.0
@@ -491,6 +494,24 @@ packages:
 
   '@chevrotain/utils@10.5.0':
     resolution: {integrity: sha512-hBzuU5+JjB2cqNZyszkDHZgOSrUUT8V3dhgRl8Q9Gp6dAj/H5+KILGjbhDpc3Iy9qmqlm/akuOI2ut9VUtzJxQ==}
+
+  '@cloudinary-util/types@1.5.10':
+    resolution: {integrity: sha512-n5lrm7SdAXhgWEbkSJKHZGnaoO9G/g4WYS6HYnq/k4nLj79sYfQZOoKjyR8hF2iyLRdLkT+qlk68RNFFv5tKew==}
+
+  '@cloudinary-util/url-loader@5.10.4':
+    resolution: {integrity: sha512-gHkdvOaV+rlcwuIT7Vqd0ts/H5bsH4+bwFten/gIZ8oRjzdTBvgIY3R6F8bbJt0pFIEfpFEQLe4rPkl0NNqEWg==}
+
+  '@cloudinary-util/util@3.3.2':
+    resolution: {integrity: sha512-Cc0iFxzfl7fcOXuznpeZFGYC885Of/vDgccRDnhTe/8Rf8YKv2PjLtezyo0VgmdA/CpeZy29NCXAsf6liokbwg==}
+
+  '@cloudinary-util/util@4.0.0':
+    resolution: {integrity: sha512-S4xcou/3A7l5o+bcKlw2VHBNgwups7/0lbVDT/cO5YmtrcEYXgj6LGmwnjvpTm/x571VPVN8x5jWdT3rLZiKJQ==}
+
+  '@cloudinary/transformation-builder-sdk@1.21.2':
+    resolution: {integrity: sha512-ehOgKUaP+Nvuf7B0TosmB8iilL0kdiVjzjl8tIK06cjvsNnwSJI3xP9nEJmKkvqNxwwFwvYXT+mxUTqnSv9JOA==}
+
+  '@cloudinary/url-gen@1.15.0':
+    resolution: {integrity: sha512-bjU67eZxLUgoRy/Plli4TQio7q6P31OYqnEgXxeN9TKXrzr6h0DeEdIUhKI9gy3HkEBWXWWJIPh7j7gkOJPnyA==}
 
   '@cspotcode/source-map-support@0.8.1':
     resolution: {integrity: sha512-IchNf6dN4tHoMFIn/7OE8LWZ19Y6q/67Bmf6vnGREv8RSbBVb9LPJxEcnwrcwX6ixSvaiGoomAUvu4YSxXrVgw==}
@@ -5013,6 +5034,12 @@ packages:
     resolution: {integrity: sha512-Z4SmBUweYa09+o6pG+eASabEpP6QkQ70yHj351pQoEXIs8uHbaU2DWVmzBANKgflPa47A50PtB2+NgRpQvr7vA==}
     engines: {node: '>= 10'}
 
+  next-cloudinary@6.17.5:
+    resolution: {integrity: sha512-YIyIWw5Ds30f4rnED+E9ssLUd94FOPTtbkO2KUvOcw9z4irOEIpb1goxMxbn2EUBnIGQOd6uUf1gFizjME7pMg==}
+    peerDependencies:
+      next: ^12 || ^13 || ^14 || >=15.0.0-rc || ^15
+      react: ^17 || ^18 || >=19.0.0-beta || ^19
+
   next-openapi-gen@0.10.3:
     resolution: {integrity: sha512-bdhMHORXXUE2PpsBcbsos/a1pAp+N2HE+gDaOABkW9LApqWy2YMmNaHauUguXbe5hGiOIrNrF2LiEXjVwlPsug==}
     engines: {node: '>=18.0.0'}
@@ -6140,9 +6167,6 @@ packages:
     resolution: {integrity: sha512-ot0WnXS9fgdkgIcePe6RHNk1WA8+muPa6cSjeR3V8K27q9BB1rTE3R1p7Hv0z1ZyAc8s6Vvv8DIyWf681MAt0w==}
     engines: {node: '>= 0.4'}
 
-  swiper@12.1.2:
-    resolution: {integrity: sha512-4gILrI3vXZqoZh71I1PALqukCFgk+gpOwe1tOvz5uE9kHtl2gTDzmYflYCwWvR4LOvCrJi6UEEU+gnuW5BtkgQ==}
-    engines: {node: '>= 4.7.0'}
   swagger-client@3.37.0:
     resolution: {integrity: sha512-pzU+B+DkUbrSwlj4/E8sGeP1w84/CFgDJAt80fHu650TxnOHbqFLGQjiE6luvpRxTPdfK2zRHJP7I6CgUkI8yA==}
 
@@ -6160,6 +6184,10 @@ packages:
     peerDependencies:
       react: '>=16.8.0 <20'
       react-dom: '>=16.8.0 <20'
+
+  swiper@12.1.2:
+    resolution: {integrity: sha512-4gILrI3vXZqoZh71I1PALqukCFgk+gpOwe1tOvz5uE9kHtl2gTDzmYflYCwWvR4LOvCrJi6UEEU+gnuW5BtkgQ==}
+    engines: {node: '>= 4.7.0'}
 
   symbol-tree@3.2.4:
     resolution: {integrity: sha512-9QNk5KwDF+Bvz+PyObkmSYjI5ksVUYtjW7AU22r2NKcfLJcXp96hkDWU3+XndOsUb+AQ9QhfzfCT2O+CNWT5Tw==}
@@ -7115,6 +7143,27 @@ snapshots:
   '@chevrotain/types@10.5.0': {}
 
   '@chevrotain/utils@10.5.0': {}
+
+  '@cloudinary-util/types@1.5.10': {}
+
+  '@cloudinary-util/url-loader@5.10.4':
+    dependencies:
+      '@cloudinary-util/types': 1.5.10
+      '@cloudinary-util/util': 3.3.2
+      '@cloudinary/url-gen': 1.15.0
+      zod: 3.25.76
+
+  '@cloudinary-util/util@3.3.2': {}
+
+  '@cloudinary-util/util@4.0.0': {}
+
+  '@cloudinary/transformation-builder-sdk@1.21.2':
+    dependencies:
+      '@cloudinary/url-gen': 1.15.0
+
+  '@cloudinary/url-gen@1.15.0':
+    dependencies:
+      '@cloudinary/transformation-builder-sdk': 1.21.2
 
   '@cspotcode/source-map-support@0.8.1':
     dependencies:
@@ -12222,6 +12271,14 @@ snapshots:
 
   neotraverse@0.6.18: {}
 
+  next-cloudinary@6.17.5(next@16.1.6(@babel/core@7.29.0)(@playwright/test@1.58.2)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3):
+    dependencies:
+      '@cloudinary-util/types': 1.5.10
+      '@cloudinary-util/url-loader': 5.10.4
+      '@cloudinary-util/util': 4.0.0
+      next: 16.1.6(@babel/core@7.29.0)(@playwright/test@1.58.2)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      react: 19.2.3
+
   next-openapi-gen@0.10.3:
     dependencies:
       '@babel/parser': 7.29.0
@@ -13471,7 +13528,6 @@ snapshots:
 
   supports-preserve-symlinks-flag@1.0.0: {}
 
-  swiper@12.1.2: {}
   swagger-client@3.37.0:
     dependencies:
       '@babel/runtime-corejs3': 7.29.0
@@ -13554,6 +13610,8 @@ snapshots:
     transitivePeerDependencies:
       - '@types/react'
       - debug
+
+  swiper@12.1.2: {}
 
   symbol-tree@3.2.4: {}
 

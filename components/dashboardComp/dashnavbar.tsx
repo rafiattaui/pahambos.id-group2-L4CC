@@ -199,7 +199,7 @@ export default function DashNavbar({ user }: NavbarProps) {
                   </DropdownMenuItem>
                 </DropdownMenuGroup>
               )}
-              <DropdownMenuSeparator />
+              {isLoggedIn && <DropdownMenuSeparator />}
               {isLoggedIn && (
                 <DropdownMenuItem
                   className="text-destructive"

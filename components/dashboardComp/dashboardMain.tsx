@@ -47,7 +47,6 @@ export default function DashboardMain({ userName }: DashboardMainProps) {
             >
               Browse Quiz
             </Button>
-            <Button variant="outline">Browse Quiz Sets</Button>
           </div>
         </div>
       </div>

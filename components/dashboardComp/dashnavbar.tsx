@@ -5,13 +5,38 @@ import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '../ui/dropdown-menu';
+import { Button } from '../ui/button';
+import {
   InputGroup,
   InputGroupInput,
   InputGroupAddon,
 } from '@/components/ui/input-group';
-import { ClipboardPlus, Search, House, Users, History } from 'lucide-react';
-import { dashboardHref } from '@/app/dashboard/layout';
+import {
+  ClipboardPlus,
+  Search,
+  House,
+  Users,
+  History,
+  UserCircleIcon,
+  DoorOpen,
+} from 'lucide-react';
+import { dashboardHref } from '@/components/dashboardComp/dashboardHref';
+import { authClient } from '@/lib/auth-client';
 import Logo from '../header/logo';
+
+type NavbarProps = {
+  user: {
+    name?: string | null;
+    image?: string | null;
+  } | null;
+};
 
 export function MobileBottomNav() {
   const pathname = usePathname();
@@ -56,7 +81,9 @@ export function MobileBottomNav() {
   );
 }
 
-export default function DashNavbar() {
+export default function DashNavbar({ user }: NavbarProps) {
+  const isLoggedIn = !!user;
+  const avatarSrc = user?.image ?? '/avatar_placeholder.jpg';
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -134,12 +161,66 @@ export default function DashNavbar() {
           </form>
         </div>
         <div className="ml-auto flex items-center gap-2">
-          <Link href={dashboardHref('profile')}>
-            <Avatar className="mr-4 h-10 w-10 cursor-pointer rounded-full hover:brightness-75">
-              <AvatarImage src="/avatar_placeholder.jpg" />
-              <AvatarFallback>CN</AvatarFallback>
-            </Avatar>
-          </Link>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="mx-auto h-full w-full rounded-full focus-visible:border-0 focus-visible:ring-0"
+              >
+                <Avatar className="mr-4 h-10 w-10 cursor-pointer rounded-full hover:brightness-75">
+                  <AvatarImage
+                    className={`${isLoggedIn ? '' : 'grayscale'}`}
+                    src={avatarSrc}
+                  />
+                  <AvatarFallback>
+                    {isLoggedIn ? (user?.name?.[0] ?? 'U') : 'G'}
+                  </AvatarFallback>
+                </Avatar>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" side="left" sideOffset={4}>
+              {isLoggedIn ? (
+                <DropdownMenuGroup>
+                  <DropdownMenuItem
+                    className="flex items-center gap-2"
+                    onClick={() => router.push(dashboardHref('profile'))}
+                  >
+                    <span className="font-body-bold">Profile</span>
+                    <UserCircleIcon color="#171717" />
+                  </DropdownMenuItem>
+                </DropdownMenuGroup>
+              ) : (
+                <DropdownMenuGroup>
+                  <DropdownMenuItem>
+                    <Link href="/login">
+                      <span className="font-body-bold">Login</span>
+                    </Link>
+                  </DropdownMenuItem>
+                </DropdownMenuGroup>
+              )}
+              <DropdownMenuSeparator />
+              {isLoggedIn && (
+                <DropdownMenuItem
+                  className="text-destructive"
+                  onClick={async () => {
+                    await authClient.signOut({
+                      fetchOptions: {
+                        onSuccess: () => {
+                          router.push('/login');
+                        },
+                      },
+                    });
+                  }}
+                >
+                  <span className="font-body-bold text-destructive">
+                    Logout
+                  </span>
+                  <DoorOpen color="#e7000b" />
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </nav>
     </>

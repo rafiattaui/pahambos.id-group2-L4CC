@@ -28,7 +28,7 @@ model User {
   name          String
   email         String
   emailVerified Boolean   @default(false)
-  imageUrl      String?
+  image         String?
   imageKey      String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt

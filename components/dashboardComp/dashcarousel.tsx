@@ -22,7 +22,6 @@ import {
   CardAction,
 } from '../ui/card';
 import { Button } from '../ui/button';
-import { randomizedArray } from './randomized';
 
 export type CategoryTextColor = {
   category: string;

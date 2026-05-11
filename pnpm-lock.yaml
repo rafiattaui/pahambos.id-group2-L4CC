@@ -159,6 +159,12 @@ importers:
       dotenv:
         specifier: ^17.3.1
         version: 17.3.1
+<<<<<<< HEAD
+=======
+      dotenv-cli:
+        specifier: ^11.0.0
+        version: 11.0.0
+>>>>>>> 1d22bd6 (integrate frontend with backend)
       eslint:
         specifier: ^9
         version: 9.39.2(jiti@2.6.1)

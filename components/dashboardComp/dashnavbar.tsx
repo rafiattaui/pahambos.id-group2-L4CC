@@ -189,6 +189,24 @@ export default function DashNavbar({ user }: NavbarProps) {
                     <span className="font-body-bold">Profile</span>
                     <UserCircleIcon color="#171717" />
                   </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    className="text-destructive"
+                    onClick={async () => {
+                      await authClient.signOut({
+                        fetchOptions: {
+                          onSuccess: () => {
+                            router.push('/login');
+                          },
+                        },
+                      });
+                    }}
+                  >
+                    <span className="font-body-bold text-destructive">
+                      Logout
+                    </span>
+                    <DoorOpen color="#e7000b" />
+                  </DropdownMenuItem>
                 </DropdownMenuGroup>
               ) : (
                 <DropdownMenuGroup>
@@ -198,26 +216,6 @@ export default function DashNavbar({ user }: NavbarProps) {
                     </Link>
                   </DropdownMenuItem>
                 </DropdownMenuGroup>
-              )}
-              {isLoggedIn && <DropdownMenuSeparator />}
-              {isLoggedIn && (
-                <DropdownMenuItem
-                  className="text-destructive"
-                  onClick={async () => {
-                    await authClient.signOut({
-                      fetchOptions: {
-                        onSuccess: () => {
-                          router.push('/login');
-                        },
-                      },
-                    });
-                  }}
-                >
-                  <span className="font-body-bold text-destructive">
-                    Logout
-                  </span>
-                  <DoorOpen color="#e7000b" />
-                </DropdownMenuItem>
               )}
             </DropdownMenuContent>
           </DropdownMenu>

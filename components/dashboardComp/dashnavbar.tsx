@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   InputGroup,
@@ -21,6 +21,7 @@ export function MobileBottomNav() {
     { href: dashboardHref('search'), label: 'Search', icon: Search },
     { href: dashboardHref('class'), label: 'Class', icon: Users },
     { href: dashboardHref('history'), label: 'History', icon: History },
+    { href: dashboardHref('create'), label: 'Create', icon: ClipboardPlus },
   ];
 
   const isActive = (href: string) =>
@@ -33,7 +34,7 @@ export function MobileBottomNav() {
       className="fixed left-1/2 z-50 w-[calc(100%-1rem)] max-w-md -translate-x-1/2 rounded-2xl border border-slate-200 bg-white/90 shadow-xl backdrop-blur-md md:hidden"
       style={{ bottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}
     >
-      <ul className="grid grid-cols-4">
+      <ul className="grid grid-cols-5">
         {items.map(({ href, label, icon: Icon }) => {
           const active = isActive(href);
           return (
@@ -60,30 +61,27 @@ export default function DashNavbar() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [query, setQuery] = useState(searchParams.get('q') ?? '');
-  const hasMounted = useRef(false);
+
+  const isSearchPage = (pathname: string) =>
+    pathname === dashboardHref('search')
+      ? router.replace(`/dashboard/search?q=${encodeURIComponent(query)}`)
+      : router.push(dashboardHref(`search?q=${encodeURIComponent(query)}`));
+
+  const handleSearchSubmit = (e: React.FormEvent<HTMLElement>) => {
+    e.preventDefault();
+
+    const q = query.trim();
+    const href = q
+      ? dashboardHref(`search?q=${encodeURIComponent(q)}`)
+      : dashboardHref('search');
+
+    router.push(href);
+  };
 
   const isActive = (href: string) =>
     href === '/dashboard'
       ? pathname === href
       : pathname === href || pathname.startsWith(`${href}/`);
-
-  useEffect(() => {
-    if (!hasMounted.current) {
-      hasMounted.current = true;
-      return;
-    }
-
-    const timer = setTimeout(() => {
-      const q = query.trim();
-      const href = q
-        ? dashboardHref(`search?q=${encodeURIComponent(q)}`)
-        : dashboardHref('search');
-
-      router.replace(href);
-    }, 300);
-
-    return () => clearTimeout(timer);
-  }, [query, router]);
 
   return (
     <>
@@ -111,26 +109,31 @@ export default function DashNavbar() {
             <History className="h-5 w-5" />
             <span className="font-body-bold">History</span>
           </Link>
-        </div>
-        <div className="hidden flex-1 justify-center md:flex">
-          <InputGroup className="w-full max-w-sm">
-            <InputGroupAddon align={'inline-start'}>
-              <Search className="h-4 w-4" />
-            </InputGroupAddon>
-            <InputGroupInput
-              placeholder="Search..."
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-            />
-          </InputGroup>
-        </div>
-        <div className="ml-auto flex items-center gap-2">
           <Link
             href={dashboardHref('create')}
-            className="mx-4 flex h-10 flex-row items-center gap-2 rounded-md p-2 transition-[transform,background-color] duration-200 hover:border-2 active:translate-y-1 active:bg-gray-400"
+            className={`flex flex-wrap items-center gap-2 transition-colors hover:text-blue-600 ${isActive(dashboardHref('create')) ? 'border-b-2 border-b-blue-600 text-blue-600' : 'text-slate-700'}`}
           >
             <span className="font-body-bold">Create</span> <ClipboardPlus />
           </Link>
+        </div>
+        <div className="hidden flex-1 justify-center md:flex">
+          <form onSubmit={handleSearchSubmit} className="w-full max-w-md">
+            <InputGroup className="w-full max-w-sm">
+              <InputGroupAddon align={'inline-start'}>
+                <Search className="h-4 w-4" />
+              </InputGroupAddon>
+              <InputGroupInput
+                placeholder="Search..."
+                value={query}
+                onChange={(e) => {
+                  setQuery(e.target.value);
+                  isSearchPage(pathname);
+                }}
+              />
+            </InputGroup>
+          </form>
+        </div>
+        <div className="ml-auto flex items-center gap-2">
           <Link href={dashboardHref('profile')}>
             <Avatar className="mr-4 h-10 w-10 cursor-pointer rounded-full hover:brightness-75">
               <AvatarImage src="/avatar_placeholder.jpg" />

@@ -122,6 +122,8 @@ model Quiz {
   createdBy    String   @db.Uuid
   createdAt    DateTime @default(now())
   title        String   @db.VarChar(255)
+  imageUrl     String?
+  imageKey     String?
   description  String?
   numQuestions Int
   category     Category
@@ -137,6 +139,8 @@ model QuizQuestion {
   quizId       String @db.Uuid
   order        Int
   question     String
+  imageUrl     String?
+  imageKey     String?
   answers      String[]
   correctAnswer Int
 

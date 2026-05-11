@@ -89,7 +89,7 @@ export const UpdateQuizSchema = CreateQuizSchema.partial();
 // actual quiz creation schema.
 export const CreateQuizAndQuestionsSchema = z.object({
   quiz: CreateQuizSchema,
-  questions: z.array(CreateQuestionSchema).min(4),
+  questions: z.array(CreateQuestionSchema).min(2),
 });
 
 // schemas below are meant to be used in api docs

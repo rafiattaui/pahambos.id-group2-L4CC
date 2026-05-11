@@ -25,11 +25,64 @@ const PLACEHOLDER_IMAGE_KEY = 'landscape-placeholder_vrw20c';
 export const POST = WithAuth(async (req, { user }) => {
   const uploadedKeys: string[] = [];
   try {
-    const rawData = await req.json();
-    const data = CreateQuizAndQuestionsSchema.parse(rawData);
+    // ── 1. Parse FormData ─────────────────────────────────────────────────
+    const formData = await req.formData();
 
-    // upload images to cloudinary.
+    const rawQuiz = {
+      title: formData.get('quiz.title'),
+      description: formData.get('quiz.description'),
+      category: formData.get('quiz.category'),
+      imageFile: formData.get('quiz.imageFile') ?? undefined,
+    };
 
+    // Reconstruct questions array from flat FormData keys
+    // Client sends: questions[0].question, questions[0].order, etc.
+    const questionsMap = new Map<number, Record<string, unknown>>();
+
+    for (const [key, value] of formData.entries()) {
+      const match = key.match(/^questions\[(\d+)\]\.(.+)$/);
+      if (!match) continue;
+
+      const index = Number(match[1]);
+      const field = match[2];
+
+      if (!questionsMap.has(index)) questionsMap.set(index, {});
+      questionsMap.get(index)![field] = value;
+    }
+
+    // answers are sent as questions[0].answers[0], questions[0].answers[1], etc.
+    // re-group them into an array
+    const rawQuestions = Array.from(questionsMap.entries())
+      .sort(([a], [b]) => a - b)
+      .map(([, q]) => {
+        const answers: string[] = [];
+        const cleaned: Record<string, unknown> = {};
+
+        for (const [k, v] of Object.entries(q)) {
+          const answerMatch = k.match(/^answers\[(\d+)\]$/);
+          if (answerMatch) {
+            answers[Number(answerMatch[1])] = v as string;
+          } else {
+            cleaned[k] = v;
+          }
+        }
+
+        return {
+          ...cleaned,
+          order: Number(cleaned.order),
+          correctAnswer: Number(cleaned.correctAnswer),
+          answers,
+          imageFile: cleaned.imageFile ?? undefined,
+        };
+      });
+
+    // ── 2. Zod validation ─────────────────────────────────────────────────
+    const data = CreateQuizAndQuestionsSchema.parse({
+      quiz: rawQuiz,
+      questions: rawQuestions,
+    });
+
+    // ── 3. Upload images to Cloudinary ────────────────────────────────────
     async function safeUpload(file: File, folder: string) {
       const result = await uploadImage(file, folder);
       uploadedKeys.push(result.imageKey);
@@ -48,11 +101,11 @@ export const POST = WithAuth(async (req, { user }) => {
           : Promise.resolve(null)
       )
     );
-    // upload quiz and questions
+
+    // ── 4. Persist ────────────────────────────────────────────────────────
     const numQuestions = data.questions.length;
 
-    let result: { quiz: any; questions: any } | null = null;
-    result = await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx) => {
       const quiz = await tx.quiz.create({
         data: {
           ...data.quiz,
@@ -80,7 +133,7 @@ export const POST = WithAuth(async (req, { user }) => {
     });
 
     return NextResponse.json(
-      { success: true, quizId: result!.quiz.id },
+      { success: true, quizId: result.quiz.id },
       { status: 200 }
     );
   } catch (error) {

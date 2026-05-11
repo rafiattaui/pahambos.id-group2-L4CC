@@ -22,7 +22,7 @@ import {
   CardAction,
 } from '../ui/card';
 import { Button } from '../ui/button';
-import { dashboardHref } from '@/app/dashboard/layout';
+import { dashboardHref } from '@/components/dashboardComp/dashboardHref';
 import Link from 'next/link';
 
 export type CategoryTextColor = {

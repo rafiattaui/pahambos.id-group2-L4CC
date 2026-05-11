@@ -205,6 +205,11 @@ export default function SearchPage({ query: initialQuery = '' }: SearchQuery) {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+      <div className="col-span-5 text-left">
+        <h2 className="font-body-bold mb-4 text-2xl">
+          Results found for &quot;{query}&quot;
+        </h2>
+      </div>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
         {paginatedItems.map((quiz: Quiz) => (
           <GridItems key={quiz.id} quiz={quiz} />

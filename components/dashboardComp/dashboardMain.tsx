@@ -25,13 +25,17 @@ const greetingMessages = [
   'Time to level up your knowledge!',
 ];
 
-export default function DashboardMain() {
+type DashboardMainProps = {
+  userName: string;
+};
+
+export default function DashboardMain({ userName }: DashboardMainProps) {
   return (
     <section className="space-y-6">
       <div className="grid gap-4 md:grid-cols-2">
         <div className="from 10% via 50% to 70% relative h-72 overflow-hidden rounded-2xl bg-linear-to-br from-blue-400 via-blue-300 to-blue-100 p-6">
           <h1 className="font-heading text-3xl font-bold text-slate-900">
-            Hello, User!
+            Hello, {userName}!
           </h1>
           <p className="font-body-bold mt-4 text-slate-700">
             Let&apos;s learn something new today!

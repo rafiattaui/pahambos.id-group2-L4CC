@@ -11,7 +11,7 @@ import Image from 'next/image';
 import { useState } from 'react';
 import DashCarItem from './dashcaritem';
 import { mockQuizzes, type Quiz } from './quizmockup';
-import { X } from 'lucide-react';
+import { X, ChevronRight } from 'lucide-react';
 import {
   Card,
   CardTitle,
@@ -22,6 +22,8 @@ import {
   CardAction,
 } from '../ui/card';
 import { Button } from '../ui/button';
+import { dashboardHref } from '@/app/dashboard/layout';
+import Link from 'next/link';
 
 export type CategoryTextColor = {
   category: string;
@@ -87,9 +89,21 @@ export default function DashCarousel() {
       </div>
 
       <div className="mt-20">
-        <span className="font-body-bold ml-2 text-2xl text-white">
-          Mathematics
-        </span>
+        <div className="flex flex-row justify-between">
+          <span className="font-body-bold ml-2 text-2xl text-white">
+            Mathematics
+          </span>
+          <Link
+            href={dashboardHref(
+              `search?q=${encodeURIComponent('Mathematics')}`
+            )}
+            className="ml-2"
+          >
+            <span className="font-body flex cursor-pointer flex-wrap text-white hover:underline active:text-blue-400">
+              See More <ChevronRight />
+            </span>
+          </Link>
+        </div>
         <div className="relative mx-auto mt-4">
           <div className="pointer-events-none absolute inset-y-0 left-0 z-20 w-20 rounded-l-2xl bg-linear-to-r from-black/70 from-5% to-transparent to-20% md:w-xs" />
           <div className="pointer-events-none absolute inset-y-0 right-0 z-20 w-20 rounded-r-2xl bg-linear-to-l from-black/70 from-5% to-transparent to-20% md:w-xs" />
@@ -121,9 +135,19 @@ export default function DashCarousel() {
       </div>
 
       <div className="mt-20">
-        <span className="font-body-bold ml-2 text-2xl text-white">
-          Technology
-        </span>
+        <div className="flex flex-row justify-between">
+          <span className="font-body-bold ml-2 text-2xl text-white">
+            Technology
+          </span>
+          <Link
+            href={dashboardHref(`search?q=${encodeURIComponent('Technology')}`)}
+            className="ml-2"
+          >
+            <span className="font-body flex cursor-pointer flex-wrap text-white hover:underline active:text-blue-400">
+              See More <ChevronRight />
+            </span>
+          </Link>
+        </div>
         <div className="relative mx-auto mt-4">
           <div className="pointer-events-none absolute inset-y-0 left-0 z-20 w-20 rounded-l-2xl bg-linear-to-r from-black/70 from-5% to-transparent to-20% md:w-xs" />
           <div className="pointer-events-none absolute inset-y-0 right-0 z-20 w-20 rounded-r-2xl bg-linear-to-l from-black/70 from-5% to-transparent to-20% md:w-xs" />
@@ -155,7 +179,19 @@ export default function DashCarousel() {
       </div>
 
       <div className="mt-20">
-        <span className="font-body-bold ml-2 text-2xl text-white">Science</span>
+        <div className="flex flex-row justify-between">
+          <span className="font-body-bold ml-2 text-2xl text-white">
+            Science
+          </span>
+          <Link
+            href={dashboardHref(`search?q=${encodeURIComponent('Science')}`)}
+            className="ml-2"
+          >
+            <span className="font-body flex cursor-pointer flex-wrap text-white hover:underline active:text-blue-400">
+              See More <ChevronRight />
+            </span>
+          </Link>
+        </div>
         <div className="relative mx-auto mt-4">
           <div className="pointer-events-none absolute inset-y-0 left-0 z-20 w-20 rounded-l-2xl bg-linear-to-r from-black/70 from-5% to-transparent to-20% md:w-xs" />
           <div className="pointer-events-none absolute inset-y-0 right-0 z-20 w-20 rounded-r-2xl bg-linear-to-l from-black/70 from-5% to-transparent to-20% md:w-xs" />

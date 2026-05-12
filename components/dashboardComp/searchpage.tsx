@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Button } from '../ui/button';
 import {
@@ -27,6 +27,7 @@ import {
 import { SlidersVertical, Search } from 'lucide-react';
 import { Quiz, mockQuizzes } from '../dashboardComp/quizmockup';
 import GridItems from './griditems';
+import getQuizzes from '@/components/dashboardComp/quizzes';
 
 interface SearchQuery {
   query?: string;
@@ -77,6 +78,7 @@ function getPageItems(
 type SortOption = 'a-z' | 'z-a' | 'most-questions' | 'least-questions';
 
 export default function SearchPage({ query: initialQuery = '' }: SearchQuery) {
+  const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const searchParams = useSearchParams();
   const [query, setQuery] = useState(searchParams.get('q') ?? initialQuery);
   const normalizedQuery = query.trim().toLowerCase();
@@ -86,6 +88,17 @@ export default function SearchPage({ query: initialQuery = '' }: SearchQuery) {
   ];
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [sortOption, setSortOption] = useState<SortOption>('a-z');
+
+  useEffect(() => {
+    getQuizzes({
+      //query,
+      category: selectedCategory,
+      sortBy: sortOption === 'a-z' ? 'asc' : 'desc',
+      limit: 10,
+    })
+      .then(setQuizzes)
+      .catch(console.error);
+  }, [/*query,*/ selectedCategory, sortOption]);
 
   const filteredItems = mockQuizzes.filter((quiz) => {
     const lowerCaseQuery = query.toLowerCase();

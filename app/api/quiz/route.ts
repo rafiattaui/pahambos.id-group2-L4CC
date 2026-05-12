@@ -152,7 +152,7 @@ export const POST = WithAuth(async (req, { user }) => {
  */
 export async function GET(req: NextRequest) {
   try {
-    const { limit, cursor, sortBy, tags } = parseQueryParams(
+    const { limit, cursor, sortBy, tags, name } = parseQueryParams(
       req.nextUrl.searchParams,
       QuizListQuerySchema
     );
@@ -165,7 +165,13 @@ export async function GET(req: NextRequest) {
         id: sortBy,
       },
       where: {
-        category: { in: tags },
+        category: tags?.length ? { in: tags } : undefined,
+        title: name
+          ? {
+              contains: name,
+              mode: 'insensitive',
+            }
+          : undefined,
       },
     });
 

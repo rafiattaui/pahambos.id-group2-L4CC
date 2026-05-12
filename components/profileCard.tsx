@@ -2,6 +2,8 @@
 
 import { useState, useRef } from 'react';
 
+type Tab = 'profile' | 'security';
+
 type User = {
   name: string;
   email: string;
@@ -22,6 +24,22 @@ const UserIcon = () => (
   >
     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
     <circle cx="12" cy="7" r="4" />
+  </svg>
+);
+
+const LockIcon = () => (
+  <svg
+    width="16"
+    height="16"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
   </svg>
 );
 
@@ -178,6 +196,52 @@ function Field({
   );
 }
 
+// ── password strength bar ────────────────────────────────────────────────────
+function StrengthBar({ password }: { password: string }) {
+  const score = [
+    password.length >= 8,
+    /[A-Z]/.test(password),
+    /[0-9]/.test(password),
+    /[^A-Za-z0-9]/.test(password),
+  ].filter(Boolean).length;
+
+  const labels = ['', 'Weak', 'Fair', 'Good', 'Strong'];
+  const colors = [
+    '',
+    'bg-red-400',
+    'bg-amber-400',
+    'bg-blue-400',
+    'bg-emerald-400',
+  ];
+  const textColors = [
+    '',
+    'text-red-500',
+    'text-amber-500',
+    'text-blue-500',
+    'text-emerald-500',
+  ];
+
+  if (!password) return null;
+
+  return (
+    <div className="flex flex-col gap-1.5">
+      <div className="flex gap-1">
+        {[1, 2, 3, 4].map((i) => (
+          <div
+            key={i}
+            className={`h-1 flex-1 rounded-full transition-all duration-300 ${
+              i <= score ? colors[score] : 'bg-gray-200'
+            }`}
+          />
+        ))}
+      </div>
+      <span className={`text-xs font-medium ${textColors[score]}`}>
+        {labels[score]}
+      </span>
+    </div>
+  );
+}
+
 // ── main component ───────────────────────────────────────────────────────────
 export default function AccountCard({ user }: { user: User }) {
   const [tab, setTab] = useState<Tab>('profile');
@@ -187,10 +251,21 @@ export default function AccountCard({ user }: { user: User }) {
   const [email, setEmail] = useState(user.email);
   const [editingUsername, setEditingUsername] = useState(false);
   const [draftUsername, setDraftUsername] = useState('');
-  const [avatarSrc, setAvatarSrc] = useState<string | null>(user.image ?? null);
+  const [avatarSrc, setAvatarSrc] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const [profileSaving, setProfileSaving] = useState(false);
   const [profileSaved, setProfileSaved] = useState(false);
+
+  // security state
+  const [currentPw, setCurrentPw] = useState('');
+  const [newPw, setNewPw] = useState('');
+  const [confirmPw, setConfirmPw] = useState('');
+  const [showCurrent, setShowCurrent] = useState(false);
+  const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [securitySaving, setSecuritySaving] = useState(false);
+  const [securitySaved, setSecuritySaved] = useState(false);
+  const [pwError, setPwError] = useState('');
 
   const initials = username
     .split(' ')
@@ -433,84 +508,185 @@ export default function AccountCard({ user }: { user: User }) {
           <p className="text-xs text-gray-400">JPG, PNG or GIF · max 5 MB</p>
         </div>
 
-        {/* fields */}
-        <div className="flex flex-col gap-4">
-          {/* username with inline edit */}
-          <div className="flex flex-col gap-1.5">
-            <label
-              htmlFor="username"
-              className="text-sm font-medium text-gray-700"
-            >
-              Username
-            </label>
-            <div className="flex items-center gap-2">
-              <div className="relative flex-1">
-                <input
-                  id="username"
-                  type="text"
-                  value={editingUsername ? draftUsername : username}
-                  onChange={(e) => setDraftUsername(e.target.value)}
-                  readOnly={!editingUsername}
-                  placeholder="Your display name"
-                  className={`w-full rounded-xl border px-4 py-2.5 text-sm text-gray-900 transition-all outline-none placeholder:text-gray-400 ${
-                    editingUsername
-                      ? 'border-violet-400 bg-white ring-2 ring-violet-100'
-                      : 'cursor-default border-gray-200 bg-gray-100 text-gray-400'
-                  }`}
-                />
+      {/* ── profile tab ── */}
+      {tab === 'profile' && (
+        <div className="flex flex-col gap-6 p-6">
+          {/* avatar */}
+          <div className="flex flex-col items-center gap-3">
+            <div className="relative">
+              <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-violet-400 to-indigo-500 ring-4 ring-violet-100">
+                {avatarSrc ? (
+                  <img
+                    src={avatarSrc}
+                    alt="avatar"
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <span className="text-2xl font-bold text-white">
+                    {initials}
+                  </span>
+                )}
               </div>
-              {editingUsername ? (
-                <div className="flex gap-1">
-                  <button
-                    onClick={handleProfileSave}
-                    disabled={profileSaving}
-                    className="flex h-9 w-9 items-center justify-center rounded-lg bg-violet-600 text-white shadow-sm transition-all hover:bg-violet-700 active:scale-95 disabled:opacity-60"
-                    aria-label="Save username"
-                  >
-                    {profileSaving ? <Spinner /> : <CheckIcon />}
-                  </button>
-                  <button
-                    onClick={() => {
-                      setEditingUsername(false);
-                      setDraftUsername(username);
-                    }}
-                    className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-400 transition-colors hover:text-gray-600"
-                    aria-label="Cancel"
-                  >
-                    <XIcon />
-                  </button>
-                </div>
-              ) : (
-                <button
-                  onClick={() => {
-                    setEditingUsername(true);
-                    setDraftUsername(username);
-                  }}
-                  className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-400 transition-colors hover:border-violet-300 hover:text-violet-500"
-                  aria-label="Edit username"
-                >
-                  <PencilIcon />
-                </button>
-              )}
+              <button
+                onClick={() => fileRef.current?.click()}
+                className="absolute -right-1 -bottom-1 flex h-8 w-8 items-center justify-center rounded-full bg-violet-600 text-white shadow-md shadow-violet-400/40 transition-colors hover:bg-violet-700"
+                aria-label="Change profile photo"
+              >
+                <CameraIcon />
+              </button>
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleAvatarChange}
+              />
             </div>
-            {profileSaved && (
-              <p className="text-xs font-medium text-emerald-500">
-                ✓ Username updated!
-              </p>
-            )}
+            <p className="text-xs text-gray-400">JPG, PNG or GIF · max 5 MB</p>
           </div>
 
-          <Field
-            label="Email address"
-            id="email"
-            type="email"
-            value={email}
-            onChange={() => {}}
-            placeholder="you@example.com"
-            readOnly
-          />
+          {/* fields */}
+          <div className="flex flex-col gap-4">
+            {/* username with inline edit */}
+            <div className="flex flex-col gap-1.5">
+              <label
+                htmlFor="username"
+                className="text-sm font-medium text-gray-700"
+              >
+                Username
+              </label>
+              <div className="flex items-center gap-2">
+                <div className="relative flex-1">
+                  <input
+                    id="username"
+                    type="text"
+                    value={editingUsername ? draftUsername : username}
+                    onChange={(e) => setDraftUsername(e.target.value)}
+                    readOnly={!editingUsername}
+                    placeholder="Your display name"
+                    className={`w-full rounded-xl border px-4 py-2.5 text-sm text-gray-900 transition-all outline-none placeholder:text-gray-400 ${
+                      editingUsername
+                        ? 'border-violet-400 bg-white ring-2 ring-violet-100'
+                        : 'cursor-default border-gray-200 bg-gray-100 text-gray-400'
+                    }`}
+                  />
+                </div>
+                {editingUsername ? (
+                  <div className="flex gap-1">
+                    <button
+                      onClick={handleProfileSave}
+                      disabled={profileSaving}
+                      className="flex h-9 w-9 items-center justify-center rounded-lg bg-violet-600 text-white shadow-sm transition-all hover:bg-violet-700 active:scale-95 disabled:opacity-60"
+                      aria-label="Save username"
+                    >
+                      {profileSaving ? <Spinner /> : <CheckIcon />}
+                    </button>
+                    <button
+                      onClick={() => {
+                        setEditingUsername(false);
+                        setDraftUsername(username);
+                      }}
+                      className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-400 transition-colors hover:text-gray-600"
+                      aria-label="Cancel"
+                    >
+                      <XIcon />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => {
+                      setEditingUsername(true);
+                      setDraftUsername(username);
+                    }}
+                    className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-400 transition-colors hover:border-violet-300 hover:text-violet-500"
+                    aria-label="Edit username"
+                  >
+                    <PencilIcon />
+                  </button>
+                )}
+              </div>
+              {profileSaved && (
+                <p className="text-xs font-medium text-emerald-500">
+                  ✓ Username updated!
+                </p>
+              )}
+            </div>
+
+            <Field
+              label="Email address"
+              id="email"
+              type="email"
+              value={email}
+              onChange={() => {}}
+              placeholder="you@example.com"
+              readOnly
+            />
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* ── security tab ── */}
+      {tab === 'security' && (
+        <div className="flex flex-col gap-6 p-6">
+          <div className="flex flex-col gap-4">
+            <Field
+              label="Current password"
+              id="currentPw"
+              value={currentPw}
+              onChange={setCurrentPw}
+              placeholder="Enter current password"
+              showToggle
+              onToggle={() => setShowCurrent((v) => !v)}
+              showing={showCurrent}
+            />
+            <div className="flex flex-col gap-1.5">
+              <Field
+                label="New password"
+                id="newPw"
+                value={newPw}
+                onChange={setNewPw}
+                placeholder="Min. 8 characters"
+                showToggle
+                onToggle={() => setShowNew((v) => !v)}
+                showing={showNew}
+              />
+              <StrengthBar password={newPw} />
+            </div>
+            <Field
+              label="Confirm new password"
+              id="confirmPw"
+              value={confirmPw}
+              onChange={setConfirmPw}
+              placeholder="Re-enter new password"
+              showToggle
+              onToggle={() => setShowConfirm((v) => !v)}
+              showing={showConfirm}
+            />
+          </div>
+
+          {pwError && (
+            <p className="rounded-lg bg-red-50 px-4 py-2.5 text-sm text-red-500 ring-1 ring-red-200">
+              {pwError}
+            </p>
+          )}
+
+          <button
+            onClick={handleSecuritySave}
+            disabled={securitySaving}
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-violet-600 py-2.5 text-sm font-semibold text-white shadow-md shadow-violet-400/30 transition-all hover:bg-violet-700 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {securitySaving ? (
+              <>
+                <Spinner /> Updating…
+              </>
+            ) : securitySaved ? (
+              '✓ Password updated!'
+            ) : (
+              'Update password'
+            )}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

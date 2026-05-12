@@ -129,7 +129,7 @@ export function LoginForm({
             <Button
               disabled={isLoading}
               type="submit"
-              className="font-body w-full"
+              className="font-body w-full bg-blue-500 hover:bg-blue-700"
             >
               Login
             </Button>
@@ -149,7 +149,7 @@ export function LoginForm({
               Don&apos;t have an account?{' '}
               <a
                 href="/register"
-                className="underline underline-offset-4 hover:text-white!"
+                className="underline underline-offset-4 hover:text-blue-600!"
               >
                 Sign up
               </a>

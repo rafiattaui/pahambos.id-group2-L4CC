@@ -165,7 +165,11 @@ export function SignupForm({
             </FieldDescription>
           </Field>
           <Field>
-            <Button disabled={isLoading} type="submit">
+            <Button
+              disabled={isLoading}
+              type="submit"
+              className="font-body w-full bg-blue-500 hover:bg-blue-700"
+            >
               Create Account
             </Button>
           </Field>
@@ -182,7 +186,10 @@ export function SignupForm({
           </Button> */}
             <FieldDescription className="font-body px-6 text-center text-black">
               Already have an account?{' '}
-              <a href="/login" className="underline hover:text-white!">
+              <a
+                href="/login"
+                className="underline underline-offset-4 hover:text-blue-600!"
+              >
                 Sign in
               </a>
             </FieldDescription>

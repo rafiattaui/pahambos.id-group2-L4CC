@@ -6,7 +6,7 @@ export const QuizQuestionSchema = z.object({
   quizId: z.uuid(),
   order: z.int().nonnegative(),
   question: z.string().min(5).max(100),
-  answers: z.array(z.string()).min(2),
+  answers: z.array(z.string()).min(2).max(4),
   correctAnswer: z.int().nonnegative(),
 });
 
@@ -17,6 +17,10 @@ export const PublicQuestionSchema = QuizQuestionSchema;
 export const CreateQuestionSchema = QuizQuestionSchema.omit({
   id: true,
   quizId: true,
+});
+
+export const UpdateQuestionSchema = CreateQuestionSchema.partial().omit({
+  order: true, // order should not be updated directly, it is managed by the backend.
 });
 
 export const CreateOrUpdateQuestionListSchema = z.object({
@@ -57,6 +61,8 @@ export const CreateQuizSchema = QuizSchema.omit({
   numQuestions: true,
   // these are fields that will not be sent by the user, they will be added validated by the backend.
 });
+
+export const UpdateQuizSchema = CreateQuizSchema.partial();
 
 // actual quiz creation schema.
 export const CreateQuizAndQuestionsSchema = z.object({

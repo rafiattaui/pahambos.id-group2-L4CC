@@ -22,10 +22,11 @@ export const QuizQuestionSchema = z.object({
   quizId: z.uuid(),
   order: z.int().nonnegative(),
   question: z.string().min(5).max(100),
-  imageUrl: z.url,
-  imageKey: z.string(),
+  type: z.enum(['MultiSelect', 'SingleSelect']),
+  imageUrl: z.url().optional(),
+  imageKey: z.string().optional(),
   answers: z.array(z.string()).min(2).max(4),
-  correctAnswer: z.int().nonnegative(),
+  correctAnswer: z.array(z.int().nonnegative()).min(1).max(4), // allow multiple correct answers for flexibility
 });
 
 // public view
@@ -35,9 +36,10 @@ export const PublicQuestionSchema = QuizQuestionSchema;
 export const CreateQuestionSchema = z.object({
   order: z.int().nonnegative(),
   question: z.string().min(5).max(100),
+  type: z.enum(['MultiSelect', 'SingleSelect']),
   imageFile: imageFileSchema.optional(),
   answers: z.array(z.string()).min(2).max(4),
-  correctAnswer: z.int().nonnegative(),
+  correctAnswer: z.array(z.int().nonnegative()).min(1).max(4),
 });
 
 export const UpdateQuestionSchema = CreateQuestionSchema.partial().omit({
@@ -60,8 +62,8 @@ export const QuizSchema = z.object({
   createdAt: z.coerce.date(),
   title: z.string().min(5),
   description: z.string(),
-  imageUrl: z.url(),
-  imageKey: z.string(),
+  imageUrl: z.url().optional(),
+  imageKey: z.string().optional(),
   category: CategoryEnum,
   numQuestions: z.int().nonnegative(),
 });

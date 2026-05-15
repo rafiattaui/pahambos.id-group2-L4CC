@@ -60,8 +60,11 @@ export const POST = WithAuth(async (req, { user }) => {
 
         for (const [k, v] of Object.entries(q)) {
           const answerMatch = k.match(/^answers\[(\d+)\]$/);
+          const correctAnswerMatch = k.match(/^correctAnswers\[(\d+)\]$/);
           if (answerMatch) {
             answers[Number(answerMatch[1])] = v as string;
+          } else if (correctAnswerMatch) {
+            // Handle correct answers
           } else {
             cleaned[k] = v;
           }
@@ -70,7 +73,10 @@ export const POST = WithAuth(async (req, { user }) => {
         return {
           ...cleaned,
           order: Number(cleaned.order),
-          correctAnswer: Number(cleaned.correctAnswer),
+          correctAnswers: Object.entries(q)
+            .filter(([k]) => k.match(/^correctAnswers\[(\d+)\]$/))
+            .sort(([a], [b]) => a.localeCompare(b))
+            .map(([, v]) => Number(v)),
           answers,
           imageFile: cleaned.imageFile ?? undefined,
         };
@@ -122,8 +128,9 @@ export const POST = WithAuth(async (req, { user }) => {
           quizId: quiz.id,
           order: q.order,
           question: q.question,
+          type: q.type,
           answers: q.answers,
-          correctAnswer: q.correctAnswer,
+          correctAnswers: q.correctAnswer,
           imageUrl: questionImages[i]?.imageUrl ?? PLACEHOLDER_IMAGE_URL,
           imageKey: questionImages[i]?.imageKey ?? PLACEHOLDER_IMAGE_KEY,
         })),

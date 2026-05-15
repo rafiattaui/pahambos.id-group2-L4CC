@@ -29,7 +29,9 @@ export const POST = WithAuth(async (req, { user }) => {
       question: formData.get('question.question'),
       imageFile: formData.get('question.imageFile') ?? undefined,
       answers: formData.getAll('question.answers') as string[],
-      correctAnswer: Number(formData.get('question.correctAnswer')),
+      correctAnswer: formData
+        .getAll('question.correctAnswer')
+        .map((v) => Number(v)),
     };
 
     // ── 2. Zod validation ─────────────────────────────────────────────────

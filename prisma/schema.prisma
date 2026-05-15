@@ -23,6 +23,11 @@ enum Category {
   General
 }
 
+enum QuestionType {
+  SingleSelect
+  MultiSelect
+}
+
 model User {
   id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name          String
@@ -138,11 +143,12 @@ model QuizQuestion {
   id           String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   quizId       String @db.Uuid
   order        Int
+  type         QuestionType @default(SingleSelect)
   question     String
   imageUrl     String?
   imageKey     String?
   answers      String[]
-  correctAnswer Int
+  correctAnswer Int[]
 
   // Relations
   quiz Quiz @relation(fields: [quizId], references: [id], onDelete: Cascade)

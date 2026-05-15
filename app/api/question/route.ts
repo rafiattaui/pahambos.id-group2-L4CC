@@ -29,8 +29,9 @@ export const POST = WithAuth(async (req, { user }) => {
       question: formData.get('question.question'),
       imageFile: formData.get('question.imageFile') ?? undefined,
       answers: formData.getAll('question.answers') as string[],
-      correctAnswer: formData
-        .getAll('question.correctAnswer')
+      type: formData.get('question.type'),
+      correctAnswers: formData
+        .getAll('question.correctAnswers')
         .map((v) => Number(v)),
     };
 
@@ -74,7 +75,7 @@ export const POST = WithAuth(async (req, { user }) => {
           order: nextOrder,
           question: data.question,
           answers: data.answers,
-          correctAnswer: data.correctAnswer,
+          correctAnswers: data.correctAnswers,
           imageUrl,
           imageKey,
           quizId,

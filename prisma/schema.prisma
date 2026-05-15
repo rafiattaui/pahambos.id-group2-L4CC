@@ -148,7 +148,7 @@ model QuizQuestion {
   imageUrl     String?
   imageKey     String?
   answers      String[]
-  correctAnswer Int[]
+  correctAnswers Int[]
 
   // Relations
   quiz Quiz @relation(fields: [quizId], references: [id], onDelete: Cascade)

@@ -82,6 +82,10 @@ export const POST = WithAuth(async (req, { user }) => {
         };
       });
 
+    console.log(
+      JSON.stringify({ quiz: rawQuiz, questions: rawQuestions }, null, 2)
+    );
+
     // ── 2. Zod validation ─────────────────────────────────────────────────
     const data = CreateQuizAndQuestionsSchema.parse({
       quiz: rawQuiz,
@@ -130,7 +134,7 @@ export const POST = WithAuth(async (req, { user }) => {
           question: q.question,
           type: q.type,
           answers: q.answers,
-          correctAnswers: q.correctAnswer,
+          correctAnswers: q.correctAnswers,
           imageUrl: questionImages[i]?.imageUrl ?? PLACEHOLDER_IMAGE_URL,
           imageKey: questionImages[i]?.imageKey ?? PLACEHOLDER_IMAGE_KEY,
         })),

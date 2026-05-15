@@ -26,7 +26,7 @@ export const QuizQuestionSchema = z.object({
   imageUrl: z.url().optional(),
   imageKey: z.string().optional(),
   answers: z.array(z.string()).min(2).max(4),
-  correctAnswer: z.array(z.int().nonnegative()).min(1).max(4), // allow multiple correct answers for flexibility
+  correctAnswers: z.array(z.int().nonnegative()).min(1).max(4), // allow multiple correct answers for flexibility
 });
 
 // public view
@@ -39,7 +39,7 @@ export const CreateQuestionSchema = z.object({
   type: z.enum(['MultiSelect', 'SingleSelect']),
   imageFile: imageFileSchema.optional(),
   answers: z.array(z.string()).min(2).max(4),
-  correctAnswer: z.array(z.int().nonnegative()).min(1).max(4),
+  correctAnswers: z.array(z.int().nonnegative()).min(1).max(4),
 });
 
 export const UpdateQuestionSchema = CreateQuestionSchema.partial().omit({

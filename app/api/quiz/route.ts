@@ -186,6 +186,8 @@ export async function GET(req: NextRequest) {
       },
     });
 
+    // TODO - implement redis caching to retrieve user data and reduce database load.
+
     let nextCursor: typeof cursor | null = null;
 
     if (quizList.length > limit) {

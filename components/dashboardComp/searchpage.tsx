@@ -82,6 +82,8 @@ export default function SearchPage({ query: initialQuery = '' }: SearchQuery) {
   const searchParams = useSearchParams();
   const [query, setQuery] = useState(searchParams.get('q') ?? initialQuery);
   const normalizedQuery = query.trim().toLowerCase();
+  const [error, setError] = useState<string | null>(null);
+  const [inputValue, setInputValue] = useState(query);
   const categories = [
     'All',
     ...new Set(mockQuizzes.map((quiz) => quiz.category)),
@@ -96,11 +98,13 @@ export default function SearchPage({ query: initialQuery = '' }: SearchQuery) {
       sortBy: sortOption === 'a-z' ? 'asc' : 'desc',
       limit: 10,
     })
-      .then(setQuizzes)
-      .catch(console.error);
+      .then((res) => setQuizzes(res.data ?? res))
+      .catch(() => {
+        setQuizzes([]);
+      });
   }, [/*query,*/ selectedCategory, sortOption]);
 
-  const filteredItems = mockQuizzes.filter((quiz) => {
+  const filteredItems = quizzes.filter((quiz) => {
     const lowerCaseQuery = query.toLowerCase();
     const matchesCategory =
       selectedCategory === 'All' || quiz.category === selectedCategory;
@@ -157,10 +161,13 @@ export default function SearchPage({ query: initialQuery = '' }: SearchQuery) {
         </InputGroupAddon>
         <InputGroupInput
           placeholder="Search... "
-          value={query}
-          onChange={(e) => {
-            setQuery(e.target.value);
-            setCurrentPage(1);
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              setQuery(inputValue);
+              setCurrentPage(1);
+            }
           }}
         />
       </InputGroup>
@@ -218,14 +225,14 @@ export default function SearchPage({ query: initialQuery = '' }: SearchQuery) {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-      {query.trim() !== '' && (
+      {query.trim() !== '' && !emptySearch && (
         <div className="col-span-5 text-left">
           <h2 className="font-body-bold mb-4 text-2xl">
             Results found for &quot;{query}&quot;
           </h2>
         </div>
       )}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+      <div className="mx-auto grid max-w-md grid-cols-2 gap-3 sm:max-w-none sm:grid-cols-3 md:grid-cols-4">
         {paginatedItems.map((quiz: Quiz) => (
           <GridItems key={quiz.id} quiz={quiz} />
         ))}

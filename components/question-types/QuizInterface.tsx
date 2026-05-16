@@ -146,6 +146,7 @@ export default function QuizInterface({
           setIsSubmitted(false);
           setTimeLeft(questions[currentIndex + 1]?.timeLimit ?? 30);
         } else {
+          bgMusicRef.current?.pause();
           setQuizFinished(true);
         }
       }, 1400);

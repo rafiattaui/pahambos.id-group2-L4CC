@@ -1,8 +1,17 @@
+import { auth } from '@/lib/auth';
+import { headers } from 'next/headers';
+import { redirect } from 'next/navigation';
 import { LoginForm } from '@/components/login-form';
 import ImageSlideshow from '@/components/image-slideshow';
 import NavbarLogin from '@/components/header/navbarlogin';
 
 export default async function loginPage() {
+  const session = await auth.api.getSession({ headers: await headers() });
+
+  if (session?.user) {
+    redirect('/dashboard');
+  }
+
   return (
     <div className="grid min-h-screen grid-cols-1 lg:grid-cols-2">
       <div className="flex min-h-svh flex-col">

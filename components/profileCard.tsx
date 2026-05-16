@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { set } from 'zod';
 
 type Tab = 'profile' | 'security';
 
@@ -182,6 +181,7 @@ function Field({
         />
         {showToggle && (
           <button
+            title="butt"
             type="button"
             onClick={onToggle}
             className="absolute top-1/2 right-3 -translate-y-1/2 text-gray-400 transition-colors hover:text-gray-600"
@@ -405,6 +405,7 @@ export default function AccountCard({ user }: { user: User }) {
                 <CameraIcon />
               </button>
               <input
+                aria-label="input"
                 ref={fileRef}
                 type="file"
                 accept="image/*"

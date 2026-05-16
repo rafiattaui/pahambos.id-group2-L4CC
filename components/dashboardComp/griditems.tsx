@@ -30,7 +30,7 @@ export default function GridItems({ quiz }: { quiz: Quiz }) {
   ];
 
   return (
-    <div className="h-full">
+    <div className="w-full">
       <button
         type="button"
         onClick={() => {
@@ -38,14 +38,14 @@ export default function GridItems({ quiz }: { quiz: Quiz }) {
         }}
         className="block h-full w-full text-left"
       >
-        <Card className="relative flex h-full flex-col overflow-hidden rounded-2xl border-2 border-gray-300 shadow-xl">
+        <Card className="relative flex flex-col overflow-hidden rounded-2xl border-2 border-gray-300 shadow-xl">
           <CardHeader className="relative p-0">
             <Image
               src={'/placeholderquiz.png'}
               alt={quiz.title}
               width={300}
               height={200}
-              className="h-48 w-full object-cover"
+              className="h-28 w-full object-cover sm:h-40"
             />
             <div className="absolute inset-x-4 bottom-3 flex items-center justify-between">
               <span
@@ -58,13 +58,15 @@ export default function GridItems({ quiz }: { quiz: Quiz }) {
               </span>
             </div>
           </CardHeader>
-          <CardContent className="flex-1">
-            <CardTitle className="font-heading line-clamp-2">
+          <CardContent className="px-2 sm:p-3">
+            <CardTitle className="font-heading line-clamp-4 text-sm sm:text-base">
               {quiz.title}
             </CardTitle>
-            <CardDescription className="font-body mt-2 line-clamp-3">
-              {quiz.description}
-            </CardDescription>
+            <div className="hidden md:block">
+              <CardDescription className="mt-1 line-clamp-3 text-sm text-gray-500">
+                {quiz.description}
+              </CardDescription>
+            </div>
           </CardContent>
         </Card>
       </button>

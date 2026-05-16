@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
@@ -89,11 +89,6 @@ export default function DashNavbar({ user }: NavbarProps) {
   const searchParams = useSearchParams();
   const [query, setQuery] = useState(searchParams.get('q') ?? '');
 
-  const isSearchPage = (pathname: string) =>
-    pathname === dashboardHref('search')
-      ? router.replace(`/dashboard/search?q=${encodeURIComponent(query)}`)
-      : router.push(dashboardHref(`search?q=${encodeURIComponent(query)}`));
-
   const handleSearchSubmit = (e: React.FormEvent<HTMLElement>) => {
     e.preventDefault();
 
@@ -154,7 +149,6 @@ export default function DashNavbar({ user }: NavbarProps) {
                 value={query}
                 onChange={(e) => {
                   setQuery(e.target.value);
-                  isSearchPage(pathname);
                 }}
               />
             </InputGroup>

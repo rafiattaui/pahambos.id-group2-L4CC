@@ -2,7 +2,13 @@ import { WithAuth } from '@/lib/api/auth-protected';
 import { APIError, handleError } from '@/lib/api/errors';
 import { prisma } from '@/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server';
-import { UpdateQuizSchema } from '@/lib/schemas/quizschemas';
+import { imageFileSchema, UpdateQuizSchema } from '@/lib/schemas/quizschemas';
+import { deleteImage, uploadImage } from '@/lib/cloudinary';
+import { raw } from '@prisma/client/runtime/client';
+
+const PLACEHOLDER_IMAGE_URL =
+  'https://res.cloudinary.com/dbj2tvfzg/image/upload/v1778493470/landscape-placeholder_vrw20c.svg';
+const PLACEHOLDER_IMAGE_KEY = 'landscape-placeholder_vrw20c';
 
 /**
  * @description Returns a quiz and its questions and possible answers.
@@ -51,6 +57,19 @@ export const DELETE = WithAuth(async (req, { user, params }) => {
       throw new APIError('Invalid Quiz ID', 404);
     } else {
       if (quiz.createdBy == user.id) {
+        const questions = await prisma.quizQuestion.findMany({
+          where: { quizId: id },
+        });
+        // delete all images related to the quiz
+        for (const q of questions) {
+          if (q.imageKey && q.imageKey !== PLACEHOLDER_IMAGE_KEY) {
+            await deleteImage(q.imageKey);
+          }
+        }
+        if (quiz.imageKey && quiz.imageKey !== PLACEHOLDER_IMAGE_KEY) {
+          await deleteImage(quiz.imageKey);
+        }
+
         await prisma.quiz.delete({
           where: { id },
         });
@@ -96,5 +115,47 @@ export const PATCH = WithAuth(async (req, { user, params }) => {
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (err) {
     return handleError(err);
+  }
+});
+
+export const PUT = WithAuth(async (req, { user, params }) => {
+  const uploadedKeys: string[] = [];
+  try {
+    const rawData = await req.formData();
+    const data = imageFileSchema.parse(rawData.get('imageFile'));
+
+    const { id } = await params;
+
+    const quiz = await prisma.quiz.findUnique({
+      where: { id },
+    });
+
+    if (!quiz) {
+      throw new APIError('Invalid Quiz ID', 404);
+    }
+
+    if (quiz.createdBy !== user.id) {
+      throw new APIError('User must be owner of the quiz.', 401);
+    }
+
+    if (!data) {
+      throw new APIError('No image file provided', 400);
+    }
+
+    const uploaded = await uploadImage(data, 'quiz-app/covers');
+    uploadedKeys.push(uploaded.imageKey);
+
+    await prisma.quiz.update({
+      where: { id },
+      data: {
+        imageKey: uploaded.imageKey,
+        imageUrl: uploaded.imageUrl,
+      },
+    });
+
+    return NextResponse.json({ success: true }, { status: 200 });
+  } catch (error) {
+    await Promise.allSettled(uploadedKeys.map((key) => deleteImage(key)));
+    return handleError(error);
   }
 });

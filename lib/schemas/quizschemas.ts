@@ -8,7 +8,7 @@ const ACCEPTED_IMAGE_TYPES = [
   'image/webp',
 ];
 
-const imageFileSchema = z
+export const imageFileSchema = z
   .instanceof(File)
   .refine((file) => file.size <= MAX_FILE_SIZE, 'Max image size is 5MB.')
   .refine(

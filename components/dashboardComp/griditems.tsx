@@ -38,7 +38,7 @@ export default function GridItems({ quiz }: { quiz: Quiz }) {
         }}
         className="block h-full w-full text-left"
       >
-        <Card className="relative flex flex-col overflow-hidden rounded-2xl border-2 border-gray-300 shadow-xl">
+        <Card className="relative flex aspect-6/9 flex-col overflow-hidden rounded-2xl border-2 border-gray-300 shadow-xl sm:aspect-3/4">
           <CardHeader className="relative p-0">
             <Image
               src={'/placeholderquiz.png'}

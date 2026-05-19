@@ -111,7 +111,7 @@ export const PATCH = WithAuth(async (req, { user, params }) => {
       data: {
         question: data.question,
         answers: data.answers,
-        correctAnswer: data.correctAnswer,
+        correctAnswer: data.correctAnswers,
       },
     });
 

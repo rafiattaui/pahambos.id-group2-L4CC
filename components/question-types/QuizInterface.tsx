@@ -5,7 +5,7 @@ import { resolve } from 'path';
 import { useState, useCallback, useRef, use, useEffect } from 'react';
 import { set } from 'zod';
 
-export type QuestionType = 'multiple-choice' | 'multi-select' | 'true-false';
+export type QuestionType = 'SingleSelect' | 'MultiSelect' | 'true-false';
 
 export interface QuizQuestion {
   id: string;
@@ -29,16 +29,16 @@ function resolveType(q: QuizQuestion): QuestionType {
   ) {
     return 'true-false';
   }
-  return 'multiple-choice';
+  return 'SingleSelect';
 }
 
 function checkCorrect(q: QuizQuestion, selectedIndices: number[]): boolean {
   const type = resolveType(q);
 
-  if (type === 'multiple-choice' || type === 'true-false') {
+  if (type === 'SingleSelect' || type === 'true-false') {
     return selectedIndices[0] === q.correctAnswers[0];
   }
-  if (type === 'multi-select') {
+  if (type === 'MultiSelect') {
     const correctSet = q.correctAnswers ?? [q.correctAnswers[0]];
     const sorted = [...selectedIndices].sort((a, b) => a - b);
     const sortedCorrect = [...correctSet].sort((a, b) => a - b);
@@ -372,7 +372,7 @@ export default function QuizInterface({
   }
 
   const isTrueFalse = questionType === 'true-false';
-  const isMultiSelect = questionType === 'multi-select';
+  const isMultiSelect = questionType === 'MultiSelect';
 
   return (
     <div className="fixed inset-0 h-screen w-screen overflow-y-auto bg-white/30 px-4 pb-10 backdrop-blur-md">

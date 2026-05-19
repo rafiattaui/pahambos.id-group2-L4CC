@@ -63,8 +63,8 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/todo-list-nextjs:latest
-          cache-from: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/todo-list-nextjs:latest
+          tags: ${{ secrets.DOCKER_USERNAME }}/pahambos.id:latest
+          cache-from: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/pahambos.id:latest
           cache-to: type=inline
           build-args: |
             NEXT_PUBLIC_APP_URL=${{ secrets.NEXT_PUBLIC_APP_URL }}
@@ -110,7 +110,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Pull Latest Image
-        run: docker pull ${{ secrets.DOCKER_USERNAME }}/todo-list-nextjs:latest
+        run: docker pull ${{ secrets.DOCKER_USERNAME }}/pahambos.id:latest
 
       - name: Build DB migration image (local target)
         run: docker compose --profile migrate build --pull db-schema-sync
@@ -118,7 +118,7 @@ jobs:
       - name: Run DB Migration
         run: docker compose --profile migrate run --rm db-schema-sync
 
-      - name: Deploy Todo app only
+      - name: Deploy Pahambos.id app
         run: |
           docker compose pull app
           docker compose up -d --no-deps app

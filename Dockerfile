@@ -10,7 +10,7 @@ RUN corepack enable && corepack prepare pnpm@latest --activate
 ENV NEXT_TELEMETRY_DISABLED=1
 
 FROM base AS deps
-COPY package.json pnpm-lock.yaml .npmrc ./
+COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile
 
 FROM base AS builder
@@ -36,7 +36,7 @@ RUN pnpm build
 #   docker compose --profile migrate run --rm db-schema-sync
 # Uses DATABASE_URL from `.env.production` (or compose environment).
 FROM base AS migrator
-COPY package.json pnpm-lock.yaml .npmrc ./
+COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile
 COPY prisma ./prisma
 COPY prisma.config.ts ./

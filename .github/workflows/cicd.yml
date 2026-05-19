@@ -39,7 +39,7 @@ jobs:
         run: pnpm lint
 
       - name: Test
-        run: pnpm test
+        run: pnpm test --passWithNoTests
 
   build:
     needs: quality

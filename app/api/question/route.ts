@@ -3,64 +3,96 @@ import { prisma } from '@/lib/prisma';
 import { APIError } from '@/lib/api/errors';
 import { NextResponse } from 'next/server';
 import { WithAuth } from '@/lib/api/auth-protected';
-import { CreateOrUpdateQuestionListSchema } from '@/lib/schemas/quizschemas';
+import { uploadImage, deleteImage } from '@/lib/cloudinary';
+import { CreateQuestionSchema } from '@/lib/schemas/quizschemas';
+
+const PLACEHOLDER_IMAGE_URL =
+  'https://res.cloudinary.com/dbj2tvfzg/image/upload/v1778493470/landscape-placeholder_vrw20c.svg';
+const PLACEHOLDER_IMAGE_KEY = 'landscape-placeholder_vrw20c';
 
 /**
- * @description Add a new question an already existing quiz.
- * @body CreateQuestionListSchema
+ * @description Add a new question to an already existing quiz.
+ * @body CreateQuestionSchema
  * @response 200
  * @add 404:APIErrorSchema
  * @tag QuizQuestion
  * @openapi
  */
 export const POST = WithAuth(async (req, { user }) => {
+  let uploadedKey: string | null = null;
   try {
-    const rawData = await req.json();
-    const data = CreateOrUpdateQuestionListSchema.parse(rawData);
+    // ── 1. Parse FormData ─────────────────────────────────────────────────
+    const formData = await req.formData();
+
+    const rawData = {
+      order: Number(formData.get('question.order')), // order is ignored by backend but we still want to validate it if provided
+      question: formData.get('question.question'),
+      imageFile: formData.get('question.imageFile') ?? undefined,
+      answers: formData.getAll('question.answers') as string[],
+      type: formData.get('question.type'),
+      correctAnswers: formData
+        .getAll('question.correctAnswers')
+        .map((v) => Number(v)),
+    };
+
+    // ── 2. Zod validation ─────────────────────────────────────────────────
+    const data = CreateQuestionSchema.parse(rawData);
+
+    // ── 3. Validate quiz exists ───────────────────────────────────────────
+    const quizId = formData.get('quiz.id') as string;
 
     const quiz = await prisma.quiz.findUnique({
-      where: { id: data.quizId },
+      where: { id: quizId },
     });
 
     if (!quiz) {
-      throw new APIError('Failed to retrieve valid quiz of that ID', 404);
+      throw new APIError('Quiz not found', 404);
     }
 
-    // Perform updates and creates in a single transaction
-    await prisma.$transaction(async (tx) => {
-      let newQuestionsCount = 0;
+    // ── 4. Upload image if provided ───────────────────────────────────────
+    let imageUrl = PLACEHOLDER_IMAGE_URL;
+    let imageKey = PLACEHOLDER_IMAGE_KEY;
 
-      for (const question of data.questions) {
-        // If the question has an ID, we try to update; otherwise, we create.
-        // This assumes your schema allows 'id' to be optional in the request.
-        if (question.id) {
-          await tx.quizQuestion.update({
-            where: { id: question.id },
-            data: { ...question, quizId: data.quizId },
-          });
-        } else {
-          await tx.quizQuestion.create({
-            data: { ...question, quizId: data.quizId },
-          });
-          newQuestionsCount++;
-        }
-      }
+    if (data.imageFile) {
+      const uploaded = await uploadImage(data.imageFile, 'quiz-app/questions');
+      uploadedKey = uploaded.imageKey;
+      imageUrl = uploaded.imageUrl;
+      imageKey = uploaded.imageKey;
+    }
 
-      // Increment the count only for truly NEW questions
-      if (newQuestionsCount > 0) {
-        await tx.quiz.update({
-          where: { id: data.quizId },
-          data: {
-            numQuestions: {
-              increment: newQuestionsCount,
-            },
-          },
-        });
-      }
+    // ── 5. Persist ────────────────────────────────────────────────────────
+    const question = await prisma.$transaction(async (tx) => {
+      // Auto-assign order as next available
+      const lastQuestion = await tx.quizQuestion.findFirst({
+        where: { quizId },
+        orderBy: { order: 'desc' },
+      });
+
+      const nextOrder = lastQuestion ? lastQuestion.order + 1 : 1;
+
+      const created = await tx.quizQuestion.create({
+        data: {
+          order: nextOrder,
+          question: data.question,
+          answers: data.answers,
+          correctAnswers: data.correctAnswers,
+          imageUrl,
+          imageKey,
+          quizId,
+        },
+      });
+
+      await tx.quiz.update({
+        where: { id: quizId },
+        data: { numQuestions: { increment: 1 } },
+      });
+
+      return created;
     });
 
-    return NextResponse.json({ success: true }, { status: 200 });
-  } catch (err) {
-    return handleError(err);
+    return NextResponse.json(question, { status: 200 });
+  } catch (error) {
+    if (uploadedKey) await deleteImage(uploadedKey).catch(() => {});
+    return handleError(error);
   }
 });

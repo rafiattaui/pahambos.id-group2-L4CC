@@ -36,4 +36,9 @@ export const QuizListQuerySchema = z.object({
     .array(CategoryEnum)
     .optional()
     .describe('Only return quizzes containing these tags'),
+  name: z
+    .string()
+    .min(3)
+    .optional()
+    .describe('Search for quizzes with this name.'),
 });

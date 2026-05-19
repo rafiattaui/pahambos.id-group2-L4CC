@@ -3,6 +3,7 @@ import { auth } from '@/lib/auth';
 import { APIError, handleError } from '@/lib/api/errors';
 import { UserPublicSchema, UserUpdateSchema } from '@/lib/schemas/userschemas';
 import { NextRequest } from 'next/server';
+import { uploadImage } from '@/lib/cloudinary';
 
 /**
  * @summary Get current session user
@@ -48,6 +49,42 @@ export async function PATCH(request: NextRequest) {
 
     const res = await auth.api.updateUser({
       body: data,
+      headers: await headers(),
+    });
+
+    return Response.json({ ...res }, { status: 200 });
+  } catch (error) {
+    return handleError(error);
+  }
+}
+
+/**
+ * @summary Update user profile picture
+ * @description Currently used for updating user's profile picture.
+ * @body UserUpdateSchema
+ * @response 200:UserPublicSchema
+ * @add 400:APIErrorSchema
+ * @add 401:APIErrorSchema
+ * @auth cookieAuth
+ * @tag User
+ * @openapi
+ */
+export async function PUT(request: NextRequest) {
+  try {
+    const formData = await request.formData();
+    const imageFile = formData.get('imageFile') as File | null;
+
+    if (!imageFile) {
+      throw new APIError('No image file provided', 400);
+    }
+
+    const { imageUrl } = await uploadImage(
+      imageFile,
+      'quiz-app/profile-pictures'
+    );
+
+    const res = await auth.api.updateUser({
+      body: { image: imageUrl },
       headers: await headers(),
     });
 

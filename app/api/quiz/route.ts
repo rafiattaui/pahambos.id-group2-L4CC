@@ -7,6 +7,11 @@ import {
   parseQueryParams,
   QuizListQuerySchema,
 } from '@/lib/schemas/queryparams';
+import { uploadImage, deleteImage } from '@/lib/cloudinary';
+
+const PLACEHOLDER_IMAGE_URL =
+  'https://res.cloudinary.com/dbj2tvfzg/image/upload/v1778493470/landscape-placeholder_vrw20c.svg';
+const PLACEHOLDER_IMAGE_KEY = 'landscape-placeholder_vrw20c';
 
 /**
  * @description Creates a new quiz
@@ -18,29 +23,120 @@ import {
  * @openapi
  */
 export const POST = WithAuth(async (req, { user }) => {
+  const uploadedKeys: string[] = [];
   try {
-    const rawData = await req.json();
-    const data = CreateQuizAndQuestionsSchema.parse(rawData);
+    // ── 1. Parse FormData ─────────────────────────────────────────────────
+    const formData = await req.formData();
 
+    const rawQuiz = {
+      title: formData.get('quiz.title'),
+      description: formData.get('quiz.description'),
+      category: formData.get('quiz.category'),
+      imageFile: formData.get('quiz.imageFile') ?? undefined,
+    };
+
+    // Reconstruct questions array from flat FormData keys
+    // Client sends: questions[0].question, questions[0].order, etc.
+    const questionsMap = new Map<number, Record<string, unknown>>();
+
+    for (const [key, value] of formData.entries()) {
+      const match = key.match(/^questions\[(\d+)\]\.(.+)$/);
+      if (!match) continue;
+
+      const index = Number(match[1]);
+      const field = match[2];
+
+      if (!questionsMap.has(index)) questionsMap.set(index, {});
+      questionsMap.get(index)![field] = value;
+    }
+
+    // answers are sent as questions[0].answers[0], questions[0].answers[1], etc.
+    // re-group them into an array
+    const rawQuestions = Array.from(questionsMap.entries())
+      .sort(([a], [b]) => a - b)
+      .map(([, q]) => {
+        const answers: string[] = [];
+        const cleaned: Record<string, unknown> = {};
+
+        for (const [k, v] of Object.entries(q)) {
+          const answerMatch = k.match(/^answers\[(\d+)\]$/);
+          const correctAnswerMatch = k.match(/^correctAnswers\[(\d+)\]$/);
+          if (answerMatch) {
+            answers[Number(answerMatch[1])] = v as string;
+          } else if (correctAnswerMatch) {
+            // Handle correct answers
+          } else {
+            cleaned[k] = v;
+          }
+        }
+
+        return {
+          ...cleaned,
+          order: Number(cleaned.order),
+          correctAnswers: Object.entries(q)
+            .filter(([k]) => k.match(/^correctAnswers\[(\d+)\]$/))
+            .sort(([a], [b]) => a.localeCompare(b))
+            .map(([, v]) => Number(v)),
+          answers,
+          imageFile: cleaned.imageFile ?? undefined,
+        };
+      });
+
+    console.log(
+      JSON.stringify({ quiz: rawQuiz, questions: rawQuestions }, null, 2)
+    );
+
+    // ── 2. Zod validation ─────────────────────────────────────────────────
+    const data = CreateQuizAndQuestionsSchema.parse({
+      quiz: rawQuiz,
+      questions: rawQuestions,
+    });
+
+    // ── 3. Upload images to Cloudinary ────────────────────────────────────
+    async function safeUpload(file: File, folder: string) {
+      const result = await uploadImage(file, folder);
+      uploadedKeys.push(result.imageKey);
+      return result;
+    }
+
+    let quizImage: { imageUrl: string; imageKey: string } | null = null;
+    if (data.quiz.imageFile) {
+      quizImage = await safeUpload(data.quiz.imageFile, 'quiz-app/covers');
+    }
+
+    const questionImages = await Promise.all(
+      data.questions.map((q) =>
+        q.imageFile
+          ? safeUpload(q.imageFile, 'quiz-app/questions')
+          : Promise.resolve(null)
+      )
+    );
+
+    // ── 4. Persist ────────────────────────────────────────────────────────
     const numQuestions = data.questions.length;
 
-    // use transaction to prevent zombie transaction where one transaction succeeds and the other fails.
     const result = await prisma.$transaction(async (tx) => {
       const quiz = await tx.quiz.create({
         data: {
           ...data.quiz,
+          imageFile: undefined,
+          imageUrl: quizImage?.imageUrl ?? PLACEHOLDER_IMAGE_URL,
+          imageKey: quizImage?.imageKey ?? PLACEHOLDER_IMAGE_KEY,
           numQuestions,
           creator: { connect: { id: user.id } },
         },
       });
 
       const questions = await tx.quizQuestion.createMany({
-        data: data.questions.map((element) => ({
+        data: data.questions.map((q, i) => ({
           quizId: quiz.id,
-          order: element.order,
-          question: element.question,
-          answers: element.answers,
-          correctAnswer: element.correctAnswer,
+          order: q.order,
+          question: q.question,
+          type: q.type,
+          answers: q.answers,
+          correctAnswers: q.correctAnswers,
+          imageUrl: questionImages[i]?.imageUrl ?? PLACEHOLDER_IMAGE_URL,
+          imageKey: questionImages[i]?.imageKey ?? PLACEHOLDER_IMAGE_KEY,
         })),
       });
 
@@ -52,6 +148,7 @@ export const POST = WithAuth(async (req, { user }) => {
       { status: 200 }
     );
   } catch (error) {
+    await Promise.allSettled(uploadedKeys.map((key) => deleteImage(key)));
     return handleError(error);
   }
 });
@@ -66,7 +163,7 @@ export const POST = WithAuth(async (req, { user }) => {
  */
 export async function GET(req: NextRequest) {
   try {
-    const { limit, cursor, sortBy, tags } = parseQueryParams(
+    const { limit, cursor, sortBy, tags, name } = parseQueryParams(
       req.nextUrl.searchParams,
       QuizListQuerySchema
     );
@@ -79,7 +176,13 @@ export async function GET(req: NextRequest) {
         id: sortBy,
       },
       where: {
-        category: { in: tags },
+        category: tags?.length ? { in: tags } : undefined,
+        title: name
+          ? {
+              contains: name,
+              mode: 'insensitive',
+            }
+          : undefined,
       },
     });
 

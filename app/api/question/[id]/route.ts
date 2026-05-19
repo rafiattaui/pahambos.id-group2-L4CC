@@ -7,6 +7,11 @@ import {
 } from '@/lib/schemas/quizschemas';
 import { NextRequest, NextResponse } from 'next/server';
 import { APIError } from '@/lib/api/errors';
+import { uploadImage } from '@/lib/cloudinary';
+
+const PLACEHOLDER_IMAGE_URL =
+  'https://res.cloudinary.com/dbj2tvfzg/image/upload/v1778493470/landscape-placeholder_vrw20c.svg';
+const PLACEHOLDER_IMAGE_KEY = 'landscape-placeholder_vrw20c';
 
 /**
  * @description Retrieve a question and its possible answers.
@@ -26,11 +31,10 @@ export async function GET(
       where: { id },
     });
 
-    const res = PublicQuestionSchema.parse(question);
     return NextResponse.json(
       {
         success: true,
-        ...res,
+        ...question,
       },
       { status: 200 }
     );
@@ -88,38 +92,10 @@ export const DELETE = WithAuth(async (req, { user, params }) => {
   }
 });
 
+// TODO - Implement QuizQuestion PATCH
 export const PATCH = WithAuth(async (req, { user, params }) => {
-  try {
-    const rawData = await req.json();
-    const data = UpdateQuestionSchema.parse(rawData);
-    const { id } = await params;
-
-    const question = await prisma.quizQuestion.findUnique({
-      where: { id },
-    });
-
-    if (!question) {
-      throw new APIError('Question not found', 404);
-    }
-
-    const updatedQuestion = await prisma.quizQuestion.update({
-      where: { id },
-      data: {
-        question: data.question,
-        answers: data.answers,
-        correctAnswer: data.correctAnswer,
-      },
-    });
-
-    const res = PublicQuestionSchema.parse(updatedQuestion);
-    return NextResponse.json(
-      {
-        success: true,
-        ...res,
-      },
-      { status: 200 }
-    );
-  } catch (err) {
-    return handleError(err);
-  }
+  return NextResponse.json(
+    { success: false, message: 'Not implemented' },
+    { status: 501 }
+  );
 });

@@ -51,7 +51,7 @@ export default function Navbar(props: { sections: string[] }) {
       <div className="ml-auto flex items-center gap-2">
         {!isAuthenticated ? (
           <>
-            <a href="/profile">
+            <a href="/register " className="hidden sm:inline-block">
               <Button
                 onClick={handleClick}
                 className="bg-blue-500 text-white hover:bg-blue-700"

@@ -116,10 +116,10 @@ export const POST = WithAuth(async (req, { user }) => {
     const numQuestions = data.questions.length;
 
     const result = await prisma.$transaction(async (tx) => {
+      const { imageFile, ...quizData } = data.quiz; // exclude imageFile
       const quiz = await tx.quiz.create({
         data: {
-          ...data.quiz,
-          imageFile: undefined,
+          ...quizData,
           imageUrl: quizImage?.imageUrl ?? PLACEHOLDER_IMAGE_URL,
           imageKey: quizImage?.imageKey ?? PLACEHOLDER_IMAGE_KEY,
           numQuestions,

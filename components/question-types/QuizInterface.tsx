@@ -57,7 +57,7 @@ interface QuestionResult {
   timedOut: boolean;
 }
 
-const ANSWER_COLORS = ['#FF3B3B', '#3B82F6', '#00C853', '#FFD600'];
+const ANSWER_COLORS = ['#FF3B3B', '#3B82F6', '#5FAD56', '#FFD600'];
 const ANSWER_TEXT_COLORS = ['#fff', '#fff', '#fff', '#fff'];
 
 export default function QuizInterface({

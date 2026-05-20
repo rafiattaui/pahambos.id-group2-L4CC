@@ -5,7 +5,7 @@ import { resolve } from 'path';
 import { useState, useCallback, useRef, use, useEffect } from 'react';
 import { set } from 'zod';
 
-export type QuestionType = 'SingleSelect' | 'MultiSelect' | 'true-false';
+export type QuestionType = 'SingleSelect' | 'MultiSelect' | 'TrueFalse';
 
 export interface QuizQuestion {
   id: string;
@@ -27,7 +27,7 @@ function resolveType(q: QuizQuestion): QuestionType {
     q.answers.length === 2 &&
     q.answers.every((a) => ['true', 'false'].includes(a.toLowerCase()))
   ) {
-    return 'true-false';
+    return 'TrueFalse';
   }
   return 'SingleSelect';
 }
@@ -35,7 +35,7 @@ function resolveType(q: QuizQuestion): QuestionType {
 function checkCorrect(q: QuizQuestion, selectedIndices: number[]): boolean {
   const type = resolveType(q);
 
-  if (type === 'SingleSelect' || type === 'true-false') {
+  if (type === 'SingleSelect' || type === 'TrueFalse') {
     return selectedIndices[0] === q.correctAnswers[0];
   }
   if (type === 'MultiSelect') {
@@ -336,7 +336,7 @@ export default function QuizInterface({
     return { backgroundColor: base, opacity: 0.6 };
   }
 
-  const isTrueFalse = questionType === 'true-false';
+  const isTrueFalse = questionType === 'TrueFalse';
   const isMultiSelect = questionType === 'MultiSelect';
 
   return (

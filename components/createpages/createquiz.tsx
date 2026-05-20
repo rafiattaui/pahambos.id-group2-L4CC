@@ -33,15 +33,15 @@ import DraftPopup, { QuizDraft } from '@/components/createpages/draftpopup';
 import NextImage from 'next/image';
 import Cropper, { type Area, type Point } from 'react-easy-crop';
 
-type QuestionType = 'multiple-choice' | 'true-false' | 'multiple-select-choice';
+// Maps to schema's 'SingleSelect' | 'MultiSelect'
+type QuestionType = 'multiple-choice' | 'multiple-select-choice';
 
 type Question = {
-  id: string;
-  order: number;
+  order: number; // used as the stable local key; DB assigns the real id
   type: QuestionType;
   question: string;
-  answer?: string[];
-  correctAnswer: string | string[] | boolean;
+  answer?: string[]; // the display text for each option (min 2, max 4)
+  correctAnswer: number[]; // indices into `answer` — matches schema's correctAnswers: number[]
   imageUrl?: string | null;
   rawImageUrl?: string | null; // for handling uncropped images before saving
 };
@@ -51,7 +51,7 @@ type validationErrors = {
   description?: string;
   category?: string;
   questions?: Record<
-    string,
+    number, // keyed by question.order
     {
       question?: string;
       answer?: string;
@@ -86,21 +86,22 @@ function validateForm(
 
     if (!q.question.trim()) e.question = 'Question prompt is required';
 
-    if (q.type === 'multiple-choice' || q.type === 'multiple-select-choice') {
-      const filled = (q.answer ?? []).filter((a) => a.trim());
-      if (filled.length < 4) e.answer = 'All 4 answer options are required';
+    const filled = (q.answer ?? []).filter((a) => a.trim());
+    if (filled.length < 2) e.answer = 'At least 2 answer options are required';
 
-      if (q.type === 'multiple-choice' && !q.correctAnswer)
-        e.correctAnswer = 'Select a correct answer';
+    if (q.type === 'multiple-choice') {
+      // SingleSelect: exactly one correct answer index
+      if (q.correctAnswer.length !== 1)
+        e.correctAnswer = 'Select exactly one correct answer';
+    }
 
-      if (
-        q.type === 'multiple-select-choice' &&
-        (!Array.isArray(q.correctAnswer) || q.correctAnswer.length === 0)
-      )
+    if (q.type === 'multiple-select-choice') {
+      // MultiSelect: at least one correct answer index
+      if (q.correctAnswer.length === 0)
         e.correctAnswer = 'Select at least one correct answer';
     }
 
-    if (Object.keys(e).length > 0) qvalidationErrors[q.id] = e;
+    if (Object.keys(e).length > 0) qvalidationErrors[q.order] = e;
   });
 
   if (Object.keys(qvalidationErrors).length)
@@ -508,9 +509,8 @@ function QuestionEditor({
         onValueChange={(v) =>
           onChange({
             type: v as QuestionType,
-            answer: v === 'true-false' ? undefined : ['', '', '', ''],
-            correctAnswer:
-              v === 'true-false' ? false : v === 'multiple-choice' ? '' : [],
+            answer: ['', '', '', ''],
+            correctAnswer: [],
           })
         }
       >
@@ -518,11 +518,10 @@ function QuestionEditor({
           <SelectValue placeholder="Select a question type" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="multiple-choice">Multiple Choice</SelectItem>
+          <SelectItem value="multiple-choice">Single Answer</SelectItem>
           <SelectItem value="multiple-select-choice">
-            Multiple Select Choice
+            Multiple Answer
           </SelectItem>
-          <SelectItem value="true-false">True/False</SelectItem>
         </SelectContent>
       </Select>
 
@@ -561,34 +560,7 @@ function QuestionEditor({
         )}
       </Field>
 
-      {/* True/False */}
-      {question.type === 'true-false' && (
-        <Field>
-          <FieldLabel className="font-heading">Answer</FieldLabel>
-          <Select
-            value={
-              question.correctAnswer === true
-                ? 'true'
-                : question.correctAnswer === false
-                  ? 'false'
-                  : ''
-            }
-            onValueChange={(value) =>
-              onChange({ correctAnswer: value === 'true' })
-            }
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select correct answer" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="true">True</SelectItem>
-              <SelectItem value="false">False</SelectItem>
-            </SelectContent>
-          </Select>
-        </Field>
-      )}
-
-      {/* Multiple choice */}
+      {/* Multiple choice — SingleSelect: one correct index */}
       {question.type === 'multiple-choice' && (
         <FieldGroup className="mt-3 space-y-2">
           <Field>
@@ -614,11 +586,13 @@ function QuestionEditor({
             <FieldLabel className="font-heading">Correct Answer</FieldLabel>
             <Select
               value={
-                typeof question.correctAnswer === 'string'
-                  ? question.correctAnswer
+                question.correctAnswer.length === 1
+                  ? String(question.correctAnswer[0])
                   : ''
               }
-              onValueChange={(value) => onChange({ correctAnswer: value })}
+              onValueChange={(value) =>
+                onChange({ correctAnswer: [Number(value)] })
+              }
             >
               <SelectTrigger
                 className={
@@ -629,7 +603,7 @@ function QuestionEditor({
               </SelectTrigger>
               <SelectContent>
                 {question.answer?.map((ans, i) => (
-                  <SelectItem key={i} value={ans || `Answer ${i + 1}`}>
+                  <SelectItem key={i} value={String(i)}>
                     {ans || `Answer ${i + 1}`}
                   </SelectItem>
                 ))}
@@ -644,7 +618,7 @@ function QuestionEditor({
         </FieldGroup>
       )}
 
-      {/* Multiple select choice */}
+      {/* Multiple select choice — MultiSelect: one or more correct indices */}
       {question.type === 'multiple-select-choice' && (
         <FieldGroup>
           <Field>
@@ -670,30 +644,24 @@ function QuestionEditor({
             <FieldLabel className="font-heading">Correct Answers</FieldLabel>
             <div className="flex flex-wrap items-center gap-2">
               {question.answer?.map((ans, i) => {
-                const value = ans || `Answer ${i + 1}`;
-                const selected = Array.isArray(question.correctAnswer)
-                  ? question.correctAnswer.includes(value)
-                  : false;
+                const selected = question.correctAnswer.includes(i);
                 return (
                   <label
-                    htmlFor={`correct-answer-${question.id}-${i}`}
+                    htmlFor={`correct-answer-${question.order}-${i}`}
                     key={i}
                     className="flex items-center gap-2"
                   >
                     <Checkbox
-                      id={`correct-answer-${question.id}-${i}`}
+                      id={`correct-answer-${question.order}-${i}`}
                       checked={selected}
                       onCheckedChange={(checked) => {
-                        const current = Array.isArray(question.correctAnswer)
-                          ? question.correctAnswer
-                          : [];
                         const next = checked
-                          ? [...current, value]
-                          : current.filter((v) => v !== value);
+                          ? [...question.correctAnswer, i]
+                          : question.correctAnswer.filter((v) => v !== i);
                         onChange({ correctAnswer: next });
                       }}
                     />
-                    <span>{value}</span>
+                    <span>{ans || `Answer ${i + 1}`}</span>
                   </label>
                 );
               })}
@@ -769,29 +737,28 @@ export default function CreateQuizForm() {
     setQuestions((prev) => [
       ...prev,
       {
-        id: crypto.randomUUID(),
         order: prev.length + 1,
         type: newType,
         question: '',
-        answer: newType === 'true-false' ? undefined : ['', '', '', ''],
-        correctAnswer:
-          newType === 'true-false'
-            ? false
-            : newType === 'multiple-choice'
-              ? ''
-              : [],
+        answer: ['', '', '', ''],
+        correctAnswer: [],
       },
     ]);
   };
 
-  const updateQuestion = (index: string, patch: Partial<Question>) => {
+  const updateQuestion = (order: number, patch: Partial<Question>) => {
     setQuestions((prev) =>
-      prev.map((q) => (q.id === index ? { ...q, ...patch } : q))
+      prev.map((q) => (q.order === order ? { ...q, ...patch } : q))
     );
   };
 
-  const removeQuestion = (index: string) => {
-    setQuestions((prev) => prev.filter((q) => q.id !== index));
+  const removeQuestion = (order: number) => {
+    setQuestions(
+      (prev) =>
+        prev
+          .filter((q) => q.order !== order)
+          .map((q, i) => ({ ...q, order: i + 1 })) // re-number after removal
+    );
   };
 
   const handleLoadDraft = (draft: QuizDraft) => {
@@ -815,19 +782,38 @@ export default function CreateQuizForm() {
       (errs.questions && Object.keys(errs.questions).length > 0);
     if (hasvalidationErrors) return;
 
-    // do not delete! this is to convert the blob url to file and can be stored into database
-
+    // Convert blob URLs to File objects for multipart upload
     /*
     const coverFile = coverUrl ? await blobUrlToFile(coverUrl, 'cover.jpg') : null;
-
     const questionFiles = await Promise.all(
       questions.map(async (q) => ({
-        id: q.id,
-        file: q.imageUrl ? await blobUrlToFile(q.imageUrl, `question-${q.id}.jpg`) : null,
+        order: q.order,
+        file: q.imageUrl ? await blobUrlToFile(q.imageUrl, `question-${q.order}.jpg`) : null,
       }))
     );
-
     */
+
+    // Payload shaped to match CreateQuizAndQuestionsSchema
+    const payload = {
+      quiz: {
+        title,
+        description,
+        category,
+        // imageFile: coverFile,  // uncomment when blobUrlToFile is wired up
+      },
+      questions: questions.map((q) => ({
+        order: q.order,
+        question: q.question,
+        // Map local types to schema enum values
+        type: q.type === 'multiple-choice' ? 'SingleSelect' : 'MultiSelect',
+        answers: (q.answer ?? []).filter((a) => a.trim()), // drop blank trailing slots
+        correctAnswers: q.correctAnswer, // already number[] indices
+        // imageFile: questionFiles.find(f => f.order === q.order)?.file ?? undefined,
+      })),
+    };
+
+    console.log('Submitting payload:', payload);
+    // TODO: POST payload to your API endpoint
   };
 
   return (
@@ -949,12 +935,12 @@ export default function CreateQuizForm() {
 
                 {questions.map((q, index) => (
                   <QuestionEditor
-                    key={q.id}
+                    key={q.order}
                     index={index}
                     question={q}
-                    validationErrors={validationErrors.questions?.[q.id]}
-                    onChange={(patch) => updateQuestion(q.id, patch)}
-                    onRemove={() => removeQuestion(q.id)}
+                    validationErrors={validationErrors.questions?.[q.order]}
+                    onChange={(patch) => updateQuestion(q.order, patch)}
+                    onRemove={() => removeQuestion(q.order)}
                   />
                 ))}
 
@@ -972,12 +958,11 @@ export default function CreateQuizForm() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="multiple-choice">
-                        Multiple Choice
+                        Single Answer
                       </SelectItem>
                       <SelectItem value="multiple-select-choice">
-                        Multiple Select Choice
+                        Multiple Answer
                       </SelectItem>
-                      <SelectItem value="true-false">True/False</SelectItem>
                     </SelectContent>
                   </Select>
                 </Field>

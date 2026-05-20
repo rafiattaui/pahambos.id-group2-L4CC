@@ -5,15 +5,15 @@ import { useEffect, useRef, useState } from 'react';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type QuestionType = 'multiple-choice' | 'true-false' | 'multiple-select-choice';
+// Must stay in sync with createquiz.tsx
+type QuestionType = 'multiple-choice' | 'multiple-select-choice';
 
 type Question = {
-  id: string;
-  order: number;
+  order: number; // DB assigns id; order is the local stable key
   type: QuestionType;
   question: string;
   answer?: string[];
-  correctAnswer: string | string[] | boolean;
+  correctAnswer: number[]; // indices into answer[], matches schema's correctAnswers
 };
 
 export type QuizFormState = {
@@ -50,9 +50,8 @@ function formFingerprint(form: QuizFormState): string {
       type: q.type,
       question: q.question.trim().toLowerCase(),
       answer: q.answer?.map((a) => a.trim().toLowerCase()).sort(),
-      correctAnswer: Array.isArray(q.correctAnswer)
-        ? [...q.correctAnswer].sort().join('|')
-        : String(q.correctAnswer),
+      // correctAnswer is always number[] — sort for stable comparison
+      correctAnswer: [...q.correctAnswer].sort((a, b) => a - b).join('|'),
     })),
   };
   return JSON.stringify(normalized);

@@ -3,7 +3,6 @@ import { NextResponse, NextRequest } from 'next/server';
 import { rateLimit } from '@/lib/ratelimiter';
 
 export async function proxy(request: NextRequest): Promise<NextResponse> {
-  console.log('Rate limiting request to /api/proxy');
   const ip = request.headers.get('x-forwarded-for') || 'unknown';
   const { allowed, remaining, resetIn } = await rateLimit(ip);
 
@@ -21,3 +20,7 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
   res.headers.set('X-RateLimit-Remaining', String(remaining));
   return res;
 }
+
+export const config = {
+  matcher: '/api/:path*',
+};

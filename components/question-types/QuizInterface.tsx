@@ -14,6 +14,7 @@ export interface QuizQuestion {
   question: string;
   answers: string[];
   correctAnswers: number[]; // index of the correct answer in the answers array, multi select included
+  imageUrl?: string;
 
   // additional fields for type and time limit
   type?: QuestionType;
@@ -84,6 +85,7 @@ export default function QuizInterface({
   const [countdown, setCountdown] = useState<number | null>(null);
 
   const bgMusicRef = useRef<HTMLAudioElement | null>(null);
+  const finishMusicRef = useRef<HTMLAudioElement | null>(null);
 
   // Initialize audio once on mount
   useEffect(() => {
@@ -91,9 +93,15 @@ export default function QuizInterface({
     bgMusicRef.current.loop = true;
     bgMusicRef.current.volume = 0.2;
 
+    finishMusicRef.current = new Audio('/audio/finishmusic.mp3');
+    finishMusicRef.current.loop = true;
+    finishMusicRef.current.volume = 0.2;
+
     return () => {
       bgMusicRef.current?.pause();
       bgMusicRef.current = null;
+      finishMusicRef.current?.pause();
+      finishMusicRef.current = null;
     };
   }, []);
 
@@ -130,6 +138,14 @@ export default function QuizInterface({
     }, 1000);
     return () => clearTimeout(id);
   }, [countdown, questions]);
+
+  // Play finish music when quiz ends
+  useEffect(() => {
+    if (!quizFinished) return;
+    finishMusicRef.current
+      ?.play()
+      .catch((err) => console.log('Finish music blocked:', err));
+  }, [quizFinished]);
 
   // Commit answer and advance to next question
   const commitAndAdvance = useCallback(
@@ -220,7 +236,7 @@ export default function QuizInterface({
           </div>
         ) : (
           // Splash screen
-          <>
+          <div className="font-body flex flex-col items-center gap-6">
             <div className="text-6xl">🎮</div>
             <h1 className="text-4xl font-black text-black">Ready?</h1>
             <p className="text-lg text-black/60">
@@ -228,11 +244,17 @@ export default function QuizInterface({
             </p>
             <button
               onClick={handleStart}
-              className="rounded-2xl bg-blue-500 px-12 py-4 text-2xl font-bold text-white transition hover:bg-blue-600 active:scale-95"
+              className="max-w-s w-full rounded-2xl bg-blue-500 px-12 py-4 text-2xl font-bold text-white transition hover:bg-blue-600 active:scale-95"
             >
               Start Quiz 🚀
             </button>
-          </>
+            <a
+              href="/dashboard"
+              className="max-w-s w-full rounded-2xl border border-white/50 bg-white/30 px-12 py-4 text-center text-2xl font-bold text-black transition hover:bg-white/50 active:scale-95"
+            >
+              Back to Dashboard
+            </a>
+          </div>
         )}
       </div>
     );
@@ -264,6 +286,7 @@ export default function QuizInterface({
         <div className="flex flex-col items-center">
           <button
             onClick={() => {
+              finishMusicRef.current?.pause();
               setCurrentIndex(0);
               setSelectedIndices([]);
               setIsSubmitted(false);
@@ -370,19 +393,13 @@ export default function QuizInterface({
         ⏸
       </button>
 
-      {/* Progress bar and timer */}
-      <div className="mt-6 mb-6 flex flex-col items-center">
-        <div className="mb-2 flex items-center gap-2">
-          <span className="font-body rounded-full border border-black/20 bg-blue-300 px-8 py-3 text-2xl text-black backdrop-blur-md">
+      {/* Timer */}
+      <div className="mt-6 mb-2 flex flex-col items-center sm:mb-6">
+        <div className="flex items-center gap-2">
+          <span className="font-body rounded-full border border-black/20 bg-blue-300 px-8 py-3 text-sm text-black backdrop-blur-md sm:text-lg md:text-2xl">
             00:{safeTimeLeft < 10 ? `0${safeTimeLeft}` : safeTimeLeft}
           </span>
         </div>
-      </div>
-      <div className="h-3 w-full overflow-hidden rounded-full border border-black/30 bg-white/30">
-        <div
-          className="h-full bg-linear-to-r from-yellow-400 to-green-500 transition-all duration-1000 ease-linear"
-          style={{ width: `${progress}%` }}
-        />
       </div>
 
       {/* Question counter */}
@@ -394,16 +411,16 @@ export default function QuizInterface({
 
       {/* Question card */}
 
-      <div className="mx-auto mt-8 mb-6 w-fit rounded-3xl border border-white/30 bg-blue-300 p-12 text-black shadow-2xl">
+      <div className="mx-auto mt-8 mb-6 w-full max-w-2xl rounded-3xl border border-white/30 bg-blue-300 p-5 text-black shadow-2xl sm:p-12">
         {/* Check for multi select */}
         {isMultiSelect && (
           <p className="mb-2 text-center">
-            <span className="font-body rounded-full bg-blue-600 px-4 py-1 text-sm tracking-wider text-white">
+            <span className="font-body rounded-full bg-blue-600 px-3 py-1 text-xs tracking-wider text-white sm:px-4 sm:text-sm">
               Select all that apply
             </span>
           </p>
         )}
-        <h2 className="font-body text-center text-xl leading-tight font-bold">
+        <h2 className="font-body text-center text-sm leading-tight font-bold sm:text-xl">
           {currentQuestion.question}
         </h2>
         {/* Results after submission */}
@@ -421,13 +438,13 @@ export default function QuizInterface({
       {/* Answer buttons */}
       {isTrueFalse ? (
         // True/False questions
-        <div className="font-body mt-20 grid grid-cols-2 gap-5">
+        <div className="font-body mt-5 grid grid-cols-2 gap-5 sm:mt-10 md:mt-20">
           {currentQuestion.answers.map((answerText, index) => (
             <button
               key={index}
               disabled={isSubmitted}
               onClick={() => handleSingleSelect(index)}
-              className="h-50 rounded-2xl border-black/30 px-4 py-10 text-2xl font-bold text-white transition-all duration-200 active:scale-95 disabled:cursor-not-allowed"
+              className="h-12 rounded-2xl border-black/30 px-4 py-2 text-sm font-bold text-white transition-all duration-200 active:scale-95 disabled:cursor-not-allowed sm:h-40 sm:py-8 sm:text-xl"
               style={{
                 ...getAnswerStyle(index),
                 backgroundColor: index === 0 ? '#00C853' : '#FF3B3B',
@@ -441,7 +458,7 @@ export default function QuizInterface({
       ) : isMultiSelect ? (
         // Multi-select questions
         <>
-          <div className="font-body mt-20 mb-8 grid grid-cols-4 gap-5">
+          <div className="font-body mt-3 mb-5 grid grid-cols-1 gap-5 sm:mt-5 sm:grid-cols-2 md:mt-10 md:grid-cols-4">
             {currentQuestion.answers.map((answerText, index) => {
               const isSelected = selectedIndices.includes(index);
               const style = getAnswerStyle(index);
@@ -450,7 +467,7 @@ export default function QuizInterface({
                   key={index}
                   disabled={isSubmitted}
                   onClick={() => handleMultiToggle(index)}
-                  className="relative h-30 rounded-2xl px-4 py-8 text-xl font-semibold text-white transition-all duration-200 active:scale-95 disabled:cursor-not-allowed"
+                  className="relative h-12 rounded-2xl px-4 py-2 text-sm font-semibold text-white transition-all duration-200 active:scale-95 disabled:cursor-not-allowed sm:h-40 sm:py-8 sm:text-xl"
                   style={style}
                 >
                   {/* Checkbox indicator */}
@@ -472,20 +489,20 @@ export default function QuizInterface({
           <button
             disabled={isSubmitted || selectedIndices.length === 0}
             onClick={handleMultiSubmit}
-            className="w-full rounded-2xl bg-blue-600 py-4 text-xl font-bold text-white transition hover:bg-blue-700 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
+            className="text-md w-full rounded-2xl bg-blue-600 py-2 font-bold text-white transition hover:bg-blue-700 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 sm:py-4 sm:text-xl"
           >
             {isSubmitted ? 'Submitted!' : 'Confirm Selection'}
           </button>
         </>
       ) : (
         // Multiple-choice questions
-        <div className="font-body mt-20 grid grid-cols-4 gap-5">
+        <div className="font-body mt-20 grid grid-cols-1 gap-5 sm:mt-30 sm:grid-cols-2 md:grid-cols-4">
           {currentQuestion.answers.map((answerText, index) => (
             <button
               key={index}
               disabled={isSubmitted}
               onClick={() => handleSingleSelect(index)}
-              className="h-50 rounded-2xl px-4 py-8 text-xl font-semibold shadow-lg transition-all duration-200 active:scale-95 disabled:cursor-not-allowed"
+              className="h-15 rounded-2xl px-4 py-2 text-sm font-semibold shadow-lg transition-all duration-200 active:scale-95 disabled:cursor-not-allowed sm:h-40 sm:py-8 sm:text-xl"
               style={{
                 ...getAnswerStyle(index),
                 color: ANSWER_TEXT_COLORS[index % ANSWER_TEXT_COLORS.length],

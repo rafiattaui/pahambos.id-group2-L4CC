@@ -32,6 +32,7 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import DraftPopup, { QuizDraft } from '@/components/createpages/draftpopup';
 import NextImage from 'next/image';
 import Cropper, { type Area, type Point } from 'react-easy-crop';
+import { toast } from 'sonner';
 
 // Maps to schema's 'SingleSelect' | 'MultiSelect'
 type QuestionType = 'multiple-choice' | 'multiple-select-choice';
@@ -74,8 +75,8 @@ function validateForm(
     validationErrors.description = 'Quiz description is required';
   if (!category) validationErrors.category = 'Please select a category';
 
-  if (questions.length === 0) {
-    validationErrors.questionsError = 'Please add at least one question';
+  if (questions.length < 2) {
+    validationErrors.questionsError = 'Please create at least two question';
     return validationErrors;
   }
   const qvalidationErrors: validationErrors['questions'] = {};
@@ -691,16 +692,22 @@ export default function CreateQuizForm() {
   const [validationErrors, setvalidationErrors] = useState<validationErrors>(
     {}
   );
+  const categoryMap: Record<string, string> = {
+    mathematics: 'Mathematics',
+    science: 'Science',
+    history: 'History',
+    language: 'Language',
+    geography: 'Geography',
+    technology: 'Technology',
+    general: 'General',
+  };
   const addButtonRef = useRef<HTMLButtonElement | null>(null);
 
-  // utility to convert blob url to file for database storage, not used in current implementation but can be useful for future enhancements
-  /*
-   async function blobUrlToFile(url:string, filename:string):Promise<File> {
+  async function blobUrlToFile(url: string, filename: string): Promise<File> {
     const res = await fetch(url);
     const blob = await res.blob();
     return new File([blob], filename, { type: blob.type });
   }
-  */
 
   const scrollToAddButton = (offset = 120) => {
     const el = addButtonRef.current;
@@ -766,7 +773,7 @@ export default function CreateQuizForm() {
     setRawCoverUrl(draft.coverUrl ?? null);
     setTitle(draft.title);
     setDescription(draft.description);
-    setCategory(draft.category);
+    setCategory(categoryMap[draft.category?.toLowerCase()] ?? draft.category);
     setQuestions(draft.questions as Question[]);
   };
 
@@ -783,15 +790,20 @@ export default function CreateQuizForm() {
     if (hasvalidationErrors) return;
 
     // Convert blob URLs to File objects for multipart upload
-    /*
-    const coverFile = coverUrl ? await blobUrlToFile(coverUrl, 'cover.jpg') : null;
+
+    const coverFile = coverUrl
+      ? await blobUrlToFile(coverUrl, 'cover.jpg')
+      : null;
     const questionFiles = await Promise.all(
       questions.map(async (q) => ({
         order: q.order,
-        file: q.imageUrl ? await blobUrlToFile(q.imageUrl, `question-${q.order}.jpg`) : null,
+        file: q.imageUrl
+          ? await blobUrlToFile(q.imageUrl, `question-${q.order}.jpg`)
+          : null,
       }))
     );
-    */
+
+    const formData = new FormData();
 
     // Payload shaped to match CreateQuizAndQuestionsSchema
     const payload = {
@@ -799,7 +811,7 @@ export default function CreateQuizForm() {
         title,
         description,
         category,
-        // imageFile: coverFile,  // uncomment when blobUrlToFile is wired up
+        imageFile: coverFile, // uncomment when blobUrlToFile is wired up
       },
       questions: questions.map((q) => ({
         order: q.order,
@@ -808,11 +820,50 @@ export default function CreateQuizForm() {
         type: q.type === 'multiple-choice' ? 'SingleSelect' : 'MultiSelect',
         answers: (q.answer ?? []).filter((a) => a.trim()), // drop blank trailing slots
         correctAnswers: q.correctAnswer, // already number[] indices
-        // imageFile: questionFiles.find(f => f.order === q.order)?.file ?? undefined,
+        imageFile:
+          questionFiles.find((f) => f.order === q.order)?.file ?? undefined,
       })),
     };
 
-    console.log('Submitting payload:', payload);
+    formData.append('quiz.title', payload.quiz.title);
+    formData.append('quiz.description', payload.quiz.description);
+    formData.append('quiz.category', payload.quiz.category);
+    if (payload.quiz.imageFile) {
+      formData.append('quiz.imageFile', payload.quiz.imageFile);
+    }
+
+    payload.questions.forEach((q, i) => {
+      formData.append(`questions[${i}].order`, String(q.order));
+      formData.append(`questions[${i}].question`, q.question);
+      formData.append(`questions[${i}].type`, q.type);
+
+      q.answers.forEach((ans, aIdx) => {
+        formData.append(`questions[${i}].answers[${aIdx}]`, ans);
+      });
+
+      q.correctAnswers.forEach((idx, cIdx) => {
+        formData.append(`questions[${i}].correctAnswers[${cIdx}]`, String(idx));
+      });
+
+      if (q.imageFile) {
+        formData.append(`questions[${i}].imageFile`, q.imageFile);
+      }
+    });
+
+    const res = await fetch('api/quiz', {
+      method: 'POST',
+      body: formData,
+      credentials: 'include', // include cookies for auth
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      // Handle server-side validation errors or other issues
+      toast.error(data.message || 'Failed to create quiz');
+    } else {
+      toast.success('Quiz created successfully!');
+    }
+
     // TODO: POST payload to your API endpoint
   };
 
@@ -901,13 +952,13 @@ export default function CreateQuizForm() {
                   <SelectValue placeholder="Select a category" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="mathematics">Mathematics</SelectItem>
-                  <SelectItem value="science">Science</SelectItem>
-                  <SelectItem value="history">History</SelectItem>
-                  <SelectItem value="language">Language</SelectItem>
-                  <SelectItem value="geography">Geography</SelectItem>
-                  <SelectItem value="technology">Technology</SelectItem>
-                  <SelectItem value="general">General</SelectItem>
+                  <SelectItem value="Mathematics">Mathematics</SelectItem>
+                  <SelectItem value="Science">Science</SelectItem>
+                  <SelectItem value="History">History</SelectItem>
+                  <SelectItem value="Language">Language</SelectItem>
+                  <SelectItem value="Geography">Geography</SelectItem>
+                  <SelectItem value="Technology">Technology</SelectItem>
+                  <SelectItem value="General">General</SelectItem>
                 </SelectContent>
               </Select>
               {validationErrors.category && (
@@ -968,7 +1019,7 @@ export default function CreateQuizForm() {
                 </Field>
 
                 <Button
-                  className="bg-blue-300 hover:scale-105 hover:bg-blue-500"
+                  className="bg-blue-500 hover:scale-105 hover:bg-blue-700"
                   ref={addButtonRef}
                   onClick={addQuestion}
                 >
@@ -981,7 +1032,7 @@ export default function CreateQuizForm() {
                   Save Draft <Save className="h-4 w-4" />
                 </Button>
                 <Button
-                  className="bg-blue-700 hover:scale-105 hover:bg-blue-900"
+                  className="bg-blue-500 hover:scale-105 hover:bg-blue-700"
                   onClick={handleSubmit}
                 >
                   Create Quiz

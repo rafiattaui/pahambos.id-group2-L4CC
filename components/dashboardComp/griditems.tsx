@@ -11,10 +11,25 @@ import {
   CardFooter,
   CardAction,
 } from '../ui/card';
-import { Quiz } from './quizmockup';
 import Image from 'next/image';
 import { CategoryTextColor } from './dashcarousel';
 import { X } from 'lucide-react';
+
+export type Quiz = {
+  id: number;
+  createdBy: string;
+  title: string;
+  description: string;
+  numQuestions: number;
+  imageUrl?: string;
+  category:
+    | 'Mathematics'
+    | 'Science'
+    | 'History'
+    | 'Geography'
+    | 'Technology'
+    | 'General';
+};
 
 export default function GridItems({ quiz }: { quiz: Quiz }) {
   const [selectedQuiz, setSelectedQuiz] = useState<Quiz | null>(null);
@@ -38,24 +53,28 @@ export default function GridItems({ quiz }: { quiz: Quiz }) {
         }}
         className="block h-full w-full text-left"
       >
-        <Card className="relative flex aspect-6/9 flex-col overflow-hidden rounded-2xl border-2 border-gray-300 shadow-xl sm:aspect-3/4">
+        <Card className="relative flex aspect-7/9 flex-col overflow-hidden rounded-2xl border-2 border-gray-300 shadow-xl sm:aspect-3/4">
           <CardHeader className="relative p-0">
             <Image
-              src={'/placeholderquiz.png'}
+              src={quiz.imageUrl || '/placeholderquiz.png'}
               alt={quiz.title}
               width={300}
               height={200}
               className="h-28 w-full object-cover sm:h-40"
             />
-            <div className="absolute inset-x-4 bottom-3 flex items-center justify-between">
-              <span
-                className={`font-body text-xs sm:text-sm ${categoriesText.find((c) => c.category === quiz.category)?.textColor || 'text-gray-500'}`}
-              >
-                {quiz.category}
-              </span>
-              <span className="font-body text-xs sm:text-sm">
-                {quiz.numQuestions} Qs
-              </span>
+            <div className="absolute inset-x-1 bottom-3 flex items-center justify-between sm:inset-x-4">
+              <div className="rounded-md bg-white p-1 sm:p-1.5">
+                <span
+                  className={`font-body text-xs sm:text-sm ${categoriesText.find((c) => c.category === quiz.category)?.textColor || 'text-gray-500'}`}
+                >
+                  {quiz.category}
+                </span>
+              </div>
+              <div className="rounded-md bg-white p-1 sm:p-1.5">
+                <span className="font-body text-xs sm:text-sm">
+                  {quiz.numQuestions} Qs
+                </span>
+              </div>
             </div>
           </CardHeader>
           <CardContent className="px-2 sm:p-3">
@@ -90,7 +109,7 @@ export default function GridItems({ quiz }: { quiz: Quiz }) {
                 </Button>
               </CardAction>
               <Image
-                src={'/placeholderquiz.png'}
+                src={selectedQuiz.imageUrl || '/placeholderquiz.png'}
                 alt={selectedQuiz.title}
                 width={400}
                 height={200}

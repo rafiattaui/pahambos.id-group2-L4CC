@@ -3,6 +3,7 @@ export type Quiz = {
   createdBy: string;
   title: string;
   description: string;
+  imageUrl?: string;
   numQuestions: number;
   category:
     | 'Mathematics'

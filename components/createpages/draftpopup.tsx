@@ -46,13 +46,23 @@ function formFingerprint(form: QuizFormState): string {
     title: form.title.trim().toLowerCase(),
     description: form.description.trim().toLowerCase(),
     category: form.category,
-    questions: form.questions.map((q) => ({
-      type: q.type,
-      question: q.question.trim().toLowerCase(),
-      answer: q.answer?.map((a) => a.trim().toLowerCase()).sort(),
-      // correctAnswer is always number[] — sort for stable comparison
-      correctAnswer: [...q.correctAnswer].sort((a, b) => a - b).join('|'),
-    })),
+    questions: form.questions.map((q) => {
+      // Defensive normalization: old drafts in localStorage may still have
+      // correctAnswer as string | string[] | boolean from before the refactor.
+      const ca = q.correctAnswer;
+      const normalized_ca: number[] = Array.isArray(ca)
+        ? (ca as unknown[]).map(Number)
+        : typeof ca === 'boolean' || ca === undefined || ca === null
+          ? []
+          : [Number(ca)];
+
+      return {
+        type: q.type,
+        question: q.question.trim().toLowerCase(),
+        answer: q.answer?.map((a) => a.trim().toLowerCase()).sort(),
+        correctAnswer: normalized_ca.sort((a, b) => a - b).join('|'),
+      };
+    }),
   };
   return JSON.stringify(normalized);
 }

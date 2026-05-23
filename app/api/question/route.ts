@@ -74,6 +74,7 @@ export const POST = WithAuth(async (req, { user }) => {
         data: {
           order: nextOrder,
           question: data.question,
+          type: data.type,
           answers: data.answers,
           correctAnswers: data.correctAnswers,
           imageUrl,

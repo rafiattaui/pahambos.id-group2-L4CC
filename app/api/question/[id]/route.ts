@@ -110,8 +110,9 @@ export const PATCH = WithAuth(async (req, { user, params }) => {
       where: { id },
       data: {
         question: data.question,
+        type: data.type,
         answers: data.answers,
-        correctAnswer: data.correctAnswers,
+        correctAnswers: data.correctAnswers,
       },
     });
 

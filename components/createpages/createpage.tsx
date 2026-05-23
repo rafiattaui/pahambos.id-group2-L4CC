@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Quiz } from '../dashboardComp/quizmockup';
-import GridItems from '../dashboardComp/griditems';
 import getQuizzes from '../dashboardComp/quizzes';
 import { Button } from '../ui/button';
 import {
@@ -11,11 +10,11 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-  CardAction,
   CardDescription,
-  CardFooter,
 } from '../ui/card';
-import { Plus, X, Pencil, Trash2 } from 'lucide-react';
+import { Skeleton } from '../ui/skeleton';
+import { Plus, Pencil, Trash2 } from 'lucide-react';
+import { useRef } from 'react';
 import Image from 'next/image';
 
 type CategoryTextColor = {
@@ -26,7 +25,7 @@ type CategoryTextColor = {
 function getCreatorQuizzes() {}
 
 function CreatePageItem({ quiz }: { quiz: Quiz }) {
-  const [selectedQuiz, setSelectedQuiz] = useState<Quiz | null>(null);
+  const router = useRouter();
 
   const categoriesText: CategoryTextColor[] = [
     { category: 'Mathematics', textColor: 'text-blue-500' },
@@ -40,13 +39,16 @@ function CreatePageItem({ quiz }: { quiz: Quiz }) {
 
   return (
     <div className="w-full">
-      <Card className="relative flex flex-col overflow-hidden rounded-2xl border-2 border-gray-300 shadow-xl sm:aspect-3/4">
+      <Card className="relative flex aspect-4/9 flex-col overflow-hidden rounded-2xl border-2 border-gray-300 shadow-xl sm:aspect-3/4">
         <div className="absolute top-2 right-2 z-10 flex flex-row gap-2">
-          <Button variant="outline">
-            {' '}
-            <Pencil className="h-4 w-4" />{' '}
+          <Button
+            variant="outline"
+            onClick={() => router.push(`/create-quiz/${quiz.id}/edit`)}
+            aria-label="Edit Quiz"
+          >
+            <Pencil className="h-4 w-4" />
           </Button>
-          <Button variant="outline">
+          <Button variant="outline" aria-label="Delete Quiz">
             {' '}
             <Trash2 className="h-4 w-4" />{' '}
           </Button>
@@ -85,57 +87,64 @@ function CreatePageItem({ quiz }: { quiz: Quiz }) {
           </div>
         </CardContent>
       </Card>
-
-      {selectedQuiz && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
-          onClick={() => setSelectedQuiz(null)}
-        >
-          <Card
-            className="relative w-full max-w-md rounded-2xl bg-white p-6 text-black"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <CardHeader>
-              <CardAction>
-                <Button
-                  onClick={() => setSelectedQuiz(null)}
-                  className="absolute top-2 right-2 flex items-center justify-center rounded-full bg-transparent p-2 hover:bg-gray-300"
-                >
-                  <X size={10} color="#000000" />
-                </Button>
-              </CardAction>
-              <Image
-                src={selectedQuiz.imageUrl || '/placeholderquiz.png'}
-                alt={selectedQuiz.title}
-                width={400}
-                height={200}
-                className="mt-4 mb-4 items-center justify-center rounded-2xl"
-              />
-              <CardTitle>{selectedQuiz.title}</CardTitle>
-              <CardDescription
-                className={`categoriesText ${categoriesText.find((c) => c.category === selectedQuiz.category)?.textColor || 'text-gray-500'}`}
-              >
-                <span className="text-gray-500">Category:</span>{' '}
-                {selectedQuiz.category}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <CardDescription>{selectedQuiz.description}</CardDescription>
-            </CardContent>
-            <CardFooter>
-              <Button className="w-full bg-blue-500 text-white hover:bg-blue-700 active:translate-y-1">
-                Start Quiz
-              </Button>
-            </CardFooter>
-          </Card>
-        </div>
-      )}
     </div>
   );
 }
 
-export default function CreatePage() {
+function CreatePageItemSkeleton() {
+  return (
+    <div className="w-full">
+      <Card className="relative flex aspect-4/9 flex-col overflow-hidden rounded-2xl border-2 border-gray-300 shadow-xl sm:aspect-3/4">
+        <div className="absolute top-2 right-2 z-10 flex flex-row gap-2">
+          <Skeleton className="h-9 w-9" />
+          <Skeleton className="h-9 w-9" />
+        </div>
+        <CardHeader className="relative p-0">
+          <Skeleton className="h-28 w-full rounded-none sm:h-40" />
+          <div className="absolute inset-x-1 bottom-3 flex items-center justify-between sm:inset-x-4">
+            <Skeleton className="h-6 w-20 rounded-md bg-white/70" />
+            <Skeleton className="h-6 w-12 rounded-md bg-white/70" />
+          </div>
+        </CardHeader>
+        <CardContent className="px-2 sm:p-3">
+          <Skeleton className="mb-2 h-4 w-3/4" />
+          <div className="hidden md:block">
+            <Skeleton className="mb-2 h-3 w-full" />
+            <Skeleton className="h-3 w-5/6" />
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+export default function CreatePage({ quiz }: { quiz: Quiz }) {
   const router = useRouter();
+  const [quizzes, setQuizzes] = useState<Quiz[] | null>(null);
+  const [prevCount, setPrevCount] = useState(6);
+
+  const isLoading = quizzes === null;
+  const skeletonCount = isLoading ? prevCount : quizzes.length;
+
+  useEffect(() => {
+    let cancelled = false;
+    getQuizzes({})
+      .then((res) => {
+        const nextQuizzes = res.data ?? res;
+        setQuizzes(nextQuizzes);
+        setPrevCount(nextQuizzes.length);
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setQuizzes([]);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [quiz]);
+
   const mockQuizzes: Quiz[] = [
     {
       id: 101,
@@ -176,11 +185,17 @@ export default function CreatePage() {
             <Plus className="h-20 w-20" />
           </CardContent>
         </Card>
-        {mockQuizzes.map((quiz) => (
-          <div key={quiz.id} className="m-4">
-            <CreatePageItem quiz={quiz} />
-          </div>
-        ))}
+        {isLoading
+          ? Array.from({ length: skeletonCount }).map((_, index) => (
+              <div key={`skeleton-${index}`} className="m-4">
+                <CreatePageItemSkeleton />
+              </div>
+            ))
+          : quizzes.map((quiz) => (
+              <div key={quiz.id} className="m-4">
+                <CreatePageItem quiz={quiz} />
+              </div>
+            ))}
       </div>
     </>
   );

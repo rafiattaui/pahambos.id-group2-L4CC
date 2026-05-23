@@ -13,7 +13,7 @@ type Question = {
   type: QuestionType;
   question: string;
   answer?: string[];
-  correctAnswer: number[]; // indices into answer[], matches schema's correctAnswers
+  correctAnswers: number[]; // indices into answer[], matches schema's correctAnswers
 };
 
 export type QuizFormState = {
@@ -48,8 +48,8 @@ function formFingerprint(form: QuizFormState): string {
     category: form.category,
     questions: form.questions.map((q) => {
       // Defensive normalization: old drafts in localStorage may still have
-      // correctAnswer as string | string[] | boolean from before the refactor.
-      const ca = q.correctAnswer;
+      // correctAnswers as string | string[] | boolean from before the refactor.
+      const ca = q.correctAnswers;
       const normalized_ca: number[] = Array.isArray(ca)
         ? (ca as unknown[]).map(Number)
         : typeof ca === 'boolean' || ca === undefined || ca === null
@@ -60,7 +60,7 @@ function formFingerprint(form: QuizFormState): string {
         type: q.type,
         question: q.question.trim().toLowerCase(),
         answer: q.answer?.map((a) => a.trim().toLowerCase()).sort(),
-        correctAnswer: normalized_ca.sort((a, b) => a - b).join('|'),
+        correctAnswers: normalized_ca.sort((a, b) => a - b).join('|'),
       };
     }),
   };

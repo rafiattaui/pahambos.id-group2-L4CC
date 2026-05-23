@@ -42,7 +42,7 @@ export default function RootLayout({
       >
         <AnimatedBackground />
         <main className="relative z-10">{children}</main>
-        <Toaster richColors position="top-center" />
+        <Toaster position="top-center" />
       </body>
     </html>
   );

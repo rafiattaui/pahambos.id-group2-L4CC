@@ -114,17 +114,20 @@ export default function SearchPage({ query: initialQuery = '' }: SearchQuery) {
     );
     setCurrentPage(1);
   };
+
+  const ITEMS_PER_PAGE = 12;
+
   useEffect(() => {
     getQuizzes({
       query,
       tags: selectedCategory.length > 0 ? selectedCategory : undefined,
       sortBy: sortOption === 'a-z' ? 'asc' : 'desc',
-      limit: 10,
+      limit: ITEMS_PER_PAGE, // Fetch more items to allow for client-side sorting and pagination
     })
       .then((res) => setQuizzes(res.data ?? res))
       .catch(() => {
         setQuizzes([]);
-        setError('Failed to fetch quizzes.');
+        setError('Failed to fetch quizzes. Sorry about the inconvenience!');
       })
       .finally(() => {
         setIsLoading(false);
@@ -150,7 +153,6 @@ export default function SearchPage({ query: initialQuery = '' }: SearchQuery) {
 
   const emptySearch = normalizedQuery !== '' && sortedItems.length === 0;
 
-  const ITEMS_PER_PAGE = 12;
   const [currentPage, setCurrentPage] = useState(1);
 
   const totalPages = Math.max(

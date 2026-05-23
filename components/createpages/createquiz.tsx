@@ -32,6 +32,8 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import DraftPopup, { QuizDraft } from '@/components/createpages/draftpopup';
 import NextImage from 'next/image';
 import Cropper, { type Area, type Point } from 'react-easy-crop';
+import { useRouter } from 'next/navigation';
+import { Spinner } from '../ui/spinner';
 import { toast } from 'sonner';
 
 // Maps to schema's 'SingleSelect' | 'MultiSelect'
@@ -39,10 +41,11 @@ type QuestionType = 'multiple-choice' | 'multiple-select-choice';
 
 type Question = {
   order: number; // used as the stable local key; DB assigns the real id
+  dbId?: string; // optional database ID, assigned after saving
   type: QuestionType;
   question: string;
   answer?: string[]; // the display text for each option (min 2, max 4)
-  correctAnswer: number[]; // indices into `answer` — matches schema's correctAnswers: number[]
+  correctAnswers: number[]; // indices into `answer` — matches schema's correctAnswers: number[]
   imageUrl?: string | null;
   rawImageUrl?: string | null; // for handling uncropped images before saving
 };
@@ -64,15 +67,13 @@ type validationErrors = {
 
 function validateForm(
   title: string,
-  description: string,
   category: string,
   questions: Question[]
 ): validationErrors {
   const validationErrors: validationErrors = {};
 
   if (!title.trim()) validationErrors.title = 'Quiz title is required';
-  if (!description.trim())
-    validationErrors.description = 'Quiz description is required';
+
   if (!category) validationErrors.category = 'Please select a category';
 
   if (questions.length < 2) {
@@ -92,13 +93,13 @@ function validateForm(
 
     if (q.type === 'multiple-choice') {
       // SingleSelect: exactly one correct answer index
-      if (q.correctAnswer.length !== 1)
+      if (q.correctAnswers.length !== 1)
         e.correctAnswer = 'Select exactly one correct answer';
     }
 
     if (q.type === 'multiple-select-choice') {
       // MultiSelect: at least one correct answer index
-      if (q.correctAnswer.length === 0)
+      if (q.correctAnswers.length === 0)
         e.correctAnswer = 'Select at least one correct answer';
     }
 
@@ -484,7 +485,7 @@ function QuestionEditor({
   validationErrors?: {
     question?: string;
     answer?: string;
-    correctAnswer?: string;
+    correctAnswers?: string;
   };
   onChange: (patch: Partial<Question>) => void;
   onRemove: () => void;
@@ -511,7 +512,7 @@ function QuestionEditor({
           onChange({
             type: v as QuestionType,
             answer: ['', '', '', ''],
-            correctAnswer: [],
+            correctAnswers: [],
           })
         }
       >
@@ -587,17 +588,17 @@ function QuestionEditor({
             <FieldLabel className="font-heading">Correct Answer</FieldLabel>
             <Select
               value={
-                question.correctAnswer.length === 1
-                  ? String(question.correctAnswer[0])
+                question.correctAnswers.length === 1
+                  ? String(question.correctAnswers[0])
                   : ''
               }
               onValueChange={(value) =>
-                onChange({ correctAnswer: [Number(value)] })
+                onChange({ correctAnswers: [Number(value)] })
               }
             >
               <SelectTrigger
                 className={
-                  validationErrors?.correctAnswer ? 'border-red-400' : ''
+                  validationErrors?.correctAnswers ? 'border-red-400' : ''
                 }
               >
                 <SelectValue placeholder="Select correct answer" />
@@ -610,9 +611,9 @@ function QuestionEditor({
                 ))}
               </SelectContent>
             </Select>
-            {validationErrors?.correctAnswer && (
+            {validationErrors?.correctAnswers && (
               <p className="mt-1 text-xs text-red-500">
-                {validationErrors.correctAnswer}
+                {validationErrors.correctAnswers}
               </p>
             )}
           </Field>
@@ -645,7 +646,7 @@ function QuestionEditor({
             <FieldLabel className="font-heading">Correct Answers</FieldLabel>
             <div className="flex flex-wrap items-center gap-2">
               {question.answer?.map((ans, i) => {
-                const selected = question.correctAnswer.includes(i);
+                const selected = question.correctAnswers.includes(i);
                 return (
                   <label
                     htmlFor={`correct-answer-${question.order}-${i}`}
@@ -657,9 +658,9 @@ function QuestionEditor({
                       checked={selected}
                       onCheckedChange={(checked) => {
                         const next = checked
-                          ? [...question.correctAnswer, i]
-                          : question.correctAnswer.filter((v) => v !== i);
-                        onChange({ correctAnswer: next });
+                          ? [...question.correctAnswers, i]
+                          : question.correctAnswers.filter((v) => v !== i);
+                        onChange({ correctAnswers: next });
                       }}
                     />
                     <span>{ans || `Answer ${i + 1}`}</span>
@@ -667,9 +668,9 @@ function QuestionEditor({
                 );
               })}
             </div>
-            {validationErrors?.correctAnswer && (
+            {validationErrors?.correctAnswers && (
               <p className="mt-1 text-xs text-red-500">
-                {validationErrors.correctAnswer}
+                {validationErrors.correctAnswers}
               </p>
             )}
           </Field>
@@ -679,16 +680,66 @@ function QuestionEditor({
   );
 }
 
-export default function CreateQuizForm() {
+export type InitialQuizData = {
+  quizId: string;
+  title: string;
+  description: string | null;
+  category: string;
+  imageUrl?: string | null;
+  questions: {
+    dbId: string;
+    order: number;
+    type: 'SingleSelect' | 'MultiSelect';
+    question: string;
+    answers: string[];
+    correctAnswers: number[];
+    imageUrl?: string | null;
+  }[];
+};
+
+function toLocalType(t: 'SingleSelect' | 'MultiSelect'): QuestionType {
+  return t === 'SingleSelect' ? 'multiple-choice' : 'multiple-select-choice';
+}
+
+export default function CreateQuizForm({
+  initialData,
+}: {
+  initialData?: InitialQuizData;
+}) {
+  const isEditMode = initialData !== undefined;
+
   const [newType, setNewType] = useState<QuestionType>('multiple-choice');
-  const [questions, setQuestions] = useState<Question[]>([]);
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [category, setCategory] = useState('');
+  const padAnswers = (answers: string[] | undefined, size = 4) => {
+    const base = answers ?? [];
+    return [...base, ...Array(size - base.length).fill('')].slice(0, size);
+  };
+  const [questions, setQuestions] = useState<Question[]>(
+    initialData
+      ? initialData.questions.map((q) => ({
+          dbId: q.dbId,
+          order: q.order,
+          type: toLocalType(q.type),
+          question: q.question,
+          answer: padAnswers(q.answers),
+          correctAnswers: q.correctAnswers,
+          imageUrl: q.imageUrl ?? null,
+          rawImageUrl: null,
+        }))
+      : []
+  );
+
+  const [title, setTitle] = useState(initialData?.title ?? '');
+  const [description, setDescription] = useState(
+    initialData?.description ?? ''
+  );
+  const [category, setCategory] = useState(initialData?.category ?? '');
   const [rawCoverUrl, setRawCoverUrl] = useState<string | null>(null);
-  const [coverUrl, setCoverUrl] = useState<string | null>(null);
+  const [coverUrl, setCoverUrl] = useState<string | null>(
+    initialData?.imageUrl ?? null
+  );
   const [draftOpen, setDraftOpen] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [validationErrors, setvalidationErrors] = useState<validationErrors>(
     {}
   );
@@ -701,6 +752,8 @@ export default function CreateQuizForm() {
     technology: 'Technology',
     general: 'General',
   };
+
+  const router = useRouter();
   const addButtonRef = useRef<HTMLButtonElement | null>(null);
 
   async function blobUrlToFile(url: string, filename: string): Promise<File> {
@@ -717,8 +770,10 @@ export default function CreateQuizForm() {
     window.scrollTo({ top: top - offset, behavior: 'smooth' });
   };
 
+  const initialQuestionCount = useRef(questions.length);
+
   useEffect(() => {
-    if (questions.length > 0) {
+    if (questions.length > initialQuestionCount.current) {
       scrollToAddButton(120);
     }
   }, [questions.length]);
@@ -735,9 +790,8 @@ export default function CreateQuizForm() {
   );
 
   const validationvalidationErrors = useMemo(
-    () =>
-      submitted ? validateForm(title, description, category, questions) : {},
-    [submitted, title, description, category, questions]
+    () => (submitted ? validateForm(title, category, questions) : {}),
+    [submitted, title, category, questions]
   );
 
   const addQuestion = () => {
@@ -748,7 +802,7 @@ export default function CreateQuizForm() {
         type: newType,
         question: '',
         answer: ['', '', '', ''],
-        correctAnswer: [],
+        correctAnswers: [],
       },
     ]);
   };
@@ -772,99 +826,252 @@ export default function CreateQuizForm() {
     setCoverUrl(draft.coverUrl ?? null);
     setRawCoverUrl(draft.coverUrl ?? null);
     setTitle(draft.title);
-    setDescription(draft.description);
+    setDescription(draft.description ?? '');
     setCategory(categoryMap[draft.category?.toLowerCase()] ?? draft.category);
-    setQuestions(draft.questions as Question[]);
+    setQuestions(
+      (draft.questions as Question[]).map((q) => ({
+        ...q,
+        answer: padAnswers(q.answer),
+      }))
+    );
   };
 
   const handleSubmit = async () => {
+    if (isSubmitting) return;
     setSubmitted(true);
-    const errs = validateForm(title, description, category, questions);
+    const errs = validateForm(title, category, questions);
     setvalidationErrors(errs);
 
     const hasvalidationErrors =
       errs.title ||
-      errs.description ||
       errs.category ||
       (errs.questions && Object.keys(errs.questions).length > 0);
-    if (hasvalidationErrors) return;
-
-    // Convert blob URLs to File objects for multipart upload
-
-    const coverFile = coverUrl
-      ? await blobUrlToFile(coverUrl, 'cover.jpg')
-      : null;
-    const questionFiles = await Promise.all(
-      questions.map(async (q) => ({
-        order: q.order,
-        file: q.imageUrl
-          ? await blobUrlToFile(q.imageUrl, `question-${q.order}.jpg`)
-          : null,
-      }))
-    );
-
-    const formData = new FormData();
-
-    // Payload shaped to match CreateQuizAndQuestionsSchema
-    const payload = {
-      quiz: {
-        title,
-        description,
-        category,
-        imageFile: coverFile, // uncomment when blobUrlToFile is wired up
-      },
-      questions: questions.map((q) => ({
-        order: q.order,
-        question: q.question,
-        // Map local types to schema enum values
-        type: q.type === 'multiple-choice' ? 'SingleSelect' : 'MultiSelect',
-        answers: (q.answer ?? []).filter((a) => a.trim()), // drop blank trailing slots
-        correctAnswers: q.correctAnswer, // already number[] indices
-        imageFile:
-          questionFiles.find((f) => f.order === q.order)?.file ?? undefined,
-      })),
-    };
-
-    formData.append('quiz.title', payload.quiz.title);
-    formData.append('quiz.description', payload.quiz.description);
-    formData.append('quiz.category', payload.quiz.category);
-    if (payload.quiz.imageFile) {
-      formData.append('quiz.imageFile', payload.quiz.imageFile);
+    if (hasvalidationErrors) {
+      console.log(errs);
+      return;
     }
 
-    payload.questions.forEach((q, i) => {
-      formData.append(`questions[${i}].order`, String(q.order));
-      formData.append(`questions[${i}].question`, q.question);
-      formData.append(`questions[${i}].type`, q.type);
+    setIsSubmitting(true);
+    try {
+      if (isEditMode && initialData) {
+        // -- EDIT MODE: handle updates to existing quiz
+        // 1. PATCH quiz metadata
+        const quizRes = await fetch(`/api/quiz/${initialData.quizId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            title,
+            description,
+            category,
+          }),
+        });
 
-      q.answers.forEach((ans, aIdx) => {
-        formData.append(`questions[${i}].answers[${aIdx}]`, ans);
-      });
+        if (!quizRes.ok) {
+          const d = await quizRes.json();
+          toast.error(d.message || 'Failed to update quiz');
+          return;
+        }
 
-      q.correctAnswers.forEach((idx, cIdx) => {
-        formData.append(`questions[${i}].correctAnswers[${cIdx}]`, String(idx));
-      });
+        // 2. If cover image changed (blob URL means new file), upload it
+        if (coverUrl && coverUrl.startsWith('blob:')) {
+          const coverFile = await blobUrlToFile(coverUrl, 'cover.jpg');
+          const coverForm = new FormData();
+          coverForm.append('imageFile', coverFile);
+          const coverRes = await fetch(`/api/quiz/${initialData.quizId}`, {
+            method: 'PUT',
+            credentials: 'include',
+            body: coverForm,
+          });
+          if (!coverRes.ok) {
+            const d = await coverRes.json();
+            toast.error(d.message || 'Failed to update cover image');
+            return;
+          }
+        }
 
-      if (q.imageFile) {
-        formData.append(`questions[${i}].imageFile`, q.imageFile);
+        // 3. Diff questions
+        const currentDbIds = new Set(
+          questions.filter((q) => q.dbId).map((q) => q.dbId)
+        );
+
+        const originalDbIds = new Set(initialData.questions.map((q) => q.dbId));
+
+        const toDelete = [...originalDbIds].filter(
+          (id) => !currentDbIds.has(id)
+        );
+        const toCreate = questions.filter((q) => !q.dbId);
+        const toUpdate = questions.filter((q) => !!q.dbId);
+
+        // DELETE removed questions
+        const deleteResults = await Promise.allSettled(
+          toDelete.map((id) =>
+            fetch(`/api/question/${id}`, {
+              method: 'DELETE',
+              credentials: 'include',
+            })
+          )
+        );
+
+        const deleteFailed = deleteResults.some((r) => r.status === 'rejected');
+        if (deleteFailed) toast.error('Some questions could not be deleted');
+
+        // PATCH modified questions
+        const patchResults = await Promise.allSettled(
+          toUpdate.map(async (q) => {
+            const body: Record<string, unknown> = {
+              question: q.question,
+              type:
+                q.type === 'multiple-choice' ? 'SingleSelect' : 'MultiSelect',
+              answers: (q.answer ?? []).filter((a) => a.trim()),
+              correctAnswers: q.correctAnswers,
+            };
+
+            return fetch(`/api/question/${q.dbId}`, {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              credentials: 'include',
+              body: JSON.stringify(body),
+            });
+          })
+        );
+        const patchFailed = patchResults.some((r) => r.status === 'rejected');
+        if (patchFailed) toast.error('Some questions could not be updated');
+
+        // POST new questions
+        const questionFiles = await Promise.all(
+          toCreate.map(async (q) => ({
+            order: q.order,
+            file: q.imageUrl?.startsWith('blob')
+              ? await blobUrlToFile(q.imageUrl, `question-${q.order}.jpg`)
+              : null,
+          }))
+        );
+
+        const postResults = await Promise.allSettled(
+          toCreate.map((q, i) => {
+            const qForm = new FormData();
+            qForm.append('quiz.id', initialData.quizId);
+            qForm.append('question.order', String(q.order));
+            qForm.append('question.question', q.question);
+            qForm.append(
+              'question.type',
+              q.type === 'multiple-choice' ? 'SingleSelect' : 'MultiSelect'
+            );
+            q.answer
+              ?.filter((a) => a.trim())
+              .forEach((ans) => {
+                qForm.append('question.answers', ans);
+              });
+
+            q.correctAnswers.forEach((idx) => {
+              qForm.append('question.correctAnswers', String(idx));
+            });
+            const file = questionFiles[i]?.file;
+            if (file) qForm.append('question.imageFile', file);
+            return fetch(`/api/question`, {
+              method: 'POST',
+              credentials: 'include',
+              body: qForm,
+            });
+          })
+        );
+        const postFailed = postResults.some((r) => r.status === 'rejected');
+        if (postFailed) toast.error('Some new questions could not be saved');
+
+        if (!deleteFailed && !patchFailed && !postFailed) {
+          toast.success('Quiz updated successfully!', {
+            className: 'bg-green-600',
+          });
+        }
+      } else {
+        // -- CREATE MODE: create new quiz and questions
+        // Convert blob URLs to File objects for multipart upload
+
+        const coverFile = coverUrl
+          ? await blobUrlToFile(coverUrl, 'cover.jpg')
+          : null;
+        const questionFiles = await Promise.all(
+          questions.map(async (q) => ({
+            order: q.order,
+            file: q.imageUrl
+              ? await blobUrlToFile(q.imageUrl, `question-${q.order}.jpg`)
+              : null,
+          }))
+        );
+
+        const formData = new FormData();
+
+        // Payload shaped to match CreateQuizAndQuestionsSchema
+        const payload = {
+          quiz: {
+            title,
+            description,
+            category,
+            imageFile: coverFile, // uncomment when blobUrlToFile is wired up
+          },
+          questions: questions.map((q) => ({
+            order: q.order,
+            question: q.question,
+            // Map local types to schema enum values
+            type: q.type === 'multiple-choice' ? 'SingleSelect' : 'MultiSelect',
+            answers: (q.answer ?? []).filter((a) => a.trim()), // drop blank trailing slots
+            correctAnswers: q.correctAnswers, // already number[] indices
+            imageFile:
+              questionFiles.find((f) => f.order === q.order)?.file ?? undefined,
+          })),
+        };
+
+        formData.append('quiz.title', payload.quiz.title);
+        if (payload.quiz.description?.trim()) {
+          formData.append('quiz.description', payload.quiz.description);
+        }
+        formData.append('quiz.category', payload.quiz.category);
+        if (payload.quiz.imageFile) {
+          formData.append('quiz.imageFile', payload.quiz.imageFile);
+        }
+
+        payload.questions.forEach((q, i) => {
+          formData.append(`questions[${i}].order`, String(q.order));
+          formData.append(`questions[${i}].question`, q.question);
+          formData.append(`questions[${i}].type`, q.type);
+
+          q.answers.forEach((ans, aIdx) => {
+            formData.append(`questions[${i}].answers[${aIdx}]`, ans);
+          });
+
+          q.correctAnswers.forEach((idx, cIdx) => {
+            formData.append(
+              `questions[${i}].correctAnswers[${cIdx}]`,
+              String(idx)
+            );
+          });
+
+          if (q.imageFile) {
+            formData.append(`questions[${i}].imageFile`, q.imageFile);
+          }
+        });
+
+        const res = await fetch('/api/quiz', {
+          method: 'POST',
+          body: formData,
+          credentials: 'include', // include cookies for auth
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+          // Handle server-side validation errors or other issues
+          toast.error(data.message || 'Failed to create quiz');
+        } else {
+          toast.success('Quiz created successfully!', {
+            className: 'bg-green-600',
+          });
+          router.push('dashboard/create');
+        }
       }
-    });
-
-    const res = await fetch('api/quiz', {
-      method: 'POST',
-      body: formData,
-      credentials: 'include', // include cookies for auth
-    });
-
-    const data = await res.json();
-    if (!res.ok) {
-      // Handle server-side validation errors or other issues
-      toast.error(data.message || 'Failed to create quiz');
-    } else {
-      toast.success('Quiz created successfully!');
+    } finally {
+      setIsSubmitting(false);
     }
-
-    // TODO: POST payload to your API endpoint
   };
 
   return (
@@ -873,7 +1080,7 @@ export default function CreateQuizForm() {
         <Button
           variant="ghost"
           className="absolute top-4 left-4 mb-4 flex items-center gap-2 rounded-4xl"
-          onClick={() => window.history.back()}
+          onClick={() => router.push('/dashboard/create')}
         >
           <ArrowLeft />
         </Button>
@@ -928,20 +1135,20 @@ export default function CreateQuizForm() {
 
             {/* Description */}
             <Field>
-              <FieldLabel className="font-heading">Quiz Description</FieldLabel>
+              <FieldLabel className="font-heading">
+                Quiz Description
+                <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-normal text-gray-400">
+                  optional
+                </span>
+              </FieldLabel>
+
               <Input
                 placeholder="Enter quiz description"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 className={validationErrors.description ? 'border-red-400' : ''}
               />
-              {validationErrors.description && (
-                <p className="mt-1 text-xs text-red-500">
-                  {validationErrors.description}
-                </p>
-              )}
             </Field>
-
             {/* Category */}
             <Field>
               <FieldLabel className="font-heading">Quiz Category</FieldLabel>
@@ -1025,17 +1232,29 @@ export default function CreateQuizForm() {
                 >
                   Add Question <Plus />
                 </Button>
-                <Button
-                  onClick={() => setDraftOpen(true)}
-                  className="bg-blue-500 hover:scale-105 hover:bg-blue-700"
-                >
-                  Save Draft <Save className="h-4 w-4" />
-                </Button>
+                {!isEditMode && (
+                  <Button
+                    onClick={() => setDraftOpen(true)}
+                    className="bg-blue-500 hover:scale-105 hover:bg-blue-700"
+                  >
+                    Save Draft <Save className="h-4 w-4" />
+                  </Button>
+                )}
                 <Button
                   className="bg-blue-500 hover:scale-105 hover:bg-blue-700"
                   onClick={handleSubmit}
+                  disabled={isSubmitting}
                 >
-                  Create Quiz
+                  {isSubmitting ? (
+                    <span className="flex items-center gap-2">
+                      <Spinner className="text-blue-300" />
+                      Processing...
+                    </span>
+                  ) : isEditMode ? (
+                    'Update Quiz'
+                  ) : (
+                    'Create Quiz'
+                  )}
                 </Button>
               </FieldGroup>
             </FieldSet>

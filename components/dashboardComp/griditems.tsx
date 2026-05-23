@@ -13,6 +13,7 @@ import {
 } from '../ui/card';
 import Image from 'next/image';
 import { CategoryTextColor } from './dashcarousel';
+import { Skeleton } from '../ui/skeleton';
 import { X } from 'lucide-react';
 
 export type Quiz = {
@@ -30,6 +31,30 @@ export type Quiz = {
     | 'Technology'
     | 'General';
 };
+
+export function QuizSkeleton() {
+  return (
+    <div className="w-full">
+      <div className="relative flex aspect-7/9 flex-col overflow-hidden rounded-2xl border-2 border-gray-300 shadow-xl sm:aspect-3/4">
+        <div className="relative p-0">
+          <Skeleton className="h-28 w-full rounded-none sm:h-40" />
+          <div className="absolute inset-x-1 bottom-3 flex items-center justify-between sm:inset-x-4">
+            <Skeleton className="h-6 w-16 rounded-md bg-white/60" />
+            <Skeleton className="h-6 w-12 rounded-md bg-white/60" />
+          </div>
+        </div>
+        <div className="px-2 sm:p-3">
+          <Skeleton className="mb-2 h-4 w-3/4" />
+          <Skeleton className="h-4 w-1/2" />
+          <div className="mt-2 hidden md:block">
+            <Skeleton className="mb-2 h-3 w-full" />
+            <Skeleton className="h-3 w-5/6" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function GridItems({ quiz }: { quiz: Quiz }) {
   const [selectedQuiz, setSelectedQuiz] = useState<Quiz | null>(null);

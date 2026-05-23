@@ -26,7 +26,7 @@ import {
 } from '../ui/input-group';
 import { SlidersVertical, Search } from 'lucide-react';
 import { Quiz, mockQuizzes } from '../dashboardComp/quizmockup';
-import GridItems from './griditems';
+import GridItems, { QuizSkeleton } from './griditems';
 import getQuizzes from '@/components/dashboardComp/quizzes';
 
 interface SearchQuery {
@@ -82,42 +82,57 @@ export default function SearchPage({ query: initialQuery = '' }: SearchQuery) {
   const searchParams = useSearchParams();
   const [query, setQuery] = useState(searchParams.get('q') ?? initialQuery);
   const normalizedQuery = query.trim().toLowerCase();
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [inputValue, setInputValue] = useState(query);
   const categories = [
     'All',
     ...new Set(mockQuizzes.map((quiz) => quiz.category)),
   ];
-  const [selectedCategory, setSelectedCategory] = useState<string>('All');
+  const [selectedCategory, setSelectedCategory] = useState<string[]>([]);
   const [sortOption, setSortOption] = useState<SortOption>('a-z');
 
+  const trimmedQuery = query.trim();
+  const queryTooShort = trimmedQuery.length > 0 && trimmedQuery.length < 3;
+
+  const displayQuizzes = queryTooShort ? [] : quizzes;
+  const displayLoading = queryTooShort ? false : isLoading;
+  const errorMessage = queryTooShort
+    ? 'Search query must be at least 3 characters long.'
+    : error;
+
+  const toggleCategory = (category: string) => {
+    if (category === 'All') {
+      setSelectedCategory([]);
+      return;
+    }
+
+    setSelectedCategory((prev) =>
+      prev.includes(category)
+        ? prev.filter((c) => c !== category)
+        : [...prev, category]
+    );
+    setCurrentPage(1);
+  };
   useEffect(() => {
     getQuizzes({
-      //query,
-      category: selectedCategory,
+      query,
+      tags: selectedCategory.length > 0 ? selectedCategory : undefined,
       sortBy: sortOption === 'a-z' ? 'asc' : 'desc',
       limit: 10,
     })
       .then((res) => setQuizzes(res.data ?? res))
       .catch(() => {
         setQuizzes([]);
+        setError('Failed to fetch quizzes.');
+      })
+      .finally(() => {
+        setIsLoading(false);
       });
-  }, [/*query,*/ selectedCategory, sortOption]);
-
-  const filteredItems = quizzes.filter((quiz) => {
-    const lowerCaseQuery = query.toLowerCase();
-    const matchesCategory =
-      selectedCategory === 'All' || quiz.category === selectedCategory;
-    const matchesSearch =
-      query === '' ||
-      quiz.title.toLowerCase().includes(lowerCaseQuery) ||
-      quiz.description.toLowerCase().includes(lowerCaseQuery) ||
-      quiz.category.toLowerCase().includes(lowerCaseQuery);
-    return matchesSearch && matchesCategory;
-  });
+  }, [query, selectedCategory, sortOption, queryTooShort]);
 
   const sortedItems = useMemo(() => {
-    const items = [...filteredItems];
+    const items = [...displayQuizzes];
 
     switch (sortOption) {
       case 'a-z':
@@ -131,9 +146,9 @@ export default function SearchPage({ query: initialQuery = '' }: SearchQuery) {
       default:
         return items;
     }
-  }, [filteredItems, sortOption]);
+  }, [displayQuizzes, sortOption]);
 
-  const emptySearch = normalizedQuery !== '' && filteredItems.length === 0;
+  const emptySearch = normalizedQuery !== '' && sortedItems.length === 0;
 
   const ITEMS_PER_PAGE = 12;
   const [currentPage, setCurrentPage] = useState(1);
@@ -173,22 +188,27 @@ export default function SearchPage({ query: initialQuery = '' }: SearchQuery) {
       </InputGroup>
       <div className="mb-4">
         <div className="flex flex-wrap gap-2">
-          {categories.map((category) => (
-            <button
-              key={category}
-              className={`font-body rounded-xl px-4 py-2 text-sm transition-colors ${
-                selectedCategory === category
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
-              onClick={() => {
-                setSelectedCategory(category);
-                setCurrentPage(1);
-              }}
-            >
-              {category}
-            </button>
-          ))}
+          {categories.map((category) => {
+            const isActive =
+              category === 'All'
+                ? selectedCategory.length === 0
+                : selectedCategory.includes(category);
+            return (
+              <button
+                key={category}
+                className={`font-body rounded-xl px-4 py-2 text-sm transition-colors ${
+                  isActive
+                    ? 'bg-blue-500 text-white'
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+                onClick={() => {
+                  toggleCategory(category);
+                }}
+              >
+                {category}
+              </button>
+            );
+          })}
         </div>
       </div>
       <div className="mb-4">
@@ -233,15 +253,25 @@ export default function SearchPage({ query: initialQuery = '' }: SearchQuery) {
         </div>
       )}
       <div className="mx-auto grid max-w-md grid-cols-2 gap-3 sm:max-w-none sm:grid-cols-3 md:grid-cols-4">
-        {paginatedItems.map((quiz: Quiz) => (
-          <GridItems key={quiz.id} quiz={quiz} />
-        ))}
+        {displayLoading
+          ? Array.from({ length: ITEMS_PER_PAGE }, (_, i) => (
+              <QuizSkeleton key={i} />
+            ))
+          : paginatedItems.map((quiz: Quiz) => (
+              <GridItems key={quiz.id} quiz={quiz} />
+            ))}
 
-        {emptySearch && (
+        {!error && !isLoading && emptySearch && (
           <div className="col-span-5 py-10 text-center">
             <h2 className="font-body-bold mb-4 text-2xl">
               No results found for &quot;{query}&quot;
             </h2>
+          </div>
+        )}
+
+        {errorMessage && (
+          <div className="col-span-5 mb-4 justify-center rounded-xl p-3 text-center text-2xl text-red-700">
+            {errorMessage}
           </div>
         )}
       </div>

@@ -73,12 +73,8 @@ export const POST = WithAuth(async (req, { user, params }) => {
 
     // store metrics blob safely as a Redis String (since it's a unified JSON string)
     const metrics = r_MetricsSchema.parse({});
-    pipe.set(
-      `metrics:${sessionId}`,
-      JSON.stringify(metrics),
-      'EX',
-      SESSION_TTL
-    );
+    pipe.hset(`metrics:${sessionId}`, metrics);
+    pipe.expire(`metrics:${sessionId}`, SESSION_TTL);
 
     await pipe.exec();
 

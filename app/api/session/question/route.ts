@@ -3,8 +3,15 @@ import { handleError } from '@/lib/api/errors';
 import { WithAuth } from '@/lib/api/auth-protected';
 import redis from '@/lib/redis';
 import { resolveSession } from '@/lib/quiz-session';
-import { prisma } from '@/lib/prisma';
 import { GetQuestionWithCache } from '@/lib/read-with-cache';
+import { z } from 'zod';
+import { r_MetricsSchema, r_AnswersSchema } from '@/lib/schemas/sessionschemas';
+
+const SubmitAnswerSchema = z.object({
+  answer: z
+    .array(z.number().nonnegative())
+    .min(1, 'At least one answer must be selected'),
+});
 
 export const GET = WithAuth(async (req, { user }) => {
   try {
@@ -24,6 +31,9 @@ export const GET = WithAuth(async (req, { user }) => {
       );
     }
 
+    // if session is waiting,
+    // transition it to active and set questionStartTime
+    // and return question
     if (session.status === 'waiting') {
       const questionStartTime = new Date().toISOString();
 
@@ -76,6 +86,105 @@ export const GET = WithAuth(async (req, { user }) => {
       success: true,
       question,
       questionStartTime: session.questionStartTime,
+    });
+  } catch (error) {
+    return handleError(error);
+  }
+});
+
+export const POST = WithAuth(async (req, { user }) => {
+  try {
+    const session = await resolveSession(user.id);
+
+    if (!session) {
+      return NextResponse.json(
+        { success: false, message: 'No active session found for the user.' },
+        { status: 404 }
+      );
+    }
+
+    if (session.status !== 'active') {
+      return NextResponse.json(
+        { success: false, message: 'Session is not active.' },
+        { status: 400 }
+      );
+    }
+
+    // parallel — neither depends on the other
+    const [questionData, rawMetrics, rawData] = await Promise.all([
+      GetQuestionWithCache(session.quizId, session.currentQuestionIndex),
+      redis.hgetall(`metrics:${session.id}`),
+      req.json(),
+    ]);
+
+    if (!questionData) {
+      return NextResponse.json(
+        { success: false, message: 'Question not found.' },
+        { status: 404 }
+      );
+    }
+
+    const elapsedSeconds =
+      (Date.now() - new Date(session.questionStartTime).getTime()) / 1000;
+    const timedOut = elapsedSeconds > 1;
+
+    const { answer } = SubmitAnswerSchema.parse(rawData);
+
+    const answeredCorrectly =
+      !timedOut &&
+      questionData.correctAnswers.every((a) => answer.includes(a)) &&
+      answer.every((a) => questionData.correctAnswers.includes(a));
+
+    const points = answeredCorrectly ? 250 : 0;
+
+    const metrics = r_MetricsSchema.parse({
+      totalResponseTime: parseInt(rawMetrics.totalResponseTime || '0', 10),
+      totalCorrect: parseInt(rawMetrics.totalCorrect || '0', 10),
+      totalIncorrect: parseInt(rawMetrics.totalIncorrect || '0', 10),
+      longestStreak: parseInt(rawMetrics.longestStreak || '0', 10),
+    });
+    const newStreak = answeredCorrectly ? metrics.currentStreak + 1 : 0;
+
+    const answerData = r_AnswersSchema.parse({
+      questionIndex: session.currentQuestionIndex,
+      choiceIndex: answer,
+      isCorrect: answeredCorrectly,
+      points,
+      responseMs: Math.round(elapsedSeconds * 1000),
+      timedOut,
+    });
+
+    const pipe = redis.pipeline();
+    pipe.hincrby(`session:${session.id}`, 'score', points);
+    pipe.hincrby(
+      `metrics:${session.id}`,
+      'totalResponseTime',
+      Math.round(elapsedSeconds * 1000)
+    );
+    pipe.hincrby(
+      `metrics:${session.id}`,
+      'totalCorrect',
+      answeredCorrectly ? 1 : 0
+    );
+    pipe.hincrby(
+      `metrics:${session.id}`,
+      'totalIncorrect',
+      answeredCorrectly ? 0 : 1
+    );
+    pipe.hset(`metrics:${session.id}`, 'currentStreak', newStreak);
+    pipe.hset(
+      `metrics:${session.id}`,
+      'longestStreak',
+      Math.max(newStreak, metrics.longestStreak)
+    );
+    pipe.rpush(`session:${session.id}:answers`, JSON.stringify(answerData));
+    await pipe.exec();
+
+    return NextResponse.json({
+      success: true,
+      isCorrect: answeredCorrectly,
+      isTimedOut: timedOut,
+      points,
     });
   } catch (error) {
     return handleError(error);

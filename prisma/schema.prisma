@@ -145,6 +145,7 @@ model QuizQuestion {
   order        Int
   type         QuestionType @default(SingleSelect)
   question     String
+  time         Int @default(30)
   imageUrl     String?
   imageKey     String?
   answers      String[]

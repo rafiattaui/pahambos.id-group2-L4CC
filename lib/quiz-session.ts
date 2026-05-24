@@ -8,9 +8,16 @@ export async function resolveSession(userId: string) {
     return null; // No active session for the user
   }
 
-  const sessionData = r_SessionSchema.parse(
-    await redis.hgetall(`session:${sessionId}`)
-  );
+  const redisData = await redis.hgetall(`session:${sessionId}`);
+  const sessionData = r_SessionSchema.parse({
+    quizId: redisData.quizId,
+    userId: redisData.userId,
+    status: redisData.status,
+    score: parseInt(redisData.score, 10),
+    currentQuestionIndex: parseInt(redisData.currentQuestionIndex, 10),
+    questionStartTime: redisData.questionStartTime,
+    totalQuestions: parseInt(redisData.totalQuestions, 10),
+  });
 
   if (!sessionData) {
     return null; // Session data not found or invalid

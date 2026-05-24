@@ -64,6 +64,7 @@ export const POST = WithAuth(async (req, { user, params }) => {
       userId: user.id,
       status: 'waiting',
       totalQuestions: questionCount,
+      questionStartTime: null,
     });
 
     // flattening object into string-only records for hset safety

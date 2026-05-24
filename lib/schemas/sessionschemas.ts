@@ -15,7 +15,7 @@ export const r_SessionSchema = z.object({
   status: z.enum(['waiting', 'active', 'finished']),
   score: z.number().default(0),
   currentQuestionIndex: z.number().default(0),
-  questionStartTime: z.coerce.date().optional(),
+  questionStartTime: z.coerce.date(),
   totalQuestions: z.number().default(0),
 });
 

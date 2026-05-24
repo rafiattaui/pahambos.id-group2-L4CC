@@ -14,6 +14,7 @@ import { authClient } from '@/lib/auth-client';
 import { useState } from 'react';
 import { AlertDestructive } from './alert';
 import { useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 
 export function SignupForm({
   className,
@@ -25,6 +26,10 @@ export function SignupForm({
     title: string;
     description: string;
   } | null>(null);
+  const searchParams = useSearchParams();
+  const next = searchParams.get('next');
+  const safeNext =
+    next && next.startsWith('/') && !next.startsWith('//') ? next : null;
 
   const onSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     setIsLoading(true);
@@ -63,7 +68,7 @@ export function SignupForm({
           },
           onSuccess: () => {
             setIsLoading(false);
-            router.push('/dashboard');
+            router.push(safeNext ?? '/dashboard');
             router.refresh();
           },
           onError: (ctx) => {

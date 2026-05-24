@@ -13,6 +13,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { AlertDestructive } from './alert';
 import { authClient } from '@/lib/auth-client';
+import { useSearchParams } from 'next/navigation';
 
 export function LoginForm({
   className,
@@ -24,6 +25,10 @@ export function LoginForm({
     title: string;
     description: string;
   } | null>(null);
+  const searchParams = useSearchParams();
+  const next = searchParams.get('next');
+  const safeNext =
+    next && next.startsWith('/') && !next.startsWith('//') ? next : null;
 
   const onSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -53,7 +58,7 @@ export function LoginForm({
           onSuccess: () => {
             setIsLoading(false);
             router.refresh();
-            router.push('/dashboard');
+            router.push(safeNext ?? '/dashboard');
           },
           onError: (ctx) => {
             // display the error message

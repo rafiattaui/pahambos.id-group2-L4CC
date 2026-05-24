@@ -14,7 +14,8 @@ import {
 } from '../ui/card';
 import { Skeleton } from '../ui/skeleton';
 import { Plus, Pencil, Trash2 } from 'lucide-react';
-import { useRef } from 'react';
+import { Separator } from '../ui/separator';
+import { Spinner } from '../ui/spinner';
 import Image from 'next/image';
 
 type CategoryTextColor = {
@@ -170,32 +171,43 @@ export default function CreatePage({ quiz }: { quiz: Quiz }) {
 
   return (
     <>
-      <h1 className="font-heading mt-4 text-5xl font-bold text-white">
-        Your Quizzes
-      </h1>
+      <div className="mt-6 rounded-2xl bg-white p-4">
+        <div className="w-full justify-center">
+          <div className="m-4 mx-auto max-w-[calc(50%-2rem)] sm:max-w-[calc(33.333%-2rem)] md:max-w-[calc(25%-2rem)]">
+            <Card
+              onClick={() => {
+                router.push('/create-quiz');
+              }}
+              className="relative flex aspect-4/9 cursor-pointer flex-col overflow-hidden rounded-2xl border-2 border-gray-300 shadow-xl transition-colors hover:border-blue-500 hover:text-blue-500 sm:aspect-3/4"
+              aria-label="Create New Quiz"
+            >
+              <CardContent className="flex flex-1 items-center justify-center">
+                <Plus className="h-20 w-20" />
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+        <Separator />
 
-      <div className="mt-4 grid h-full w-full grid-cols-2 rounded-2xl bg-white sm:grid-cols-3 md:grid-cols-4">
-        <Card
-          onClick={() => {
-            router.push('/create-quiz');
-          }}
-          className="m-4 cursor-pointer justify-center transition-transform duration-200 hover:scale-105 hover:text-blue-500"
-        >
-          <CardContent className="flex h-28 items-center justify-center sm:h-40">
-            <Plus className="h-20 w-20" />
-          </CardContent>
-        </Card>
-        {isLoading
-          ? Array.from({ length: skeletonCount }).map((_, index) => (
-              <div key={`skeleton-${index}`} className="m-4">
-                <CreatePageItemSkeleton />
-              </div>
-            ))
-          : quizzes.map((quiz) => (
+        <h1 className="font-heading m-4 text-5xl font-bold">
+          <span className="text-black/90 text-shadow-lg text-shadow-slate-300">
+            Your Quizzes
+          </span>
+        </h1>
+
+        <div className="rounded-2x mt-4 grid h-full w-full grid-cols-2 bg-white sm:grid-cols-3 md:grid-cols-4">
+          {isLoading ? (
+            <div className="col-span-full flex items-center justify-center py-16">
+              <Spinner className="h-16 w-16 text-blue-500" />
+            </div>
+          ) : (
+            quizzes.map((quiz) => (
               <div key={quiz.id} className="m-4">
                 <CreatePageItem quiz={quiz} />
               </div>
-            ))}
+            ))
+          )}
+        </div>
       </div>
     </>
   );

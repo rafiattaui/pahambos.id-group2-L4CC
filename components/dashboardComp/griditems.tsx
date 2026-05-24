@@ -17,7 +17,7 @@ import { Skeleton } from '../ui/skeleton';
 import { X } from 'lucide-react';
 
 export type Quiz = {
-  id: number;
+  id: string;
   createdBy: string;
   title: string;
   description: string;

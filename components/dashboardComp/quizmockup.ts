@@ -1,5 +1,5 @@
 export type Quiz = {
-  id: number;
+  id: string;
   createdBy: string;
   title: string;
   description: string;
@@ -16,7 +16,7 @@ export type Quiz = {
 
 export const mockQuizzes: Quiz[] = [
   {
-    id: 1,
+    id: '1',
     createdBy: 'John Doe',
     title: 'Algebra Basics Challenge',
     description:
@@ -26,7 +26,7 @@ export const mockQuizzes: Quiz[] = [
   },
 
   {
-    id: 2,
+    id: '2',
     createdBy: 'Liam Carter',
     title: 'Geometry and Angles',
     description:
@@ -36,7 +36,7 @@ export const mockQuizzes: Quiz[] = [
   },
 
   {
-    id: 3,
+    id: '3',
     createdBy: 'Maya Lee',
     title: 'Fractions and Decimals',
     description:
@@ -46,7 +46,7 @@ export const mockQuizzes: Quiz[] = [
   },
 
   {
-    id: 4,
+    id: '4',
     createdBy: 'Noah Patel',
     title: 'Trigonometry Sprint',
     description: 'Challenge yourself with sine, cosine, and tangent questions.',
@@ -55,7 +55,7 @@ export const mockQuizzes: Quiz[] = [
   },
 
   {
-    id: 5,
+    id: '5',
     createdBy: 'Olivia Chen',
     title: 'Statistics Essentials',
     description: 'Explore mean, median, mode, and basic data interpretation.',
@@ -64,7 +64,7 @@ export const mockQuizzes: Quiz[] = [
   },
 
   {
-    id: 6,
+    id: '6',
     createdBy: 'Ethan Kim',
     title: 'Calculus Quick Check',
     description: 'Review limits, derivatives, and introductory calculus ideas.',
@@ -73,7 +73,7 @@ export const mockQuizzes: Quiz[] = [
   },
 
   {
-    id: 7,
+    id: '7',
     createdBy: 'Jane Smith',
     title: 'Introduction to Physics',
     description: 'Learn the basics of motion, force, and energy in physics.',
@@ -82,7 +82,7 @@ export const mockQuizzes: Quiz[] = [
   },
 
   {
-    id: 8,
+    id: '8',
     createdBy: 'Sophia Nguyen',
     title: 'Chemistry Elements Quiz',
     description: 'Identify key chemical elements and their common properties.',
@@ -91,7 +91,7 @@ export const mockQuizzes: Quiz[] = [
   },
 
   {
-    id: 9,
+    id: '9',
     createdBy: 'Lucas Wright',
     title: 'Biology Cell Explorer',
     description:
@@ -101,7 +101,7 @@ export const mockQuizzes: Quiz[] = [
   },
 
   {
-    id: 10,
+    id: '10',
     createdBy: 'Emma Rivera',
     title: 'Forces and Motion',
     description: 'Understand how forces affect movement and acceleration.',
@@ -110,7 +110,7 @@ export const mockQuizzes: Quiz[] = [
   },
 
   {
-    id: 11,
+    id: '11',
     createdBy: 'Henry Adams',
     title: 'Earth Science Review',
     description: 'Cover rocks, weather, and processes shaping Earth.',
@@ -119,7 +119,7 @@ export const mockQuizzes: Quiz[] = [
   },
 
   {
-    id: 12,
+    id: '12',
     createdBy: 'Ava Thompson',
     title: 'Astronomy Basics',
     description: 'Test your knowledge of planets, stars, and space facts.',
@@ -128,7 +128,7 @@ export const mockQuizzes: Quiz[] = [
   },
 
   {
-    id: 13,
+    id: '13',
     createdBy: 'Alice Johnson',
     title: 'World War II Timeline',
     description: 'Follow major events and turning points of World War II.',
@@ -137,7 +137,7 @@ export const mockQuizzes: Quiz[] = [
   },
 
   {
-    id: 14,
+    id: '14',
     createdBy: 'James Foster',
     title: 'Ancient Civilizations Review',
     description: 'Explore cultures and achievements of early civilizations.',
@@ -146,7 +146,7 @@ export const mockQuizzes: Quiz[] = [
   },
 
   {
-    id: 15,
+    id: '15',
     createdBy: 'Chloe Martin',
     title: 'Independence Movements',
     description: 'Learn about global independence struggles and outcomes.',
@@ -155,7 +155,7 @@ export const mockQuizzes: Quiz[] = [
   },
 
   {
-    id: 16,
+    id: '16',
     createdBy: 'Daniel Scott',
     title: 'Medieval Europe Quiz',
     description: 'Review feudalism, kingdoms, and medieval life in Europe.',
@@ -164,7 +164,7 @@ export const mockQuizzes: Quiz[] = [
   },
 
   {
-    id: 17,
+    id: '17',
     createdBy: 'Grace Kim',
     title: 'Asian Dynasties Spotlight',
     description: 'Test key facts about influential Asian dynasties.',
@@ -173,7 +173,7 @@ export const mockQuizzes: Quiz[] = [
   },
 
   {
-    id: 18,
+    id: '18',
     createdBy: 'Benjamin Ross',
     title: 'Colonial Era Facts',
     description: 'Understand major events and impacts of colonial periods.',
@@ -182,7 +182,7 @@ export const mockQuizzes: Quiz[] = [
   },
 
   {
-    id: 19,
+    id: '19',
     createdBy: 'Bob Brown',
     title: 'Capitals and Continents',
     description: 'Match countries with capitals and identify continents.',
@@ -191,7 +191,7 @@ export const mockQuizzes: Quiz[] = [
   },
 
   {
-    id: 20,
+    id: '20',
     createdBy: 'Mia Rodriguez',
     title: 'Rivers and Mountains',
     description: 'Recognize major rivers and mountain ranges worldwide.',
@@ -200,7 +200,7 @@ export const mockQuizzes: Quiz[] = [
   },
 
   {
-    id: 21,
+    id: '21',
     createdBy: 'Nora Bell',
     title: 'Climate Zones Challenge',
     description: 'Identify climate zones and their unique characteristics.',
@@ -209,7 +209,7 @@ export const mockQuizzes: Quiz[] = [
   },
 
   {
-    id: 22,
+    id: '22',
     createdBy: 'Caleb Moore',
     title: 'World Maps Mastery',
     description: 'Sharpen map reading skills and global location knowledge.',
@@ -218,7 +218,7 @@ export const mockQuizzes: Quiz[] = [
   },
 
   {
-    id: 23,
+    id: '23',
     createdBy: 'Zoe Turner',
     title: 'Oceans and Seas',
     description: 'Test what you know about oceans, seas, and marine regions.',
@@ -227,7 +227,7 @@ export const mockQuizzes: Quiz[] = [
   },
 
   {
-    id: 24,
+    id: '24',
     createdBy: 'Isaac Hall',
     title: 'Countries and Flags',
     description: 'Identify flags and connect them to the right countries.',
@@ -236,7 +236,7 @@ export const mockQuizzes: Quiz[] = [
   },
 
   {
-    id: 25,
+    id: '25',
     createdBy: 'Charlie Davis',
     title: 'Modern Tech Essentials',
     description: 'Cover important concepts in modern consumer technology.',
@@ -245,7 +245,7 @@ export const mockQuizzes: Quiz[] = [
   },
 
   {
-    id: 26,
+    id: '26',
     createdBy: 'Levi Cooper',
     title: 'Cybersecurity Fundamentals',
     description: 'Learn key ideas for online safety and data protection.',
@@ -254,7 +254,7 @@ export const mockQuizzes: Quiz[] = [
   },
 
   {
-    id: 27,
+    id: '27',
     createdBy: 'Hannah Brooks',
     title: 'AI and Machine Learning',
     description: 'Understand basic AI terms and machine learning concepts.',
@@ -263,7 +263,7 @@ export const mockQuizzes: Quiz[] = [
   },
 
   {
-    id: 28,
+    id: '28',
     createdBy: 'Owen Price',
     title: 'Web Development Basics',
     description: 'Test fundamentals of HTML, CSS, and web development flow.',
@@ -272,7 +272,7 @@ export const mockQuizzes: Quiz[] = [
   },
 
   {
-    id: 29,
+    id: '29',
     createdBy: 'Ella Simmons',
     title: 'Computer Hardware Check',
     description: 'Review core computer parts and how they work together.',
@@ -281,7 +281,7 @@ export const mockQuizzes: Quiz[] = [
   },
 
   {
-    id: 30,
+    id: '30',
     createdBy: 'Wyatt Reed',
     title: 'Networking Essentials',
     description:
@@ -291,7 +291,7 @@ export const mockQuizzes: Quiz[] = [
   },
 
   {
-    id: 31,
+    id: '31',
     createdBy: 'Eve Wilson',
     title: 'Daily Trivia Mix',
     description: 'A mixed quiz with random fun facts from many topics.',
@@ -300,7 +300,7 @@ export const mockQuizzes: Quiz[] = [
   },
 
   {
-    id: 32,
+    id: '32',
     createdBy: 'Ava Thompson',
     title: 'Fun Facts Lightning Round',
     description:
@@ -310,7 +310,7 @@ export const mockQuizzes: Quiz[] = [
   },
 
   {
-    id: 33,
+    id: '33',
     createdBy: 'Mason Gray',
     title: 'Pop Culture Quickfire',
     description:
@@ -320,7 +320,7 @@ export const mockQuizzes: Quiz[] = [
   },
 
   {
-    id: 34,
+    id: '34',
     createdBy: 'Lily Ward',
     title: 'Everyday Knowledge Test',
     description: 'Check your practical knowledge about everyday topics.',
@@ -329,7 +329,7 @@ export const mockQuizzes: Quiz[] = [
   },
 
   {
-    id: 35,
+    id: '35',
     createdBy: 'Jack Collins',
     title: 'Mixed Trivia Challenge',
     description: 'A balanced set of random questions across multiple themes.',
@@ -338,7 +338,7 @@ export const mockQuizzes: Quiz[] = [
   },
 
   {
-    id: 36,
+    id: '36',
     createdBy: 'Aria Bennett',
     title: 'Brain Teasers and Facts',
     description: 'Solve fun brain teasers paired with interesting trivia.',

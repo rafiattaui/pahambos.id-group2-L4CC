@@ -662,6 +662,7 @@ function QuestionEditor({
                           : question.correctAnswers.filter((v) => v !== i);
                         onChange({ correctAnswers: next });
                       }}
+                      className="data-[state=checked]:border-blue-500 data-[state=checked]:bg-blue-500"
                     />
                     <span>{ans || `Answer ${i + 1}`}</span>
                   </label>

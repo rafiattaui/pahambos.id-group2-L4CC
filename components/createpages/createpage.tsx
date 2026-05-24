@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Quiz } from '../dashboardComp/quizmockup';
-import getQuizzes from '../dashboardComp/quizzes';
 import { Button } from '../ui/button';
 import {
   Card,
@@ -23,9 +22,32 @@ type CategoryTextColor = {
   textColor: string;
 };
 
-function getCreatorQuizzes() {}
+async function getCurrentUserId() {
+  const response = await fetch('/api/user', { credentials: 'include' });
+  if (!response.ok) return null;
+  const data = await response.json();
+  return (data.id as string) ?? null;
+}
+async function getCreatorQuizzes(userId: string): Promise<Quiz[]> {
+  // This function should ideally fetch quizzes created by the logged-in user.
+  const response = await fetch(`/api/quiz/user/${userId}`, {
+    credentials: 'include',
+  });
 
-function CreatePageItem({ quiz }: { quiz: Quiz }) {
+  if (!response.ok) {
+    throw new Error(`Error fetching quizzes: ${response.statusText}`);
+  }
+  const data = await response.json();
+  return data.quizzes as Quiz[];
+}
+
+function CreatePageItem({
+  quiz,
+  onDeleteClick,
+}: {
+  quiz: Quiz;
+  onDeleteClick: (quiz: Quiz) => void;
+}) {
   const router = useRouter();
 
   const categoriesText: CategoryTextColor[] = [
@@ -40,17 +62,22 @@ function CreatePageItem({ quiz }: { quiz: Quiz }) {
 
   return (
     <div className="w-full">
-      <Card className="relative flex aspect-4/9 flex-col overflow-hidden rounded-2xl border-2 border-gray-300 shadow-xl sm:aspect-3/4">
+      <Card className="relative flex aspect-square flex-col overflow-hidden rounded-2xl border-2 border-gray-300 shadow-xl sm:aspect-3/4">
         <div className="absolute top-2 right-2 z-10 flex flex-row gap-2">
           <Button
             variant="outline"
             onClick={() => router.push(`/create-quiz/${quiz.id}/edit`)}
             aria-label="Edit Quiz"
+            className="hover:bg-white hover:text-blue-500"
           >
             <Pencil className="h-4 w-4" />
           </Button>
-          <Button variant="outline" aria-label="Delete Quiz">
-            {' '}
+          <Button
+            variant="outline"
+            onClick={() => onDeleteClick(quiz)}
+            aria-label="Delete Quiz"
+            className="hover:bg-white hover:text-red-500"
+          >
             <Trash2 className="h-4 w-4" />{' '}
           </Button>
         </div>
@@ -119,66 +146,135 @@ function CreatePageItemSkeleton() {
   );
 }
 
+function DeleteConfirmDialog({
+  quiz,
+  onConfirm,
+  onCancel,
+  deleting,
+}: {
+  quiz: Quiz;
+  onConfirm: () => void;
+  onCancel: () => void;
+  deleting: boolean;
+}) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+      <div className="flex w-full max-w-sm flex-col gap-5 rounded-2xl bg-white p-6 shadow-2xl ring-1 ring-black/5">
+        {/* Icon + heading */}
+        <div className="flex flex-col items-center gap-3 text-center">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
+            <Trash2 className="h-5 w-5 text-red-500" />
+          </div>
+          <div>
+            <h3 className="font-heading text-base font-semibold text-gray-900">
+              Delete quiz?
+            </h3>
+            <p className="mt-1 text-sm text-gray-500">
+              <span className="font-medium text-gray-700">
+                &ldquo;{quiz.title}&rdquo;
+              </span>{' '}
+              will be permanently deleted. This cannot be undone.
+            </p>
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div className="flex gap-2">
+          <button
+            onClick={onCancel}
+            disabled={deleting}
+            className="flex-1 rounded-xl border border-gray-200 bg-white py-2.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50 disabled:opacity-50"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={deleting}
+            className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-red-500 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-red-600 active:scale-[0.98] disabled:opacity-60"
+          >
+            {deleting ? (
+              <>
+                <Spinner className="h-4 w-4" /> Deleting…
+              </>
+            ) : (
+              'Yes, delete'
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+type FetchStatus = 'idle' | 'loading' | 'error' | 'success';
+
 export default function CreatePage({ quiz }: { quiz: Quiz }) {
   const router = useRouter();
-  const [quizzes, setQuizzes] = useState<Quiz[] | null>(null);
-  const [prevCount, setPrevCount] = useState(6);
+  const [quizzes, setQuizzes] = useState<Quiz[]>([]);
+  const [status, setStatus] = useState<FetchStatus>('idle');
+  const [pendingDelete, setPendingDelete] = useState<Quiz | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
-  const isLoading = quizzes === null;
-  const skeletonCount = isLoading ? prevCount : quizzes.length;
+  async function handleDelete() {
+    if (!pendingDelete) return;
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/quiz/${pendingDelete.id}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+      if (!res.ok) throw new Error(`Failed to delete quiz: ${res.statusText}`);
+      setQuizzes((prev) => prev.filter((q) => q.id !== pendingDelete.id));
+      setPendingDelete(null);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setDeleting(false);
+    }
+  }
 
   useEffect(() => {
     let cancelled = false;
-    getQuizzes({})
-      .then((res) => {
-        const nextQuizzes = res.data ?? res;
-        setQuizzes(nextQuizzes);
-        setPrevCount(nextQuizzes.length);
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setQuizzes([]);
-        }
-      });
+
+    async function load() {
+      setStatus('loading');
+
+      const userId = await getCurrentUserId();
+      if (cancelled) return;
+
+      if (!userId) {
+        setStatus('error');
+        return;
+      }
+
+      const data = await getCreatorQuizzes(userId);
+      if (cancelled) return;
+
+      setQuizzes(data);
+      setStatus('success');
+    }
+
+    load().catch(() => {
+      if (!cancelled) setStatus('error');
+    });
 
     return () => {
       cancelled = true;
     };
-  }, [quiz]);
+  }, []);
 
-  const mockQuizzes: Quiz[] = [
-    {
-      id: 101,
-      createdBy: 'Demo Creator',
-      title: 'Web Development Fundamentals',
-      description:
-        'Test your knowledge of HTML, CSS, and JavaScript basics with quick questions.',
-      imageUrl: '/placeholderquiz.png',
-      numQuestions: 10,
-      category: 'Technology',
-    },
-    {
-      id: 102,
-      createdBy: 'Demo Creator',
-      title: 'World Capitals Quick Quiz',
-      description:
-        'Identify capitals from around the world in a fast-paced geography challenge.',
-      imageUrl: '/placeholderquiz.png',
-      numQuestions: 12,
-      category: 'Geography',
-    },
-  ];
+  const SKELETON_COUNT = 4; // Number of skeleton items to show while loading
 
   return (
     <>
       <div className="mt-6 rounded-2xl bg-white p-4">
         <div className="w-full justify-center">
-          <div className="m-4 mx-auto max-w-[calc(50%-2rem)] sm:max-w-[calc(33.333%-2rem)] md:max-w-[calc(25%-2rem)]">
+          <div className="m-4 mx-auto max-w-[calc(100%-2rem)] sm:max-w-[calc(33.333%-2rem)] md:max-w-[calc(25%-2rem)]">
             <Card
               onClick={() => {
                 router.push('/create-quiz');
               }}
-              className="relative flex aspect-4/9 cursor-pointer flex-col overflow-hidden rounded-2xl border-2 border-gray-300 shadow-xl transition-colors hover:border-blue-500 hover:text-blue-500 sm:aspect-3/4"
+              className="relative flex aspect-square cursor-pointer flex-col overflow-hidden rounded-2xl border-2 border-gray-300 shadow-xl transition-colors hover:border-blue-500 hover:text-blue-500 sm:aspect-3/4"
               aria-label="Create New Quiz"
             >
               <CardContent className="flex flex-1 items-center justify-center">
@@ -195,20 +291,47 @@ export default function CreatePage({ quiz }: { quiz: Quiz }) {
           </span>
         </h1>
 
-        <div className="rounded-2x mt-4 grid h-full w-full grid-cols-2 bg-white sm:grid-cols-3 md:grid-cols-4">
-          {isLoading ? (
-            <div className="col-span-full flex items-center justify-center py-16">
-              <Spinner className="h-16 w-16 text-blue-500" />
+        <div className="rounded-2x mt-4 grid h-full w-full grid-cols-1 bg-white sm:grid-cols-3 md:grid-cols-4">
+          {status === 'loading' &&
+            Array.from({ length: SKELETON_COUNT }, (_, i) => (
+              <div key={i} className="m-4">
+                <CreatePageItemSkeleton />
+              </div>
+            ))}
+
+          {status === 'error' && (
+            <div className="col-span-full py-16 text-center text-sm text-red-500">
+              Something went wrong loading your quizzes. Please refresh.
             </div>
-          ) : (
+          )}
+
+          {status === 'success' && quizzes.length === 0 && (
+            <div className="col-span-full flex flex-col items-center gap-2 py-16 text-center">
+              <p className="text-base font-medium text-gray-500">
+                No quizzes yet — your creations will appear here.
+              </p>
+              <p className="text-sm text-gray-400">
+                Hit the <span className="font-medium text-blue-500">+</span>{' '}
+                above to make your first one.
+              </p>
+            </div>
+          )}
+          {status === 'success' &&
             quizzes.map((quiz) => (
               <div key={quiz.id} className="m-4">
-                <CreatePageItem quiz={quiz} />
+                <CreatePageItem quiz={quiz} onDeleteClick={setPendingDelete} />
               </div>
-            ))
-          )}
+            ))}
         </div>
       </div>
+      {pendingDelete && (
+        <DeleteConfirmDialog
+          quiz={pendingDelete}
+          deleting={deleting}
+          onConfirm={handleDelete}
+          onCancel={() => !deleting && setPendingDelete(null)}
+        />
+      )}
     </>
   );
 }

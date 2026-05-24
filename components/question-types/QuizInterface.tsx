@@ -387,35 +387,34 @@ export default function QuizInterface({
       {/* Pause button */}
       <button
         onClick={() => setIsPaused((p) => !p)}
-        className="absolute top-4 right-4 z-20 flex h-10 w-10 items-center justify-center rounded-full border border-white/40 bg-white/30 text-lg backdrop-blur-sm transition hover:bg-white/50 active:scale-95"
+        className="absolute top-4 right-4 z-20 flex h-10 w-10 items-center justify-center rounded-sm text-lg backdrop-blur-sm transition hover:bg-white/50 active:scale-95"
         title="Pause"
       >
         ⏸
       </button>
 
-      {/* Timer */}
-      <div className="mt-6 mb-2 flex flex-col items-center sm:mb-6">
+      {/* Timer and question counter*/}
+      <div className="mt-6 mb-2 flex items-center justify-center gap-4 sm:mb-6">
+        {/* Timer */}
         <div className="flex items-center gap-2">
-          <span className="font-body rounded-full border border-black/20 bg-blue-300 px-8 py-3 text-sm text-black backdrop-blur-md sm:text-lg md:text-2xl">
+          <span className="font-body rounded-full border border-black/20 bg-white/70 px-5 py-1 text-sm text-black backdrop-blur-md sm:text-lg">
             00:{safeTimeLeft < 10 ? `0${safeTimeLeft}` : safeTimeLeft}
+          </span>
+
+          {/* Question counter */}
+          <span className="font-body rounded-full border border-black/20 bg-white/20 px-5 py-1 text-sm text-black sm:text-lg">
+            {currentIndex + 1} / {questions.length}
           </span>
         </div>
       </div>
 
-      {/* Question counter */}
-      <div className="mt-4 flex justify-center">
-        <span className="font-body rounded-full border border-black/20 bg-blue-300 px-4 py-1 text-sm text-black">
-          {currentIndex + 1} / {questions.length}
-        </span>
-      </div>
-
       {/* Question card */}
 
-      <div className="mx-auto mt-8 mb-6 w-full max-w-2xl rounded-3xl border border-white/30 bg-blue-300 p-5 text-black shadow-2xl sm:p-12">
+      <div className="mx-auto mt-8 mb-6 w-full max-w-2xl rounded-3xl border border-white/30 bg-white/20 p-5 text-black shadow-2xl sm:p-12">
         {/* Check for multi select */}
         {isMultiSelect && (
-          <p className="mb-2 text-center">
-            <span className="font-body rounded-full bg-blue-600 px-3 py-1 text-xs tracking-wider text-white sm:px-4 sm:text-sm">
+          <p className="text-center">
+            <span className="font-body mb-5 rounded-full bg-white/70 px-3 py-1 text-xs tracking-wider text-black sm:px-4 sm:text-sm">
               Select all that apply
             </span>
           </p>
@@ -423,15 +422,16 @@ export default function QuizInterface({
         <h2 className="font-body text-center text-sm leading-tight font-bold sm:text-xl">
           {currentQuestion.question}
         </h2>
-        {/* Results after submission */}
-        {isSubmitted && (
-          <p className="text-md font-body mt-6 text-center">
-            {selectedIndices.length === 0
-              ? "⏱️ Time's up!"
-              : isCorrectSubmit
-                ? '✅ Correct!'
-                : '❌ Wrong!'}
-          </p>
+
+        {/* Optional question image */}
+        {currentQuestion.imageUrl && (
+          <div className="mt-4 flex justify-center">
+            <img
+              src={currentQuestion.imageUrl}
+              alt=""
+              className="max-h-30 w-full max-w-lg rounded-2xl object-contain shadow-xl"
+            />
+          </div>
         )}
       </div>
 
@@ -447,7 +447,7 @@ export default function QuizInterface({
               className="h-12 rounded-2xl border-black/30 px-4 py-2 text-sm font-bold text-white transition-all duration-200 active:scale-95 disabled:cursor-not-allowed sm:h-40 sm:py-8 sm:text-xl"
               style={{
                 ...getAnswerStyle(index),
-                backgroundColor: index === 0 ? '#00C853' : '#FF3B3B',
+                backgroundColor: index === 0 ? '#5FAD56' : '#FF3B3B',
                 ...(isSubmitted ? {} : {}),
               }}
             >
@@ -467,7 +467,7 @@ export default function QuizInterface({
                   key={index}
                   disabled={isSubmitted}
                   onClick={() => handleMultiToggle(index)}
-                  className="relative h-12 rounded-2xl px-4 py-2 text-sm font-semibold text-white transition-all duration-200 active:scale-95 disabled:cursor-not-allowed sm:h-40 sm:py-8 sm:text-xl"
+                  className="relative h-12 rounded-2xl px-4 py-2 text-sm font-semibold text-white transition-all duration-200 active:scale-95 disabled:cursor-not-allowed sm:h-35 sm:py-8 sm:text-xl"
                   style={style}
                 >
                   {/* Checkbox indicator */}
@@ -486,17 +486,19 @@ export default function QuizInterface({
               );
             })}
           </div>
-          <button
-            disabled={isSubmitted || selectedIndices.length === 0}
-            onClick={handleMultiSubmit}
-            className="text-md w-full rounded-2xl bg-blue-600 py-2 font-bold text-white transition hover:bg-blue-700 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 sm:py-4 sm:text-xl"
-          >
-            {isSubmitted ? 'Submitted!' : 'Confirm Selection'}
-          </button>
+          <div className="mx-auto mt-5 w-full max-w-xs">
+            <button
+              disabled={isSubmitted || selectedIndices.length === 0}
+              onClick={handleMultiSubmit}
+              className="text-md w-full max-w-xs items-center justify-center rounded-2xl border border-white bg-white py-2 font-bold text-black transition hover:bg-black hover:text-white! active:scale-95 disabled:cursor-not-allowed sm:py-4 sm:text-xl"
+            >
+              {isSubmitted ? 'Submitted!' : 'Confirm Selection'}
+            </button>
+          </div>
         </>
       ) : (
         // Multiple-choice questions
-        <div className="font-body mt-20 grid grid-cols-1 gap-5 sm:mt-30 sm:grid-cols-2 md:grid-cols-4">
+        <div className="font-body mt-20 grid grid-cols-1 gap-5 sm:mt-20 sm:grid-cols-2 md:grid-cols-4">
           {currentQuestion.answers.map((answerText, index) => (
             <button
               key={index}

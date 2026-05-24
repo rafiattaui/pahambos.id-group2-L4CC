@@ -48,6 +48,7 @@ export const DELETE = WithAuth(async (req, { user, params }) => {
     pipe.del(`player_session:${user.id}`);
     pipe.del(`metrics:${sessionId}`);
     pipe.del(`session:${sessionId}`);
+    pipe.del(`session:${sessionId}:answers`);
     await pipe.exec();
     return NextResponse.json({
       success: true,

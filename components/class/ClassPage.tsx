@@ -16,6 +16,7 @@ interface Member {
 interface Classroom {
   id: string;
   name: string;
+  memberCount: number;
   members: Member[];
 }
 
@@ -25,6 +26,7 @@ const MOCK_EDUCATOR_CLASSES: Classroom[] = [
   {
     id: '1',
     name: 'Mathematics 101',
+    memberCount: 3,
     members: [
       { id: 'u1', name: 'Andi Pratama', email: 'andi@example.com' },
       { id: 'u2', name: 'Budi Santoso', email: 'budi@example.com' },
@@ -34,6 +36,7 @@ const MOCK_EDUCATOR_CLASSES: Classroom[] = [
   {
     id: '2',
     name: 'Science Basics',
+    memberCount: 2,
     members: [
       { id: 'u4', name: 'Dian Rahayu', email: 'dian@example.com' },
       { id: 'u5', name: 'Eko Wijaya', email: 'eko@example.com' },
@@ -45,7 +48,14 @@ const MOCK_LEARNER_CLASSES: Classroom[] = [
   {
     id: '3',
     name: 'History & Culture',
-    members: [],
+    memberCount: 5,
+    members: [
+      { id: 'u6', name: 'Fajar Nugraha', email: 'fajar@example.com' },
+      { id: 'u7', name: 'Gita Lestari', email: 'gita@example.com' },
+      { id: 'u8', name: 'Hendra Kusuma', email: 'hendra@example.com' },
+      { id: 'u9', name: 'Indah Permata', email: 'indah@example.com' },
+      { id: 'u10', name: 'Joko Widodo', email: 'joko@example.com' },
+    ],
   },
 ];
 
@@ -94,6 +104,7 @@ function EducatorView() {
     const created: Classroom = {
       id: Date.now().toString(),
       name: newClassName.trim(),
+      memberCount: 0,
       members: [],
     };
     setClasses((prev) => [...prev, created]);
@@ -111,7 +122,11 @@ function EducatorView() {
     };
     const updated = classes.map((c) =>
       c.id === selectedClass.id
-        ? { ...c, members: [...c.members, newMember] }
+        ? {
+            ...c,
+            members: [...c.members, newMember],
+            memberCount: c.memberCount + 1,
+          }
         : c
     );
     setClasses(updated);
@@ -128,6 +143,7 @@ function EducatorView() {
         ? {
             ...c,
             members: c.members.filter((m) => m.id !== memberId),
+            memberCount: c.memberCount - 1,
           }
         : c
     );
@@ -370,6 +386,10 @@ function EducatorView() {
                   <p className="truncate text-sm font-semibold text-slate-800 group-hover:text-violet-700">
                     {cls.name}
                   </p>
+                  <p className="text-xs text-slate-500">
+                    {cls.memberCount}{' '}
+                    {cls.memberCount === 1 ? 'learner' : 'learners'}
+                  </p>
                 </div>
                 <svg
                   className="h-4 w-4 shrink-0 text-slate-400 transition group-hover:translate-x-0.5 group-hover:text-violet-500"
@@ -418,6 +438,7 @@ function EducatorView() {
 
 function LearnerView() {
   const [classes, setClasses] = useState<Classroom[]>(MOCK_LEARNER_CLASSES);
+  const [selectedClass, setSelectedClass] = useState<Classroom | null>(null);
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [joinCode, setJoinCode] = useState('');
   const [joinFeedback, setJoinFeedback] = useState<
@@ -426,12 +447,17 @@ function LearnerView() {
 
   function handleJoin() {
     if (!joinCode.trim()) return;
-    // Simulate join: code "MATH202" adds a new class
     if (joinCode.trim().toUpperCase() === 'MATH202') {
       const newClass: Classroom = {
         id: Date.now().toString(),
         name: 'Mathematics 202',
-        members: [],
+        memberCount: 4,
+        members: [
+          { id: 'u11', name: 'Kartini Sari', email: 'kartini@example.com' },
+          { id: 'u12', name: 'Luhut Pandjaitan', email: 'luhut@example.com' },
+          { id: 'u13', name: 'Maya Anggraeni', email: 'maya@example.com' },
+          { id: 'u14', name: 'Naufal Rizki', email: 'naufal@example.com' },
+        ],
       };
       setClasses((prev) => [...prev, newClass]);
       setJoinFeedback('success');
@@ -445,6 +471,90 @@ function LearnerView() {
     }
   }
 
+  // ── Classmates detail panel ──
+  if (selectedClass) {
+    return (
+      <div className="flex flex-col gap-5">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setSelectedClass(null)}
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-black/8 text-slate-500 transition hover:bg-slate-50 hover:text-slate-800"
+          >
+            <svg
+              className="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M15 19l-7-7 7-7"
+              />
+            </svg>
+          </button>
+          <div className="min-w-0 flex-1">
+            <p className="text-xs font-medium tracking-widest text-violet-500 uppercase">
+              Classmates
+            </p>
+            <h2 className="truncate text-lg font-bold text-slate-800">
+              {selectedClass.name}
+            </h2>
+          </div>
+          <span className="shrink-0 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">
+            {selectedClass.memberCount}{' '}
+            {selectedClass.memberCount === 1 ? 'learner' : 'learners'}
+          </span>
+        </div>
+
+        <div className="h-px bg-slate-100" />
+
+        {selectedClass.members.length === 0 ? (
+          <EmptyState
+            icon={
+              <svg
+                className="h-6 w-6 text-slate-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={1.5}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M17 20h5v-2a4 4 0 00-5-4M9 20H4v-2a4 4 0 015-4m6-4a4 4 0 11-8 0 4 4 0 018 0z"
+                />
+              </svg>
+            }
+            title="No classmates yet"
+            subtitle="You're the first one here!"
+          />
+        ) : (
+          <ul className="flex flex-col gap-2">
+            {selectedClass.members.map((member) => (
+              <li
+                key={member.id}
+                className="flex items-center gap-3 rounded-xl border border-black/5 bg-slate-50 px-4 py-3"
+              >
+                <Avatar name={member.name} />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-semibold text-slate-800">
+                    {member.name}
+                  </p>
+                  <p className="truncate text-xs text-slate-500">
+                    {member.email}
+                  </p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    );
+  }
+
+  // ── Class list ──
   return (
     <div className="flex flex-col gap-5">
       {/* Header */}
@@ -505,7 +615,10 @@ function LearnerView() {
         <ul className="flex flex-col gap-2.5">
           {classes.map((cls) => (
             <li key={cls.id}>
-              <div className="flex items-center gap-4 rounded-xl border border-black/5 bg-slate-50 px-4 py-3.5">
+              <button
+                onClick={() => setSelectedClass(cls)}
+                className="group flex w-full items-center gap-4 rounded-xl border border-black/5 bg-slate-50 px-4 py-3.5 text-left transition hover:border-violet-200 hover:bg-violet-50"
+              >
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white shadow-sm ring-1 ring-black/5">
                   <svg
                     className="h-5 w-5 text-violet-500"
@@ -522,14 +635,46 @@ function LearnerView() {
                   </svg>
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold text-slate-800">
+                  <p className="truncate text-sm font-semibold text-slate-800 group-hover:text-violet-700">
                     {cls.name}
                   </p>
+                  <p className="text-xs text-slate-500">
+                    {cls.memberCount}{' '}
+                    {cls.memberCount === 1 ? 'learner' : 'learners'}
+                  </p>
                 </div>
-                <span className="shrink-0 rounded-full bg-violet-100 px-2.5 py-1 text-xs font-medium text-violet-700">
-                  Enrolled
-                </span>
-              </div>
+                {/* Avatar stack preview */}
+                {cls.members.length > 0 && (
+                  <div className="flex shrink-0 -space-x-2">
+                    {cls.members.slice(0, 3).map((m) => (
+                      <div
+                        key={m.id}
+                        className="rounded-full ring-2 ring-white"
+                      >
+                        <Avatar name={m.name} size="sm" />
+                      </div>
+                    ))}
+                    {cls.members.length > 3 && (
+                      <div className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-200 text-xs font-semibold text-slate-600 ring-2 ring-white">
+                        +{cls.members.length - 3}
+                      </div>
+                    )}
+                  </div>
+                )}
+                <svg
+                  className="h-4 w-4 shrink-0 text-slate-400 transition group-hover:translate-x-0.5 group-hover:text-violet-500"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+              </button>
             </li>
           ))}
         </ul>

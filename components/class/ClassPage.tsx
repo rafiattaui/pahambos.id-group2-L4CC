@@ -136,7 +136,7 @@ function ClassCard({ cls, onClick }: { cls: Classroom; onClick: () => void }) {
   return (
     <button
       onClick={onClick}
-      className="group flex w-full flex-col overflow-hidden rounded-2xl bg-white text-left shadow-md ring-1 ring-black/5 transition hover:-translate-y-0.5 hover:shadow-lg"
+      className="group font-body flex w-full flex-col overflow-hidden rounded-2xl bg-white text-left shadow-md ring-1 ring-black/5 transition hover:-translate-y-0.5 hover:shadow-lg"
     >
       {/* Coloured banner */}
       <div
@@ -172,7 +172,7 @@ function Overlay({
   children: React.ReactNode;
 }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="font-body fixed inset-0 z-50 flex items-center justify-center p-4">
       <div
         className="absolute inset-0 bg-black/40 backdrop-blur-sm"
         onClick={onClose}
@@ -308,7 +308,7 @@ function EducatorView() {
   return (
     <>
       {/* Header */}
-      <div className="mb-4 flex items-center justify-between">
+      <div className="font-body mb-4 flex items-center justify-between">
         <div>
           <p className="text-xs font-semibold tracking-widest text-blue-500 uppercase">
             Educator
@@ -593,7 +593,7 @@ function LearnerView() {
   return (
     <>
       {/* Header */}
-      <div className="mb-4 flex items-center justify-between">
+      <div className="font-body mb-4 flex items-center justify-between">
         <div>
           <p className="text-xs font-semibold tracking-widest text-blue-500 uppercase">
             Learner

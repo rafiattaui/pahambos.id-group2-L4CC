@@ -15,7 +15,7 @@ interface User {
 interface Classroom {
   id: string;
   name: string;
-  owner: User | string; // Can be 'You' for educator's own classes
+  owner: User | string;
   members: User[];
 }
 
@@ -92,7 +92,7 @@ const MOCK_LEARNER_CLASSES: Classroom[] = [
 ];
 
 // ─── Avatar ───────────────────────────────────────────────────────────────────
-// Don't forget to change to actual profile pictures in production. This is just a placeholder with initials.
+
 function Avatar({
   name,
   size = 'md',
@@ -661,7 +661,7 @@ function LearnerView() {
 
       {/* Join hint
       <p className="mt-4 rounded-xl border border-dashed border-slate-200 bg-slate-50 px-4 py-3 text-center text-xs text-slate-500">
-        Try joining with code <span className="font-mono font-semibold text-violet-600">MATH202</span>
+        Try joining with code <span className="font-mono font-semibold text-blue-600">MATH202</span>
       </p> */}
 
       {/* ── Class detail overlay ── */}
@@ -677,7 +677,6 @@ function LearnerView() {
             {/* Owner */}
             <div className="flex items-center gap-3 rounded-xl bg-slate-50 px-4 py-3 ring-1 ring-black/5">
               <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-100">
-                {/* change to actual profile picture */}
                 <svg
                   className="h-4 w-4 text-blue-600"
                   fill="none"
@@ -798,7 +797,7 @@ function RoleToggle({
             onClick={() => onChange(r)}
             className={`rounded-lg px-4 py-1.5 text-xs font-semibold transition ${
               role === r
-                ? 'bg-white text-violet-700 shadow-sm ring-1 ring-black/5'
+                ? 'bg-white text-blue-700 shadow-sm ring-1 ring-black/5'
                 : 'text-slate-500 hover:text-slate-700'
             }`}
           >
@@ -816,8 +815,8 @@ export default function ClassroomDetails() {
   const [role, setRole] = useState<Role>('Educator');
 
   return (
-    <div className="w-full max-w-7xl items-center justify-center p-6">
-      <div className="overflow-hidden rounded-2xl bg-white shadow-xl ring-1 ring-black/5">
+    <div className="flex w-full items-start justify-center p-6">
+      <div className="w-full max-w-7xl overflow-hidden rounded-2xl bg-white shadow-xl ring-1 ring-black/5">
         <div className="p-8">
           {/* Role toggle — remove in production, read from session */}
           <RoleToggle role={role} onChange={setRole} />

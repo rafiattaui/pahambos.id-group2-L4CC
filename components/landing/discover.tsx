@@ -38,7 +38,7 @@ export default function Discover() {
           <br className="inline sm:hidden" />
           categories!
         </h2>
-        <p className="mt-6 mb-6 ml-4 text-white">
+        <p className="font-body mt-6 mb-6 ml-4 text-white">
           Explore many quizzes based on your preferred categories
         </p>
         <div className="sm:px-16">

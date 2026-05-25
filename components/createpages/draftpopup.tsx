@@ -157,8 +157,10 @@ function DuplicateAlert({
     <div className="mb-4 flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
       <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
       <div className="flex-1 text-sm">
-        <p className="font-medium text-amber-800">Duplicate draft detected</p>
-        <p className="mt-0.5 text-amber-700">
+        <p className="font-body font-medium text-amber-800">
+          Duplicate draft detected
+        </p>
+        <p className="font-body mt-0.5 text-amber-700">
           This quiz is already saved in slot {conflictSlot}. Save a different
           version or delete the existing draft first.
         </p>
@@ -216,20 +218,20 @@ function SlotCard({
         <div className="min-w-0 flex-1">
           {draft ? (
             <>
-              <p className="truncate text-sm font-medium text-gray-900">
+              <p className="font-body truncate text-sm font-medium text-gray-900">
                 {draft.title || 'Untitled quiz'}
               </p>
-              <p className="mt-0.5 text-xs text-gray-500">
+              <p className="font-body mt-0.5 text-xs text-gray-500">
                 {qCount} question{qCount !== 1 ? 's' : ''} &nbsp;·&nbsp;{' '}
                 {formatDate(draft.savedAt)}
               </p>
             </>
           ) : (
             <>
-              <p className="text-sm font-medium text-gray-400">
+              <p className="font-body text-sm font-medium text-gray-400">
                 Slot {slotIndex + 1} — empty
               </p>
-              <p className="mt-0.5 text-xs text-gray-400">
+              <p className="font-body mt-0.5 text-xs text-gray-400">
                 Click to save current draft here
               </p>
             </>
@@ -257,13 +259,13 @@ function SlotCard({
       {/* Footer (filled slots only) */}
       {draft && (
         <div className="flex items-center justify-between border-t border-gray-100 bg-gray-50 px-4 py-1.5">
-          <span className="text-xs text-gray-400">
+          <span className="font-body text-xs text-gray-400">
             Click to load this draft
           </span>
           <button
             type="button"
             onClick={() => onDelete(slotIndex)}
-            className="flex items-center gap-1 rounded px-2 py-1 text-xs text-red-500 transition-colors hover:bg-red-50 hover:text-red-600"
+            className="font-body flex items-center gap-1 rounded px-2 py-1 text-xs text-red-500 transition-colors hover:bg-red-50 hover:text-red-600"
             aria-label={`Delete slot ${slotIndex + 1} draft`}
           >
             <Trash2 className="h-3 w-3" />
@@ -366,11 +368,11 @@ export default function DraftPopup({
             <div>
               <h2
                 id="draft-popup-title"
-                className="text-sm font-semibold text-gray-900"
+                className="font-body text-sm font-bold text-gray-900"
               >
                 Draft slots
               </h2>
-              <p className="text-xs text-gray-500">
+              <p className="font-body text-xs text-gray-500">
                 {filledCount} of {MAX_DRAFTS} slots used
               </p>
             </div>
@@ -408,7 +410,7 @@ export default function DraftPopup({
         </div>
 
         {/* Footer hint */}
-        <p className="mt-4 text-center text-xs text-gray-400">
+        <p className="font-body mt-4 text-center text-xs text-gray-400">
           Drafts are stored locally in your browser
         </p>
       </div>

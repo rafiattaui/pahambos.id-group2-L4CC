@@ -62,7 +62,7 @@ function CreatePageItem({
 
   return (
     <div className="w-full">
-      <Card className="relative flex aspect-square flex-col overflow-hidden rounded-2xl border-2 border-gray-300 shadow-xl sm:aspect-3/4">
+      <Card className="relative flex aspect-6/9 flex-col overflow-hidden rounded-2xl border-2 border-gray-300 shadow-xl sm:aspect-3/4">
         <div className="absolute top-2 right-2 z-10 flex flex-row gap-2">
           <Button
             variant="outline"
@@ -105,11 +105,11 @@ function CreatePageItem({
           </div>
         </CardHeader>
         <CardContent className="px-2 sm:p-3">
-          <CardTitle className="font-heading line-clamp-4 text-sm sm:text-base">
+          <CardTitle className="font-body mt-1 line-clamp-4 text-sm font-bold sm:text-base">
             {quiz.title}
           </CardTitle>
           <div className="hidden md:block">
-            <CardDescription className="mt-1 line-clamp-3 text-sm text-gray-500">
+            <CardDescription className="font-body mt-1 line-clamp-3 text-sm text-gray-500">
               {quiz.description}
             </CardDescription>
           </div>
@@ -122,7 +122,7 @@ function CreatePageItem({
 function CreatePageItemSkeleton() {
   return (
     <div className="w-full">
-      <Card className="relative flex aspect-4/9 flex-col overflow-hidden rounded-2xl border-2 border-gray-300 shadow-xl sm:aspect-3/4">
+      <Card className="relative flex aspect-6/9 flex-col overflow-hidden rounded-2xl border-2 border-gray-300 shadow-xl sm:aspect-3/4">
         <div className="absolute top-2 right-2 z-10 flex flex-row gap-2">
           <Skeleton className="h-9 w-9" />
           <Skeleton className="h-9 w-9" />
@@ -208,7 +208,7 @@ function DeleteConfirmDialog({
 
 type FetchStatus = 'idle' | 'loading' | 'error' | 'success';
 
-export default function CreatePage({ quiz }: { quiz: Quiz }) {
+export default function CreatePage() {
   const router = useRouter();
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [status, setStatus] = useState<FetchStatus>('idle');
@@ -268,30 +268,21 @@ export default function CreatePage({ quiz }: { quiz: Quiz }) {
   return (
     <>
       <div className="mt-6 rounded-2xl bg-white p-4">
-        <div className="w-full justify-center">
-          <div className="m-4 mx-auto max-w-[calc(100%-2rem)] sm:max-w-[calc(33.333%-2rem)] md:max-w-[calc(25%-2rem)]">
-            <Card
-              onClick={() => {
-                router.push('/create-quiz');
-              }}
-              className="relative flex aspect-square cursor-pointer flex-col overflow-hidden rounded-2xl border-2 border-gray-300 shadow-xl transition-colors hover:border-blue-500 hover:text-blue-500 sm:aspect-3/4"
-              aria-label="Create New Quiz"
-            >
-              <CardContent className="flex flex-1 items-center justify-center">
-                <Plus className="h-20 w-20" />
-              </CardContent>
-            </Card>
-          </div>
+        <div className="m-4 flex flex-col items-center sm:flex-row sm:justify-between">
+          <h1 className="font-body text-5xl font-bold">
+            <span className="text-black/90 text-shadow-lg text-shadow-slate-300">
+              Your Quizzes
+            </span>
+          </h1>
+          <Button
+            className="font-body mt-4 bg-blue-500 font-bold transition-transform hover:bg-blue-600 active:translate-y-0.5 sm:mt-0"
+            onClick={() => router.push('/create-quiz')}
+          >
+            Create Quiz <Plus className="h-4 w-4" />
+          </Button>
         </div>
-        <Separator />
 
-        <h1 className="font-heading m-4 text-5xl font-bold">
-          <span className="text-black/90 text-shadow-lg text-shadow-slate-300">
-            Your Quizzes
-          </span>
-        </h1>
-
-        <div className="rounded-2x mt-4 grid h-full w-full grid-cols-1 bg-white sm:grid-cols-3 md:grid-cols-4">
+        <div className="rounded-2x mt-4 grid h-full w-full grid-cols-2 bg-white sm:grid-cols-3 md:grid-cols-4">
           {status === 'loading' &&
             Array.from({ length: SKELETON_COUNT }, (_, i) => (
               <div key={i} className="m-4">

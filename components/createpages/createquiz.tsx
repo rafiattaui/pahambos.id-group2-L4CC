@@ -43,6 +43,7 @@ type Question = {
   order: number; // used as the stable local key; DB assigns the real id
   dbId?: string; // optional database ID, assigned after saving
   type: QuestionType;
+  timeLimit?: number; // in seconds, optional
   question: string;
   answer?: string[]; // the display text for each option (min 2, max 4)
   correctAnswers: number[]; // indices into `answer` — matches schema's correctAnswers: number[]
@@ -59,7 +60,7 @@ type validationErrors = {
     {
       question?: string;
       answer?: string;
-      correctAnswer?: string;
+      correctAnswers?: string;
     }
   >;
   questionsError?: string; // for form-level question errors (e.g. no questions added)
@@ -78,12 +79,11 @@ function validateForm(
 
   if (questions.length < 2) {
     validationErrors.questionsError = 'Please create at least two question';
-    return validationErrors;
   }
   const qvalidationErrors: validationErrors['questions'] = {};
 
   questions.forEach((q) => {
-    const e: { question?: string; answer?: string; correctAnswer?: string } =
+    const e: { question?: string; answer?: string; correctAnswers?: string } =
       {};
 
     if (!q.question.trim()) e.question = 'Question prompt is required';
@@ -94,13 +94,13 @@ function validateForm(
     if (q.type === 'multiple-choice') {
       // SingleSelect: exactly one correct answer index
       if (q.correctAnswers.length !== 1)
-        e.correctAnswer = 'Select exactly one correct answer';
+        e.correctAnswers = 'Select exactly one correct answer';
     }
 
     if (q.type === 'multiple-select-choice') {
       // MultiSelect: at least one correct answer index
       if (q.correctAnswers.length === 0)
-        e.correctAnswer = 'Select at least one correct answer';
+        e.correctAnswers = 'Select at least one correct answer';
     }
 
     if (Object.keys(e).length > 0) qvalidationErrors[q.order] = e;
@@ -248,10 +248,10 @@ function CropModal({
               <Crop className="h-4 w-4" />
             </div>
             <div>
-              <p className="text-sm font-semibold text-gray-900">
+              <p className="font-body text-sm font-bold text-gray-900">
                 Adjust cover image
               </p>
-              <p className="text-xs text-gray-500">
+              <p className="font-body text-xs text-gray-500">
                 Drag to reposition · scroll to zoom
               </p>
             </div>
@@ -283,7 +283,7 @@ function CropModal({
 
         {/* Zoom slider */}
         <div className="flex items-center gap-3">
-          <span className="w-10 text-xs text-gray-500">Zoom</span>
+          <span className="font-body w-10 text-xs text-gray-500">Zoom</span>
           <input
             aria-label="Zoom level"
             type="range"
@@ -294,14 +294,14 @@ function CropModal({
             onChange={(e) => setZoom(Number(e.target.value))}
             className="flex-1 accent-blue-500"
           />
-          <span className="w-8 text-right text-xs text-gray-400">
+          <span className="font-body w-8 text-right text-xs text-gray-400">
             {zoom.toFixed(1)}×
           </span>
         </div>
 
         {/* Rotation slider */}
         <div className="flex items-center gap-3">
-          <span className="w-10 text-xs text-gray-500">Rotate</span>
+          <span className="font-body w-10 text-xs text-gray-500">Rotate</span>
           <input
             aria-label="Rotation angle"
             type="range"
@@ -312,7 +312,7 @@ function CropModal({
             onChange={(e) => setRotation(Number(e.target.value))}
             className="flex-1 accent-blue-500"
           />
-          <span className="w-8 text-right text-xs text-gray-400">
+          <span className="font-body w-8 text-right text-xs text-gray-400">
             {rotation}°
           </span>
         </div>
@@ -321,13 +321,18 @@ function CropModal({
         <div className="flex gap-2 pt-1">
           <Button
             type="button"
-            className="flex-1 bg-blue-500 hover:bg-blue-700"
+            className="font-body flex-1 bg-blue-500 font-bold hover:bg-blue-700"
             onClick={handleSave}
             disabled={saving}
           >
             {saving ? 'Saving…' : 'Save crop'}
           </Button>
-          <Button type="button" variant="outline" onClick={onCancel}>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onCancel}
+            className="font-body font-bold"
+          >
             Cancel
           </Button>
         </div>
@@ -407,9 +412,9 @@ function ImageUploader({
               <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-500 text-white">
                 <Plus className="h-4 w-4" />
               </div>
-              <span>{label ?? 'Add image'}</span>
+              <span className="font-body">{label ?? 'Add image'}</span>
               {optional && (
-                <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-400">
+                <span className="font-body rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-400">
                   optional
                 </span>
               )}
@@ -426,7 +431,7 @@ function ImageUploader({
                 e.stopPropagation();
                 setIsCropOpen(true);
               }}
-              className="flex h-7 items-center gap-1 rounded-md bg-black/50 px-2 text-xs font-medium text-white backdrop-blur-sm transition-colors hover:bg-black/70"
+              className="font-body flex h-7 items-center gap-1 rounded-md bg-black/50 px-2 text-xs font-medium text-white backdrop-blur-sm transition-colors hover:bg-black/70"
             >
               <Crop className="h-3 w-3" /> Adjust
             </button>
@@ -436,14 +441,14 @@ function ImageUploader({
                 e.stopPropagation();
                 fileInputRef.current?.click();
               }}
-              className="flex h-7 items-center gap-1 rounded-md bg-black/50 px-2 text-xs font-medium text-white backdrop-blur-sm transition-colors hover:bg-black/70"
+              className="font-body flex h-7 items-center gap-1 rounded-md bg-black/50 px-2 text-xs font-medium text-white backdrop-blur-sm transition-colors hover:bg-black/70"
             >
               <ImageIcon className="h-3 w-3" /> Change
             </button>
             <button
               type="button"
               onClick={handleRemove}
-              className="flex h-7 items-center gap-1 rounded-md bg-black/50 px-2 text-xs font-medium text-white backdrop-blur-sm transition-colors hover:bg-red-500/80"
+              className="font-body flex h-7 items-center gap-1 rounded-md bg-black/50 px-2 text-xs font-medium text-white backdrop-blur-sm transition-colors hover:bg-red-500/80"
             >
               <X className="h-3 w-3" /> Remove
             </button>
@@ -503,7 +508,9 @@ function QuestionEditor({
         <Trash2 className="h-4 w-4" />
       </Button>
 
-      <FieldLabel className="font-heading">Question {index + 1}</FieldLabel>
+      <FieldLabel className="font-body font-bold">
+        Question {index + 1}
+      </FieldLabel>
 
       {/* Question type selector */}
       <Select
@@ -516,10 +523,10 @@ function QuestionEditor({
           })
         }
       >
-        <SelectTrigger>
+        <SelectTrigger className="font-body">
           <SelectValue placeholder="Select a question type" />
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent className="font-body">
           <SelectItem value="multiple-choice">Single Answer</SelectItem>
           <SelectItem value="multiple-select-choice">
             Multiple Answer
@@ -527,11 +534,28 @@ function QuestionEditor({
         </SelectContent>
       </Select>
 
+      {/* Add a time limit each question */}
+      <Field>
+        <FieldLabel className="font-body flex items-center gap-2 font-bold">
+          Time Limit (seconds)
+          <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-normal text-gray-400">
+            optional
+          </span>
+        </FieldLabel>
+        <Input
+          type="number"
+          placeholder="30"
+          value={question.timeLimit ?? ''}
+          onChange={(e) => onChange({ timeLimit: Number(e.target.value) })}
+          className="font-body max-w-15"
+        />
+      </Field>
+
       {/* Optional question image — fully self-contained */}
       <Field>
-        <FieldLabel className="font-heading flex items-center gap-2">
+        <FieldLabel className="font-body flex items-center gap-2 font-bold">
           Question Image
-          <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-normal text-gray-400">
+          <span className="font-body rounded-full bg-gray-100 px-2 py-0.5 text-xs font-normal text-gray-400">
             optional
           </span>
         </FieldLabel>
@@ -553,10 +577,14 @@ function QuestionEditor({
           placeholder="Enter question"
           value={question.question}
           onChange={(e) => onChange({ question: e.target.value })}
-          className={validationErrors?.question ? 'border-red-400' : ''}
+          className={
+            validationErrors?.question
+              ? 'font-body border-red-400'
+              : 'font-body'
+          }
         />
         {validationErrors?.question && (
-          <p className="mt-1 text-xs text-red-500">
+          <p className="font-body mt-1 text-xs text-red-500">
             {validationErrors.question}
           </p>
         )}
@@ -576,16 +604,19 @@ function QuestionEditor({
                   newAnswers[i] = e.target.value;
                   onChange({ answer: newAnswers });
                 }}
+                className="font-body"
               />
             ))}
             {validationErrors?.answer && (
-              <p className="mt-1 text-xs text-red-500">
+              <p className="font-body mt-1 text-xs text-red-500">
                 {validationErrors.answer}
               </p>
             )}
           </Field>
           <Field>
-            <FieldLabel className="font-heading">Correct Answer</FieldLabel>
+            <FieldLabel className="font-body font-bold">
+              Correct Answer
+            </FieldLabel>
             <Select
               value={
                 question.correctAnswers.length === 1
@@ -598,7 +629,9 @@ function QuestionEditor({
             >
               <SelectTrigger
                 className={
-                  validationErrors?.correctAnswers ? 'border-red-400' : ''
+                  validationErrors?.correctAnswers
+                    ? 'font-body border-red-400'
+                    : 'font-body'
                 }
               >
                 <SelectValue placeholder="Select correct answer" />
@@ -612,7 +645,7 @@ function QuestionEditor({
               </SelectContent>
             </Select>
             {validationErrors?.correctAnswers && (
-              <p className="mt-1 text-xs text-red-500">
+              <p className="font-body mt-1 text-xs text-red-500">
                 {validationErrors.correctAnswers}
               </p>
             )}
@@ -634,16 +667,19 @@ function QuestionEditor({
                   newAnswers[i] = e.target.value;
                   onChange({ answer: newAnswers });
                 }}
+                className="font-body"
               />
             ))}
             {validationErrors?.answer && (
-              <p className="mt-1 text-xs text-red-500">
+              <p className="font-body mt-1 text-xs text-red-500">
                 {validationErrors.answer}
               </p>
             )}
           </Field>
           <Field>
-            <FieldLabel className="font-heading">Correct Answers</FieldLabel>
+            <FieldLabel className="font-body font-bold">
+              Correct Answers
+            </FieldLabel>
             <div className="flex flex-wrap items-center gap-2">
               {question.answer?.map((ans, i) => {
                 const selected = question.correctAnswers.includes(i);
@@ -664,13 +700,15 @@ function QuestionEditor({
                       }}
                       className="data-[state=checked]:border-blue-500 data-[state=checked]:bg-blue-500"
                     />
-                    <span>{ans || `Answer ${i + 1}`}</span>
+                    <span className="font-body">
+                      {ans || `Answer ${i + 1}`}
+                    </span>
                   </label>
                 );
               })}
             </div>
             {validationErrors?.correctAnswers && (
-              <p className="mt-1 text-xs text-red-500">
+              <p className="font-body mt-1 text-xs text-red-500">
                 {validationErrors.correctAnswers}
               </p>
             )}
@@ -846,6 +884,7 @@ export default function CreateQuizForm({
     const hasvalidationErrors =
       errs.title ||
       errs.category ||
+      errs.questionsError ||
       (errs.questions && Object.keys(errs.questions).length > 0);
     if (hasvalidationErrors) {
       console.log(errs);
@@ -1088,18 +1127,20 @@ export default function CreateQuizForm({
 
         <FieldGroup className="mt-4">
           <FieldTitle>
-            <h1 className="font-heading text-2xl">Quiz Creation Form</h1>
+            <h1 className="font-body text-2xl font-bold">Quiz Creation Form</h1>
           </FieldTitle>
 
           <FieldSet>
-            <FieldLegend className="font-heading">Quiz Details</FieldLegend>
+            <FieldLegend className="font-body font-bold">
+              Quiz Details
+            </FieldLegend>
             <FieldDescription className="font-body">
               Information about your quiz
             </FieldDescription>
 
             {/* Cover image — optional, via reusable ImageUploader */}
             <Field>
-              <FieldLabel className="font-heading flex items-center gap-2">
+              <FieldLabel className="font-body flex items-center gap-2 font-bold">
                 Quiz Cover
                 <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-normal text-gray-400">
                   optional
@@ -1120,15 +1161,21 @@ export default function CreateQuizForm({
 
             {/* Title */}
             <Field>
-              <FieldLabel className="font-heading">Quiz Title</FieldLabel>
+              <FieldLabel className="font-body font-bold">
+                Quiz Title
+              </FieldLabel>
               <Input
                 placeholder="Enter quiz title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className={validationErrors.title ? 'border-red-400' : ''}
+                className={
+                  validationErrors.title
+                    ? 'font-body border-red-400'
+                    : 'font-body'
+                }
               />
               {validationErrors.title && (
-                <p className="mt-1 text-xs text-red-500">
+                <p className="font-body mt-1 text-xs text-red-500">
                   {validationErrors.title}
                 </p>
               )}
@@ -1136,9 +1183,9 @@ export default function CreateQuizForm({
 
             {/* Description */}
             <Field>
-              <FieldLabel className="font-heading">
+              <FieldLabel className="font-body font-bold">
                 Quiz Description
-                <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-normal text-gray-400">
+                <span className="font-body rounded-full bg-gray-100 px-2 py-0.5 text-xs font-normal text-gray-400">
                   optional
                 </span>
               </FieldLabel>
@@ -1147,19 +1194,29 @@ export default function CreateQuizForm({
                 placeholder="Enter quiz description"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className={validationErrors.description ? 'border-red-400' : ''}
+                className={
+                  validationErrors.description
+                    ? 'font-body border-red-400'
+                    : 'font-body'
+                }
               />
             </Field>
             {/* Category */}
             <Field>
-              <FieldLabel className="font-heading">Quiz Category</FieldLabel>
+              <FieldLabel className="font-body font-bold">
+                Quiz Category
+              </FieldLabel>
               <Select value={category} onValueChange={setCategory}>
                 <SelectTrigger
-                  className={validationErrors.category ? 'border-red-400' : ''}
+                  className={
+                    validationErrors.category
+                      ? 'font-body border-red-400'
+                      : 'font-body'
+                  }
                 >
                   <SelectValue placeholder="Select a category" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="font-body">
                   <SelectItem value="Mathematics">Mathematics</SelectItem>
                   <SelectItem value="Science">Science</SelectItem>
                   <SelectItem value="History">History</SelectItem>
@@ -1170,7 +1227,7 @@ export default function CreateQuizForm({
                 </SelectContent>
               </Select>
               {validationErrors.category && (
-                <p className="mt-1 text-xs text-red-500">
+                <p className="font-body mt-1 text-xs text-red-500">
                   {validationErrors.category}
                 </p>
               )}
@@ -1180,14 +1237,16 @@ export default function CreateQuizForm({
 
             {/* Questions */}
             <FieldSet>
-              <FieldLegend className="font-heading">Questions</FieldLegend>
+              <FieldLegend className="font-body font-bold">
+                Questions
+              </FieldLegend>
               <FieldDescription className="font-body">
                 Add questions for your quiz. Images are optional per question.
               </FieldDescription>
 
               <FieldGroup>
                 {validationErrors.questionsError && (
-                  <p className="mt-1 text-xs text-red-500">
+                  <p className="font-body mt-1 text-xs text-red-500">
                     {validationErrors.questionsError}
                   </p>
                 )}
@@ -1205,17 +1264,17 @@ export default function CreateQuizForm({
 
                 {/* New question type picker */}
                 <Field>
-                  <FieldLabel className="font-heading">
+                  <FieldLabel className="font-body font-bold">
                     New Question Type
                   </FieldLabel>
                   <Select
                     value={newType}
                     onValueChange={(v) => setNewType(v as QuestionType)}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="font-body">
                       <SelectValue placeholder="Select a question type" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="font-body">
                       <SelectItem value="multiple-choice">
                         Single Answer
                       </SelectItem>
@@ -1227,7 +1286,7 @@ export default function CreateQuizForm({
                 </Field>
 
                 <Button
-                  className="bg-blue-500 hover:scale-105 hover:bg-blue-700"
+                  className="font-body bg-blue-500 font-bold hover:scale-105 hover:bg-blue-700"
                   ref={addButtonRef}
                   onClick={addQuestion}
                 >
@@ -1236,13 +1295,13 @@ export default function CreateQuizForm({
                 {!isEditMode && (
                   <Button
                     onClick={() => setDraftOpen(true)}
-                    className="bg-blue-500 hover:scale-105 hover:bg-blue-700"
+                    className="font-body bg-blue-500 font-bold hover:scale-105 hover:bg-blue-700"
                   >
                     Save Draft <Save className="h-4 w-4" />
                   </Button>
                 )}
                 <Button
-                  className="bg-blue-500 hover:scale-105 hover:bg-blue-700"
+                  className="font-body bg-blue-500 font-bold hover:scale-105 hover:bg-blue-700"
                   onClick={handleSubmit}
                   disabled={isSubmitting}
                 >

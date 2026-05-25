@@ -55,7 +55,7 @@ export default function DashCarousel() {
   return (
     <section className="mt-32">
       <div>
-        <span className="font-body-bold ml-2 text-2xl text-white">
+        <span className="font-body ml-2 text-2xl font-bold text-white">
           Featured
         </span>
         <div className="relative mx-auto mt-4">
@@ -90,7 +90,7 @@ export default function DashCarousel() {
 
       <div className="mt-20">
         <div className="flex flex-row justify-between">
-          <span className="font-body-bold ml-2 text-2xl text-white">
+          <span className="font-body ml-2 text-2xl font-bold text-white">
             Mathematics
           </span>
           <Link
@@ -136,7 +136,7 @@ export default function DashCarousel() {
 
       <div className="mt-20">
         <div className="flex flex-row justify-between">
-          <span className="font-body-bold ml-2 text-2xl text-white">
+          <span className="font-body ml-2 text-2xl font-bold text-white">
             Technology
           </span>
           <Link
@@ -180,7 +180,7 @@ export default function DashCarousel() {
 
       <div className="mt-20">
         <div className="flex flex-row justify-between">
-          <span className="font-body-bold ml-2 text-2xl text-white">
+          <span className="font-body ml-2 text-2xl font-bold text-white">
             Science
           </span>
           <Link
@@ -247,19 +247,23 @@ export default function DashCarousel() {
                 height={200}
                 className="mt-4 mb-4 items-center justify-center rounded-2xl"
               />
-              <CardTitle>{selectedQuiz.title}</CardTitle>
+              <CardTitle className="font-heading">
+                {selectedQuiz.title}
+              </CardTitle>
               <CardDescription
-                className={`categoriesText ${categoriesText.find((c) => c.category === selectedQuiz.category)?.textColor || 'text-gray-500'}`}
+                className={`font-body categoriesText ${categoriesText.find((c) => c.category === selectedQuiz.category)?.textColor || 'text-gray-500'}`}
               >
-                <span className="text-gray-500">Category:</span>{' '}
+                <span className="font-body text-gray-500">Category:</span>{' '}
                 {selectedQuiz.category}
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <CardDescription>{selectedQuiz.description}</CardDescription>
+              <CardDescription className="font-body">
+                {selectedQuiz.description}
+              </CardDescription>
             </CardContent>
             <CardFooter>
-              <Button className="w-full bg-blue-500 text-white hover:bg-blue-700 active:translate-y-1">
+              <Button className="font-body w-full bg-blue-500 font-bold text-white hover:bg-blue-700 active:translate-y-1">
                 Start Quiz
               </Button>
             </CardFooter>

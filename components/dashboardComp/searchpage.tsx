@@ -172,7 +172,7 @@ export default function SearchPage({ query: initialQuery = '' }: SearchQuery) {
 
   return (
     <div className="mt-4 items-stretch rounded-2xl bg-white p-4 shadow">
-      <InputGroup className="mb-4 md:hidden">
+      <InputGroup className="font-body mb-4 font-bold md:hidden">
         <InputGroupAddon align={'inline-start'}>
           <Search className="h-4 w-4" />
         </InputGroupAddon>
@@ -235,12 +235,22 @@ export default function SearchPage({ query: initialQuery = '' }: SearchQuery) {
                 setCurrentPage(1);
               }}
             >
-              <DropdownMenuRadioItem value="a-z">A to Z</DropdownMenuRadioItem>
-              <DropdownMenuRadioItem value="z-a">Z to A</DropdownMenuRadioItem>
-              <DropdownMenuRadioItem value="most-questions">
+              <DropdownMenuRadioItem value="a-z" className="font-body">
+                A to Z
+              </DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value="z-a" className="font-body">
+                Z to A
+              </DropdownMenuRadioItem>
+              <DropdownMenuRadioItem
+                value="most-questions"
+                className="font-body"
+              >
                 Most Questions
               </DropdownMenuRadioItem>
-              <DropdownMenuRadioItem value="least-questions">
+              <DropdownMenuRadioItem
+                value="least-questions"
+                className="font-body"
+              >
                 Least Questions
               </DropdownMenuRadioItem>
             </DropdownMenuRadioGroup>
@@ -249,7 +259,7 @@ export default function SearchPage({ query: initialQuery = '' }: SearchQuery) {
       </div>
       {query.trim() !== '' && !emptySearch && (
         <div className="col-span-5 text-left">
-          <h2 className="font-body-bold mb-4 text-2xl">
+          <h2 className="font-body mb-4 text-2xl font-bold">
             Results found for &quot;{query}&quot;
           </h2>
         </div>
@@ -265,14 +275,14 @@ export default function SearchPage({ query: initialQuery = '' }: SearchQuery) {
 
         {!error && !isLoading && emptySearch && (
           <div className="col-span-5 py-10 text-center">
-            <h2 className="font-body-bold mb-4 text-2xl">
+            <h2 className="font-body mb-4 text-2xl font-bold">
               No results found for &quot;{query}&quot;
             </h2>
           </div>
         )}
 
         {errorMessage && (
-          <div className="col-span-5 mb-4 justify-center rounded-xl p-3 text-center text-2xl text-red-700">
+          <div className="font-body col-span-5 mb-4 justify-center rounded-xl p-3 text-center text-2xl font-bold text-red-700">
             {errorMessage}
           </div>
         )}

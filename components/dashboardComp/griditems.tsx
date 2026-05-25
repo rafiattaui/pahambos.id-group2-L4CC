@@ -103,11 +103,11 @@ export default function GridItems({ quiz }: { quiz: Quiz }) {
             </div>
           </CardHeader>
           <CardContent className="px-2 sm:p-3">
-            <CardTitle className="font-heading line-clamp-4 text-sm sm:text-base">
+            <CardTitle className="font-body line-clamp-4 text-sm font-bold sm:text-base">
               {quiz.title}
             </CardTitle>
             <div className="hidden md:block">
-              <CardDescription className="mt-1 line-clamp-3 text-sm text-gray-500">
+              <CardDescription className="font-body mt-1 line-clamp-3 text-sm text-gray-500">
                 {quiz.description}
               </CardDescription>
             </div>

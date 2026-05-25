@@ -252,7 +252,7 @@ function AvatarCropModal({
       <div className="flex w-full max-w-sm flex-col gap-4 rounded-2xl bg-white p-5 shadow-2xl ring-1 ring-black/5">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-gray-900">
+          <h3 className="font-body text-sm font-bold text-gray-900">
             Adjust profile photo
           </h3>
           <button
@@ -283,8 +283,10 @@ function AvatarCropModal({
         {/* Zoom slider */}
         <div className="flex flex-col gap-1.5">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-gray-500">Zoom</span>
-            <span className="text-xs text-gray-400">
+            <span className="font-body text-xs font-bold text-gray-500">
+              Zoom
+            </span>
+            <span className="font-body text-xs font-bold text-gray-400">
               {Math.round(zoom * 100)}%
             </span>
           </div>
@@ -303,8 +305,12 @@ function AvatarCropModal({
         {/* Rotation slider */}
         <div className="flex flex-col gap-1.5">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-gray-500">Rotation</span>
-            <span className="text-xs text-gray-400">{rotation}°</span>
+            <span className="font-body text-xs font-bold text-gray-500">
+              Rotation
+            </span>
+            <span className="font-body text-xs font-bold text-gray-400">
+              {rotation}°
+            </span>
           </div>
           <input
             type="range"
@@ -322,14 +328,14 @@ function AvatarCropModal({
         <div className="flex gap-2">
           <button
             onClick={onCancel}
-            className="flex-1 rounded-xl border border-gray-200 bg-white py-2.5 text-sm font-medium text-gray-500 transition-colors hover:bg-gray-50 hover:text-gray-700"
+            className="font-body flex-1 rounded-xl border border-gray-200 bg-white py-2.5 text-sm font-bold text-gray-500 transition-colors hover:bg-gray-50 hover:text-gray-700"
           >
             Cancel
           </button>
           <button
             onClick={handleSave}
             disabled={saving}
-            className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-blue-500 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-400/30 transition-all hover:bg-blue-700 active:scale-[0.98] disabled:opacity-60"
+            className="font-body flex flex-1 items-center justify-center gap-2 rounded-xl bg-blue-500 py-2.5 text-sm font-bold text-white shadow-md shadow-blue-400/30 transition-all hover:bg-blue-700 active:scale-[0.98] disabled:opacity-60"
           >
             {saving ? <Spinner /> : null}
             {saving ? 'Saving…' : 'Apply'}
@@ -367,7 +373,7 @@ function Field({
 }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <label htmlFor={id} className="text-sm font-medium text-gray-700">
+      <label htmlFor={id} className="font-body text-sm font-bold text-gray-700">
         {label}
       </label>
       <div className="relative">
@@ -586,7 +592,7 @@ export default function AccountCard({ user }: { user: User }) {
           <button
             key={t}
             onClick={() => setTab(t)}
-            className={`relative flex flex-1 items-center justify-center gap-2 py-4 text-sm font-medium transition-colors ${
+            className={`font-body relative flex flex-1 items-center justify-center gap-2 py-4 text-sm font-bold transition-colors ${
               tab === t ? 'text-blue-500' : 'text-gray-400 hover:text-gray-600'
             }`}
           >
@@ -641,7 +647,9 @@ export default function AccountCard({ user }: { user: User }) {
                 onChange={handleAvatarChange}
               />
             </div>
-            <p className="text-xs text-gray-400">JPG, PNG or GIF · max 5 MB</p>
+            <p className="font-body text-xs font-bold text-gray-400">
+              JPG, PNG or GIF · max 5 MB
+            </p>
           </div>
           {/* Crop modal — rendered outside the avatar div to avoid clipping */}
           {rawAvatarUrl && (
@@ -661,7 +669,7 @@ export default function AccountCard({ user }: { user: User }) {
             <div className="flex flex-col gap-1.5">
               <label
                 htmlFor="username"
-                className="text-sm font-medium text-gray-700"
+                className="font-body text-sm font-bold text-gray-700"
               >
                 Username
               </label>
@@ -782,7 +790,7 @@ export default function AccountCard({ user }: { user: User }) {
           <button
             onClick={handleSecuritySave}
             disabled={securitySaving}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-500 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-400/30 transition-all hover:bg-blue-700 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+            className="font-body flex w-full items-center justify-center gap-2 rounded-xl bg-blue-500 py-2.5 text-sm font-bold text-white shadow-md shadow-blue-400/30 transition-all hover:bg-blue-700 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
           >
             {securitySaving ? (
               <>

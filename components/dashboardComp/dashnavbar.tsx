@@ -112,33 +112,34 @@ export default function DashNavbar({ user }: NavbarProps) {
         <div className="ml-4 hidden flex-row gap-6 md:flex">
           <Link
             href="/dashboard"
-            className={`flex flex-wrap items-center gap-2 transition-colors hover:text-blue-600 ${isActive('/dashboard') ? 'border-b-2 border-b-blue-600 text-blue-600' : 'text-slate-700'}`}
+            className={`flex flex-wrap items-center gap-2 transition-colors hover:text-blue-600 ${isActive('/dashboard') ? 'text-blue-600' : 'text-slate-700'}`}
           >
             <House className="h-5 w-5" />
-            <span className="font-body-bold">Home</span>
+            <span className="font-body font-bold">Home</span>
           </Link>
           <Link
             href={dashboardHref('class')}
-            className={`flex flex-wrap items-center gap-2 transition-colors hover:text-blue-600 ${isActive(dashboardHref('class')) ? 'border-b-2 border-b-blue-600 text-blue-600' : 'text-slate-700'}`}
+            className={`flex flex-wrap items-center gap-2 transition-colors hover:text-blue-600 ${isActive(dashboardHref('class')) ? 'text-blue-600' : 'text-slate-700'}`}
           >
             <Users className="h-5 w-5" />
-            <span className="font-body-bold">Class</span>
+            <span className="font-body font-bold">Class</span>
           </Link>
           <Link
             href={dashboardHref('history')}
-            className={`flex flex-wrap items-center gap-2 transition-colors hover:text-blue-600 ${isActive(dashboardHref('history')) ? 'border-b-2 border-b-blue-600 text-blue-600' : 'text-slate-700'}`}
+            className={`flex flex-wrap items-center gap-2 transition-colors hover:text-blue-600 ${isActive(dashboardHref('history')) ? 'text-blue-600' : 'text-slate-700'}`}
           >
             <History className="h-5 w-5" />
-            <span className="font-body-bold">History</span>
+            <span className="font-body font-bold">History</span>
           </Link>
           <Link
             href={dashboardHref('create')}
-            className={`flex flex-wrap items-center gap-2 transition-colors hover:text-blue-600 ${isActive(dashboardHref('create')) ? 'border-b-2 border-b-blue-600 text-blue-600' : 'text-slate-700'}`}
+            className={`flex flex-wrap items-center gap-2 transition-colors hover:text-blue-600 ${isActive(dashboardHref('create')) ? 'text-blue-600' : 'text-slate-700'}`}
           >
-            <span className="font-body-bold">Create</span> <ClipboardPlus />
+            <span className="font-body font-bold">Create</span>{' '}
+            <ClipboardPlus />
           </Link>
         </div>
-        <div className="hidden flex-1 justify-center md:flex">
+        <div className="hidden flex-1 justify-end md:flex">
           <form onSubmit={handleSearchSubmit} className="w-full max-w-md">
             <InputGroup className="w-full max-w-sm">
               <InputGroupAddon align={'inline-start'}>
@@ -150,6 +151,7 @@ export default function DashNavbar({ user }: NavbarProps) {
                 onChange={(e) => {
                   setQuery(e.target.value);
                 }}
+                className="font-body font-bold"
               />
             </InputGroup>
           </form>
@@ -180,7 +182,7 @@ export default function DashNavbar({ user }: NavbarProps) {
                     className="flex items-center gap-2"
                     onClick={() => router.push(dashboardHref('profile'))}
                   >
-                    <span className="font-body-bold">Profile</span>
+                    <span className="font-body font-bold">Profile</span>
                     <UserCircleIcon color="#171717" />
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
@@ -196,7 +198,7 @@ export default function DashNavbar({ user }: NavbarProps) {
                       });
                     }}
                   >
-                    <span className="font-body-bold text-destructive">
+                    <span className="font-body text-destructive font-bold">
                       Logout
                     </span>
                     <DoorOpen color="#e7000b" />
@@ -206,7 +208,7 @@ export default function DashNavbar({ user }: NavbarProps) {
                 <DropdownMenuGroup>
                   <DropdownMenuItem>
                     <Link href="/login">
-                      <span className="font-body-bold">Login</span>
+                      <span className="font-body font-bold">Login</span>
                     </Link>
                   </DropdownMenuItem>
                 </DropdownMenuGroup>

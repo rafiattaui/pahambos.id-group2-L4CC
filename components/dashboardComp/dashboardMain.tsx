@@ -34,7 +34,7 @@ export default function DashboardMain({ userName }: DashboardMainProps) {
           <h1 className="font-heading text-3xl font-bold text-slate-900">
             Hello, {userName}!
           </h1>
-          <p className="font-body-bold mt-4 text-slate-900">
+          <p className="font-body mt-4 font-bold text-slate-900">
             Let&apos;s learn something new today!
           </p>
           <div className="mt-24 flex flex-wrap justify-start gap-3">
@@ -43,7 +43,7 @@ export default function DashboardMain({ userName }: DashboardMainProps) {
               onClick={() => {
                 router.push(dashboardHref('search'));
               }}
-              className="text-body-bold h-12 w-full max-w-md"
+              className="font-body h-12 w-full max-w-md font-bold"
             >
               Browse Quiz
             </Button>

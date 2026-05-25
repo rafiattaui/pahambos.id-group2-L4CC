@@ -225,8 +225,8 @@ export default function QuizInterface({
       <div className="fixed inset-0 flex flex-col items-center justify-center gap-6 bg-white/30 backdrop-blur-md">
         {countdown !== null ? (
           // Countdown screen
-          <div className="flex flex-col items-center gap-4">
-            <p className="font-body text-lg text-black/50">Get ready...</p>
+          <div className="font-body flex flex-col items-center gap-4">
+            <p className="text-lg text-black/50">Get ready...</p>
             <div
               key={countdown}
               className="animate-bounce text-9xl font-black text-blue-600"
@@ -397,12 +397,12 @@ export default function QuizInterface({
       <div className="mt-6 mb-2 flex items-center justify-center gap-4 sm:mb-6">
         {/* Timer */}
         <div className="flex items-center gap-2">
-          <span className="font-body rounded-full border border-black/20 bg-white/70 px-5 py-1 text-sm text-black backdrop-blur-md sm:text-lg">
+          <span className="font-body rounded-full border border-black/20 bg-blue-200 px-5 py-1 text-sm text-black backdrop-blur-md sm:text-lg">
             00:{safeTimeLeft < 10 ? `0${safeTimeLeft}` : safeTimeLeft}
           </span>
 
           {/* Question counter */}
-          <span className="font-body rounded-full border border-black/20 bg-white/20 px-5 py-1 text-sm text-black sm:text-lg">
+          <span className="font-body rounded-full border border-black/20 bg-blue-200 px-5 py-1 text-sm text-black backdrop-blur-md sm:text-lg">
             {currentIndex + 1} / {questions.length}
           </span>
         </div>
@@ -490,7 +490,7 @@ export default function QuizInterface({
             <button
               disabled={isSubmitted || selectedIndices.length === 0}
               onClick={handleMultiSubmit}
-              className="text-md w-full max-w-xs items-center justify-center rounded-2xl border border-white bg-white py-2 font-bold text-black transition hover:bg-black hover:text-white! active:scale-95 disabled:cursor-not-allowed sm:py-4 sm:text-xl"
+              className="text-md w-full max-w-xs items-center justify-center rounded-2xl bg-blue-500 py-2 font-bold text-white transition hover:bg-blue-600 active:scale-95 disabled:cursor-not-allowed sm:py-4 sm:text-xl"
             >
               {isSubmitted ? 'Submitted!' : 'Confirm Selection'}
             </button>

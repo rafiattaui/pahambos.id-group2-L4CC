@@ -156,6 +156,8 @@ export const POST = WithAuth(async (req, { user }) => {
 
     const pipe = redis.pipeline();
     pipe.hincrby(`session:${session.id}`, 'score', points);
+    pipe.hset(`session:${session.id}`, 'status', 'waiting'); // set session to waiting for next question
+    // query /next to increment question index
     pipe.hincrby(
       `metrics:${session.id}`,
       'totalResponseTime',

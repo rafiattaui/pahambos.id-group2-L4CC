@@ -7,7 +7,6 @@ import { GetQuestionWithCache } from '@/lib/read-with-cache';
 import { z } from 'zod';
 import { r_MetricsSchema, r_AnswersSchema } from '@/lib/schemas/sessionschemas';
 
-const TIMEOUT = 30; // seconds
 export const SCORE_PER_QUESTION = 250;
 
 const SubmitAnswerSchema = z.object({
@@ -143,7 +142,7 @@ export const POST = WithAuth(async (req, { user }) => {
 
     const elapsedSeconds =
       (Date.now() - new Date(session.questionStartTime).getTime()) / 1000;
-    const timedOut = elapsedSeconds > TIMEOUT; // hard timeout at 30 seconds
+    const timedOut = elapsedSeconds > questionData.time;
 
     const { answer } = SubmitAnswerSchema.parse(rawData);
     console.log('Received answer:', answer);

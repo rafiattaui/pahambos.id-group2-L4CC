@@ -1,4 +1,4 @@
-import HeroSect from '@/components/hero/herosect';
+import HeroSect from '@/components/Hero/herosect';
 import Navbar from '@/components/header/navbar';
 import Discover from '@/components/landing/discover';
 import Learn from '@/components/landing/learn';

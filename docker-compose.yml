@@ -1,0 +1,27 @@
+name: pahambos.id
+
+services:
+  app:
+    image: ${DOCKER_USERNAME:-local}/pahambos.id:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-https://e2526-wads-b4cc-03.csbihub.id}
+        NEXT_PUBLIC_API_DOCS_ENABLED: ${NEXT_PUBLIC_API_DOCS_ENABLED:-true}
+        NEXT_PUBLIC_BETTER_AUTH_URL: ${NEXT_PUBLIC_BETTER_AUTH_URL:-https://e2526-wads-b4cc-03.csbihub.id}
+    env_file:
+      - .env.production
+    ports:
+      - "3017:3017"
+    restart: unless-stopped
+
+  db-schema-sync:
+    profiles: ["migrate"]
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: migrator
+    env_file:
+      - .env.production
+    restart: "no"

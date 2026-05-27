@@ -23,6 +23,7 @@ export const QuizQuestionSchema = z.object({
   order: z.int().nonnegative(),
   question: z.string().min(5).max(100),
   type: z.enum(['MultiSelect', 'SingleSelect']),
+  time: z.int().nonnegative().default(30), // time limit in seconds
   imageUrl: z.url().optional(),
   imageKey: z.string().optional(),
   answers: z.array(z.string()).min(2).max(4),

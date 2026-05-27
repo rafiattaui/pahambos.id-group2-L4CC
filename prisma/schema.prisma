@@ -145,6 +145,7 @@ model QuizQuestion {
   order        Int
   type         QuestionType @default(SingleSelect)
   question     String
+  time         Int @default(30)
   imageUrl     String?
   imageKey     String?
   answers      String[]
@@ -162,6 +163,7 @@ model UserPerformance {
   userId       String   @db.Uuid
   finalScore   Int
   accuracyRate Decimal  @db.Decimal(5, 2)
+  longestStreak Int     @default(1)
   timeTaken    Int      // Duration in seconds
   completedAt  DateTime @default(now())
 

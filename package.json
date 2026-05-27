@@ -8,7 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "prepare": "husky",
+    "prepare": "husky || true",
     "format": "prettier --write \"{app,components,lib}/**/*.{ts,tsx,js,jsx,json,css,md}\"",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -34,6 +34,7 @@
     "embla-carousel": "^8.6.0",
     "embla-carousel-autoplay": "^8.6.0",
     "embla-carousel-react": "^8.6.0",
+    "ioredis": "^5.10.1",
     "lucide-react": "^0.575.0",
     "next": "16.1.6",
     "next-cloudinary": "^6.17.5",
@@ -97,6 +98,21 @@
     ],
     "**/*.(md|json|css)": [
       "prettier --write"
+    ]
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@prisma/engines",
+      "@scarf/scarf",
+      "@tree-sitter-grammars/tree-sitter-yaml",
+      "core-js-pure",
+      "esbuild",
+      "msw",
+      "prisma",
+      "sharp",
+      "tree-sitter-json",
+      "tree-sitter",
+      "unrs-resolver"
     ]
   }
 }

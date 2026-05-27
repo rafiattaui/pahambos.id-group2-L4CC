@@ -38,6 +38,20 @@ export const GET = WithAuth(async (req, { user }) => {
     // transition it to active and set questionStartTime
     // and return question
     if (session.status === 'waiting') {
+      // check if an existing answer already exists for current question
+
+      const alreadyAnswered = await redis.lindex(
+        `session:${session.id}:answers`,
+        session.currentQuestionIndex
+      );
+
+      if (alreadyAnswered) {
+        return NextResponse.json(
+          { success: false, message: 'Current question already answered.' },
+          { status: 400 }
+        );
+      }
+
       const questionStartTime = new Date().toISOString();
 
       const pipe = redis.pipeline();
@@ -157,9 +171,10 @@ export const POST = WithAuth(async (req, { user }) => {
       totalCorrect: parseInt(rawMetrics.totalCorrect || '0', 10),
       totalIncorrect: parseInt(rawMetrics.totalIncorrect || '0', 10),
       longestStreak: parseInt(rawMetrics.longestStreak || '0', 10),
-      currentSteak: parseInt(rawMetrics.currentStreak || '0', 10),
+      currentStreak: parseInt(rawMetrics.currentStreak || '0', 10),
     });
     const newStreak = answeredCorrectly ? metrics.currentStreak + 1 : 0;
+    console.log(newStreak, metrics.currentStreak, metrics.longestStreak);
 
     const answerData = r_AnswersSchema.parse({
       questionIndex: session.currentQuestionIndex,

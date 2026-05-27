@@ -56,6 +56,7 @@ export const POST = WithAuth(async (req, { user, params }) => {
     pipe.del(`session:${session.id}`);
     pipe.del(`metrics:${session.id}`);
     pipe.del(`player_session:${user.id}`);
+    pipe.del(`session:${session.id}:answers`);
     await pipe.exec();
 
     return NextResponse.json({

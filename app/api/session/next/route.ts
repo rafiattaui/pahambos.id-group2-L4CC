@@ -54,7 +54,8 @@ export const POST = WithAuth(async (req, { user, params }) => {
     const pipe = redis.pipeline();
 
     pipe.hincrby(`session:${session.id}`, 'currentQuestionIndex', 1);
-    pipe.hset(`session:${session.id}`, 'status', 'waiting'); // set session to waiting for next question
+
+    await pipe.exec();
 
     return NextResponse.json({
       success: true,

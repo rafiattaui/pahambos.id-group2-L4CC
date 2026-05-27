@@ -7,6 +7,8 @@ import { GetQuestionWithCache } from '@/lib/read-with-cache';
 import { z } from 'zod';
 import { r_MetricsSchema, r_AnswersSchema } from '@/lib/schemas/sessionschemas';
 
+const TIMEOUT = 30; // seconds
+
 const SubmitAnswerSchema = z.object({
   answer: z
     .array(z.number().nonnegative())
@@ -126,9 +128,21 @@ export const POST = WithAuth(async (req, { user }) => {
 
     const elapsedSeconds =
       (Date.now() - new Date(session.questionStartTime).getTime()) / 1000;
-    const timedOut = elapsedSeconds > 1;
+    const timedOut = elapsedSeconds > TIMEOUT; // hard timeout at 30 seconds
 
     const { answer } = SubmitAnswerSchema.parse(rawData);
+    console.log('Received answer:', answer);
+    console.log('Correct answers:', questionData.correctAnswers);
+    console.log(
+      'Types:',
+      typeof answer[0],
+      typeof questionData.correctAnswers[0]
+    );
+    console.log(
+      'Strict equality:',
+      answer[0] === questionData.correctAnswers[0]
+    );
+    console.log('timedOut:', timedOut, 'elapsedSeconds:', elapsedSeconds);
 
     const answeredCorrectly =
       !timedOut &&
@@ -142,6 +156,7 @@ export const POST = WithAuth(async (req, { user }) => {
       totalCorrect: parseInt(rawMetrics.totalCorrect || '0', 10),
       totalIncorrect: parseInt(rawMetrics.totalIncorrect || '0', 10),
       longestStreak: parseInt(rawMetrics.longestStreak || '0', 10),
+      currentSteak: parseInt(rawMetrics.currentStreak || '0', 10),
     });
     const newStreak = answeredCorrectly ? metrics.currentStreak + 1 : 0;
 

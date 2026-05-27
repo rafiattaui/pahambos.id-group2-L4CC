@@ -163,6 +163,7 @@ model UserPerformance {
   userId       String   @db.Uuid
   finalScore   Int
   accuracyRate Decimal  @db.Decimal(5, 2)
+  longestStreak Int     @default(1)
   timeTaken    Int      // Duration in seconds
   completedAt  DateTime @default(now())
 

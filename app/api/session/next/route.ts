@@ -59,6 +59,7 @@ export const POST = WithAuth(async (req, { user, params }) => {
 
     return NextResponse.json({
       success: true,
+      newStatus: isLastQuestion ? 'finished' : 'active',
     });
   } catch (error) {
     return handleError(error);

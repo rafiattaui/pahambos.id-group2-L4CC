@@ -55,7 +55,7 @@ export const DELETE = WithAuth(async (req, { user, params }) => {
     if (!quiz) {
       throw new APIError('Invalid Quiz ID', 404);
     } else {
-      if (quiz.createdBy == user.id) {
+      if (quiz.createdBy === user.id) {
         const questions = await prisma.quizQuestion.findMany({
           where: { quizId: id },
         });

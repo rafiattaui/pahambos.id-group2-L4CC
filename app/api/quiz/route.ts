@@ -135,8 +135,9 @@ export const POST = WithAuth(async (req, { user }) => {
           type: q.type,
           answers: q.answers,
           correctAnswers: q.correctAnswers,
-          imageUrl: questionImages[i]?.imageUrl ?? PLACEHOLDER_IMAGE_URL,
-          imageKey: questionImages[i]?.imageKey ?? PLACEHOLDER_IMAGE_KEY,
+          // quizQuestions do not require images, so we can set them to null if not provided
+          imageUrl: questionImages[i]?.imageUrl ?? null,
+          imageKey: questionImages[i]?.imageKey ?? null,
         })),
       });
 

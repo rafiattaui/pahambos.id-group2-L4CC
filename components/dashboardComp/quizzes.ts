@@ -37,5 +37,3 @@ export default async function getQuizzes(params: GetQuizzesParams = {}) {
   const data = await response.json();
   return data;
 }
-
-//export default async function createQuiz (quizData: {})

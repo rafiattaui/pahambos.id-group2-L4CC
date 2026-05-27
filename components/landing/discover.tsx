@@ -33,7 +33,7 @@ export default function Discover() {
   return (
     <div className="my-16">
       <section id="discover" className="container mx-auto flex w-full flex-col">
-        <h2 className="font-heading ml-4 text-4xl font-bold text-white">
+        <h2 className="font-body ml-4 text-4xl font-bold text-white">
           Discover Quizzes <br /> Up to {count}{' '}
           <br className="inline sm:hidden" />
           categories!

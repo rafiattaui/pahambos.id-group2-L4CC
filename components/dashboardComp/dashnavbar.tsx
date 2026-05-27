@@ -108,7 +108,9 @@ export default function DashNavbar({ user }: NavbarProps) {
   return (
     <>
       <nav className="flex w-full flex-row items-center">
-        <Logo></Logo>
+        <Link href="/dashboard" className="flex items-center gap-2">
+          <Logo></Logo>
+        </Link>
         <div className="ml-4 hidden flex-row gap-6 md:flex">
           <Link
             href="/dashboard"

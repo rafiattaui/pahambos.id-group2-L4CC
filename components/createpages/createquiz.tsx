@@ -1307,7 +1307,7 @@ export default function CreateQuizForm({
                 >
                   {isSubmitting ? (
                     <span className="flex items-center gap-2">
-                      <Spinner className="text-blue-300" />
+                      <Spinner className="cursor-progress text-blue-300" />
                       Processing...
                     </span>
                   ) : isEditMode ? (

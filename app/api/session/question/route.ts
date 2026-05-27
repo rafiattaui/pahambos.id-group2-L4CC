@@ -8,6 +8,7 @@ import { z } from 'zod';
 import { r_MetricsSchema, r_AnswersSchema } from '@/lib/schemas/sessionschemas';
 
 const TIMEOUT = 30; // seconds
+export const SCORE_PER_QUESTION = 250;
 
 const SubmitAnswerSchema = z.object({
   answer: z

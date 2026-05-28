@@ -8,15 +8,15 @@ type Props = {
 
 export default async function QuizPage({ params }: Props) {
   const { id } = await params;
-  console.log('Quiz ID:', id);
-  const questions = await prisma.quizQuestion.findMany({
-    where: { quizId: id },
-    orderBy: { order: 'asc' },
+
+  // Validate the quiz exists — session creation and question fetching
+  // are handled client-side by QuizInterface via the session API.
+  const quiz = await prisma.quiz.findUnique({
+    where: { id },
+    select: { id: true },
   });
 
-  console.log('Fetched Questions:', questions); // Debug log to check fetched questions
+  if (!quiz) return notFound();
 
-  if (!questions.length) return notFound();
-
-  return <QuizInterface questions={questions} />;
+  return <QuizInterface quizId={id} />;
 }

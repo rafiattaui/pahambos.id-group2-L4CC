@@ -1,9 +1,7 @@
 'use client';
 
-import { error, time } from 'console';
-import { resolve } from 'path';
-import { useState, useCallback, useRef, use, useEffect } from 'react';
-import { set } from 'zod';
+import { useRouter } from 'next/navigation';
+import { useState, useCallback, useRef, useEffect } from 'react';
 
 export type QuestionType = 'SingleSelect' | 'MultiSelect' | 'TrueFalse';
 
@@ -15,11 +13,35 @@ export interface QuizQuestion {
   answers: string[];
   correctAnswers: number[]; // index of the correct answer in the answers array, multi select included
   imageUrl?: string;
-
-  // additional fields for type and time limit
   type?: QuestionType;
-  timeLimit?: number; // in seconds
+  time: number; // in seconds
 }
+
+interface AnswerResult {
+  questionText: string;
+  isCorrect: boolean | null;
+  timedOut: boolean;
+  points: number;
+}
+
+interface FinishStats {
+  totalCorrect: number;
+  totalIncorrect: number;
+  totalResponseTime: number;
+  longestStreak: number;
+  finalScore: number;
+}
+
+type Phase =
+  | 'init' // creating session
+  | 'splash' // before countdown
+  | 'countdown' // 3-2-1
+  | 'loading' // fetching next question
+  | 'answering' // timer running
+  | 'feedback' // showing correct/incorrect briefly
+  | 'finishing' // calling /finish
+  | 'results' // final score screen
+  | 'error'; // unrecoverable error
 
 function resolveType(q: QuizQuestion): QuestionType {
   if (q.type) return q.type;
@@ -33,59 +55,126 @@ function resolveType(q: QuizQuestion): QuestionType {
   return 'SingleSelect';
 }
 
-function checkCorrect(q: QuizQuestion, selectedIndices: number[]): boolean {
-  const type = resolveType(q);
-
-  if (type === 'SingleSelect' || type === 'TrueFalse') {
-    return selectedIndices[0] === q.correctAnswers[0];
-  }
-  if (type === 'MultiSelect') {
-    const correctSet = q.correctAnswers ?? [q.correctAnswers[0]];
-    const sorted = [...selectedIndices].sort((a, b) => a - b);
-    const sortedCorrect = [...correctSet].sort((a, b) => a - b);
-    return (
-      sorted.length === sortedCorrect.length &&
-      sorted.every((v, i) => v === sortedCorrect[i])
-    );
-  }
-  return false;
-}
-
-// Tracking per-question state
-interface QuestionResult {
-  selectedIndices: number[];
-  isCorrect: boolean | null; // null until submitted
-  timedOut: boolean;
-}
-
 const ANSWER_COLORS = ['#FF3B3B', '#3B82F6', '#5FAD56', '#FFD600'];
 const ANSWER_TEXT_COLORS = ['#fff', '#fff', '#fff', '#fff'];
 
-export default function QuizInterface({
-  questions,
-}: {
-  questions: QuizQuestion[];
-}) {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [timeLeft, setTimeLeft] = useState<number | null>(null);
+async function createSession(
+  quizId: string
+): Promise<{ sessionId: string; totalQuestions: number }> {
+  const res = await fetch(`/api/quiz/${quizId}/session`, { method: 'POST' });
+  const data = await res.json();
+  if (!data.success)
+    throw new Error(data.message ?? 'Failed to create session');
+
+  const sessionRes = await fetch('/api/session');
+  const sessionData = await sessionRes.json();
+  if (!sessionData.success)
+    throw new Error(sessionData.message ?? 'Failed to retrieve session data');
+
+  return {
+    sessionId: sessionData.sessionId,
+    totalQuestions: parseInt(sessionData.sessionData.totalQuestions, 10),
+  };
+}
+
+async function fetchQuestion(): Promise<{
+  question: QuizQuestion;
+  questionStartTime: string;
+}> {
+  const res = await fetch('/api/session/question', { method: 'GET' });
+  const data = await res.json();
+  if (!data.success)
+    throw new Error(data.message ?? 'Failed to fetch question');
+  return {
+    question: data.question,
+    questionStartTime: data.questionStartTime,
+  };
+}
+
+async function submitAnswer(answer: number[]): Promise<{
+  isCorrect: boolean;
+  isTimedOut: boolean;
+  points: number;
+}> {
+  const res = await fetch('/api/session/question', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ answer }),
+  });
+  const data = await res.json();
+  if (!data.success) throw new Error(data.message ?? 'Failed to submit answer');
+  return {
+    isCorrect: data.isCorrect,
+    isTimedOut: data.isTimedOut,
+    points: data.points,
+  };
+}
+
+async function advanceQuestion(): Promise<{
+  newStatus: 'active' | 'finished';
+}> {
+  const res = await fetch('/api/session/next', { method: 'POST' });
+  const data = await res.json();
+  if (!data.success)
+    throw new Error(data.message ?? 'Failed to advance question');
+  return { newStatus: data.newStatus };
+}
+
+async function finishSession(): Promise<void> {
+  const res = await fetch('/api/session/finish', { method: 'POST' });
+  const data = await res.json();
+  if (!data.success)
+    throw new Error(data.message ?? 'Failed to finish session');
+}
+
+// Component
+
+export default function QuizInterface({ quizId }: { quizId: string }) {
+  const router = useRouter();
+  const [phase, setPhase] = useState<Phase>('init');
+  const [countdown, setCountdown] = useState(3);
+  const [totalQuestions, setTotalQuestions] = useState(0);
+
+  const [question, setQuestion] = useState<QuizQuestion | null>(null);
+  const [questionIndex, setQuestionIndex] = useState(0);
+  const [timeLeft, setTimeLeft] = useState<number>(30);
+
   const [selectedIndices, setSelectedIndices] = useState<number[]>([]);
-  const [isSubmitted, setIsSubmitted] = useState(false);
-  const [results, setResults] = useState<(QuestionResult | null)[]>(
-    Array(questions.length).fill(null)
-  );
-  const [quizFinished, setQuizFinished] = useState(false);
+  const [lastResult, setLastResult] = useState<{
+    isCorrect: boolean;
+    isTimedOut: boolean;
+    points: number;
+    correctAnswers?: number[];
+  } | null>(null);
+
+  const [results, setResults] = useState<AnswerResult[]>([]);
+  const [errorMessage, setErrorMessage] = useState<string>('');
+
   const [isPaused, setIsPaused] = useState(false);
-
-  const currentQuestion = questions[currentIndex];
-  const questionType = resolveType(currentQuestion);
-  const totalTime = currentQuestion.timeLimit ?? 30;
-  const safeTimeLeft = timeLeft ?? totalTime;
-
-  const [quizStarted, setQuizStarted] = useState(false);
-  const [countdown, setCountdown] = useState<number | null>(null);
 
   const bgMusicRef = useRef<HTMLAudioElement | null>(null);
   const finishMusicRef = useRef<HTMLAudioElement | null>(null);
+  const submitLockRef = useRef(false); // prevent double-submit
+
+  async function handleBackToDashboard() {
+    if (phase !== 'results') {
+      await fetch('/api/session', { method: 'DELETE' });
+    }
+    router.push('/dashboard');
+  }
+
+  // Session creation
+  useEffect(() => {
+    createSession(quizId)
+      .then(({ totalQuestions: tq }) => {
+        setTotalQuestions(tq);
+        setPhase('splash');
+      })
+      .catch((e: any) => {
+        setErrorMessage(e.message ?? 'Failed to create session');
+        setPhase('error');
+      });
+  }, [quizId]);
 
   // Initialize audio once
   useEffect(() => {
@@ -99,231 +188,377 @@ export default function QuizInterface({
 
     return () => {
       bgMusicRef.current?.pause();
-      bgMusicRef.current = null;
       finishMusicRef.current?.pause();
-      finishMusicRef.current = null;
     };
   }, []);
 
   // React to pause/resume separately
   useEffect(() => {
     const audio = bgMusicRef.current;
-    if (!audio || !quizStarted) return;
-
-    if (isPaused) {
+    if (!audio || phase == 'splash') return;
+    if (isPaused || phase === 'results' || phase === 'error') {
       audio.pause();
     } else {
       audio.play().catch((err) => console.log('Playback blocked:', err));
     }
-  }, [isPaused, quizStarted]);
+  }, [isPaused, phase]);
 
-  function handleStart() {
-    bgMusicRef.current
-      ?.play()
-      .catch((err) => console.log('Playback blocked:', err));
-    setCountdown(3);
-  }
-
-  // Commit answer and advance to next question
-  const commitAndAdvance = useCallback(
-    (indices: number[], timedOut = false) => {
-      const isCorrect = timedOut
-        ? null
-        : checkCorrect(currentQuestion, indices);
-
-      setResults((prev) => {
-        const next = [...prev];
-        next[currentIndex] = { selectedIndices: indices, isCorrect, timedOut };
-        return next;
-      });
-      setIsSubmitted(true);
-
-      // Auto-advance after 1.4 s
-      setTimeout(() => {
-        if (currentIndex + 1 < questions.length) {
-          setCurrentIndex((i) => i + 1);
-          setSelectedIndices([]);
-          setIsSubmitted(false);
-          setTimeLeft(questions[currentIndex + 1]?.timeLimit ?? 30);
-        } else {
-          bgMusicRef.current?.pause();
-          setQuizFinished(true);
-        }
-      }, 1400);
-    },
-    [currentIndex, currentQuestion, questions]
-  );
-
-  const commitRef = useRef(commitAndAdvance);
   useEffect(() => {
-    commitRef.current = commitAndAdvance;
-  }, [commitAndAdvance]);
+    if (phase === 'results') {
+      bgMusicRef.current?.pause();
+      finishMusicRef.current?.play().catch(() => {});
+    }
+  }, [phase]);
 
-  // Handle timer
+  // Load question from server
+  const loadQuestion = useCallback(async () => {
+    setPhase('loading');
+    setSelectedIndices([]);
+    setLastResult(null);
+    submitLockRef.current = false;
+    try {
+      const { question: q, questionStartTime: startTime } =
+        await fetchQuestion();
+      const elapsed = (Date.now() - new Date(startTime).getTime()) / 1000;
+      const remaining = Math.max(0, Math.floor((q.time ?? 30) - elapsed));
+      setQuestion(q);
+      setTimeLeft(remaining);
+      setPhase('answering');
+    } catch (e: any) {
+      setErrorMessage(e.message ?? 'Failed to load question');
+      setPhase('error');
+    }
+  }, []);
+
+  const loadQuestionRef = useRef(loadQuestion);
   useEffect(() => {
-    if (countdown === null) return;
-    const id = setTimeout(() => {
-      if (countdown <= 1) {
-        // All three updates in one tick — no missing dependency warning
-        setQuizStarted(true);
-        setCountdown(null);
-        setTimeLeft(questions[0]?.timeLimit ?? 30);
-      } else {
-        setCountdown((c) => (c ?? 1) - 1);
-      }
-    }, 1000);
-    return () => clearTimeout(id);
-  }, [countdown, questions]);
+    loadQuestionRef.current = loadQuestion;
+  }, [loadQuestion]);
 
-  // Play finish music when quiz ends
+  // Countdown
   useEffect(() => {
-    if (!quizFinished) return;
-    finishMusicRef.current
-      ?.play()
-      .catch((err) => console.log('Finish music blocked:', err));
-  }, [quizFinished]);
-
-  // Handle timer
-  useEffect(() => {
-    if (
-      !quizStarted ||
-      isSubmitted ||
-      quizFinished ||
-      isPaused ||
-      timeLeft === null
-    )
-      return;
-
-    if (timeLeft <= 0) {
-      commitRef.current([], true);
+    if (phase !== 'countdown') return;
+    if (countdown <= 0) {
+      loadQuestionRef.current();
       return;
     }
-    const id = setTimeout(() => setTimeLeft((prev) => (prev ?? 1) - 1), 1000);
+    const id = setTimeout(() => setCountdown((c) => c - 1), 1000);
     return () => clearTimeout(id);
-  }, [timeLeft, isSubmitted, quizFinished, isPaused, quizStarted]);
+  }, [phase, countdown]);
 
-  // Handle answer selection
+  // Advance to next question or finish
+  const doAdvance = useCallback(async () => {
+    try {
+      const { newStatus } = await advanceQuestion();
+      if (newStatus === 'finished') {
+        setPhase('finishing');
+        await finishSession();
+        setPhase('results');
+      } else {
+        setTimeout(() => {
+          setQuestionIndex((i) => i + 1);
+          loadQuestionRef.current();
+        }, 1400);
+      }
+    } catch (e: any) {
+      setErrorMessage(e.message);
+      setPhase('error');
+    }
+  }, [results, loadQuestion]);
+
+  // Handle timeout
+  const handleTimeout = useCallback(async () => {
+    if (submitLockRef.current) return;
+    submitLockRef.current = true;
+    setPhase('feedback');
+    try {
+      const result = await submitAnswer([0]); // although we answered 0, server detects timeout=true and marks as incorrect
+      setLastResult({ ...result, isTimedOut: true, isCorrect: false });
+      setResults((prev) => [
+        ...prev,
+        {
+          questionText: question?.question ?? '',
+          isCorrect: false,
+          timedOut: true,
+          points: 0,
+        },
+      ]);
+      await doAdvance();
+    } catch (e: any) {
+      setErrorMessage(e.message);
+      setPhase('error');
+    }
+  }, [question]);
+
+  const handleTimeoutRef = useRef(handleTimeout);
+  useEffect(() => {
+    handleTimeoutRef.current = handleTimeout;
+  }, [handleTimeout]);
+
+  // Timer
+  useEffect(() => {
+    if (phase !== 'answering' || isPaused) return;
+    if (timeLeft <= 0) {
+      handleTimeoutRef.current();
+      return;
+    }
+    const id = setTimeout(() => setTimeLeft((t) => (t ?? 1) - 1), 1000);
+    return () => clearTimeout(id);
+  }, [timeLeft, phase, isPaused]);
+
+  // Answer submission
+  const handleSubmit = useCallback(
+    async (indices: number[]) => {
+      if (submitLockRef.current || phase !== 'answering') return;
+      submitLockRef.current = true;
+      try {
+        const result = await submitAnswer(indices);
+        setLastResult(result);
+        setResults((prev) => [
+          ...prev,
+          {
+            questionText: question?.question ?? '',
+            isCorrect: result.isCorrect,
+            timedOut: result.isTimedOut,
+            points: result.points,
+          },
+        ]);
+        setTimeout(async () => {
+          await doAdvance();
+        }, 1400);
+      } catch (e: any) {
+        setErrorMessage(e.message);
+        setPhase('error');
+      }
+      setPhase('feedback');
+    },
+    [phase, question, doAdvance]
+  );
+
+  // Handle selections
   function handleSingleSelect(index: number) {
-    if (isSubmitted) return;
+    if (phase !== 'answering') return;
     setSelectedIndices([index]);
-    commitRef.current([index]);
+    handleSubmit([index]);
   }
 
   function handleMultiToggle(index: number) {
-    if (isSubmitted) return;
+    if (phase !== 'answering') return;
     setSelectedIndices((prev) =>
       prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index]
     );
   }
 
   function handleMultiSubmit() {
-    if (isSubmitted || selectedIndices.length === 0) return;
-    commitRef.current(selectedIndices);
+    if (phase !== 'answering' || selectedIndices.length === 0) return;
+    handleSubmit(selectedIndices);
   }
 
-  if (!quizStarted) {
+  // ── Answer button styles ───────────────────────────────────────────────────
+
+  function getAnswerStyle(index: number) {
+    const base = ANSWER_COLORS[index % ANSWER_COLORS.length];
+    const isFeedback = phase === 'feedback';
+    const isSelected = selectedIndices.includes(index);
+
+    if (!isFeedback) {
+      return {
+        backgroundColor: base,
+        opacity: 1,
+        outline: isSelected ? '4px solid white' : 'none',
+        outlineOffset: '2px',
+        transform: isSelected ? 'scale(1.03)' : 'scale(1)',
+      };
+    }
+
+    if (isSelected) {
+      return {
+        backgroundColor: lastResult?.isCorrect ? '#00C853' : '#FF3B3B',
+        opacity: 1,
+      };
+    }
+    return { backgroundColor: base, opacity: 0.45 };
+  }
+
+  const questionType = question ? resolveType(question) : 'SingleSelect';
+  const isTrueFalse = questionType === 'TrueFalse';
+  const isMultiSelect = questionType === 'MultiSelect';
+  const isLocked = phase === 'feedback' || phase === 'loading';
+
+  // Init page
+  if (phase === 'init') {
     return (
-      <div className="fixed inset-0 flex flex-col items-center justify-center gap-6 bg-white/30 backdrop-blur-md">
-        {countdown !== null ? (
-          // Countdown screen
-          <div className="font-body flex flex-col items-center gap-4">
-            <p className="text-lg text-black/50">Get ready...</p>
-            <div
-              key={countdown}
-              className="animate-bounce text-9xl font-black text-blue-600"
-            >
-              {countdown}
-            </div>
-          </div>
-        ) : (
-          // Splash screen
-          <div className="font-body flex flex-col items-center gap-6">
-            <div className="text-6xl">🎮</div>
-            <h1 className="text-4xl font-black text-black">Ready?</h1>
-            <p className="text-lg text-black/60">
-              {questions.length} questions
-            </p>
-            <button
-              onClick={handleStart}
-              className="max-w-s w-full rounded-2xl bg-blue-500 px-12 py-4 text-2xl font-bold text-white transition hover:bg-blue-600 active:scale-95"
-            >
-              Start Quiz 🚀
-            </button>
-            <a
-              href="/dashboard"
-              className="max-w-s w-full rounded-2xl border border-white/50 bg-white/30 px-12 py-4 text-center text-2xl font-bold text-black transition hover:bg-white/50 active:scale-95"
-            >
-              Back to Dashboard
-            </a>
-          </div>
-        )}
+      <div className="fixed inset-0 flex items-center justify-center bg-white/30 backdrop-blur-md">
+        <div className="font-body flex flex-col items-center gap-4">
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
+          <p className="text-black/60">Preparing your quiz...</p>
+        </div>
       </div>
     );
   }
 
-  // Score screen
-  if (quizFinished) {
-    const correct = results.filter((r) => r?.isCorrect === true).length;
-    const timedOut = results.filter((r) => r?.timedOut).length;
-    const finalScore = Math.round((correct / questions.length) * 100);
+  // Splash page
+  if (phase === 'splash') {
+    return (
+      <div className="fixed inset-0 flex flex-col items-center justify-center gap-6 bg-white/30 backdrop-blur-md">
+        <div className="font-body flex flex-col items-center gap-6">
+          <div className="text-6xl">🎮</div>
+          <h1 className="text-4xl font-black text-black">Ready?</h1>
+          <p className="text-lg text-black/60">{totalQuestions} questions</p>
+          <button
+            onClick={() => {
+              bgMusicRef.current?.play().catch(() => {});
+              setCountdown(3);
+              setPhase('countdown');
+            }}
+            className="max-w-s w-full rounded-2xl bg-blue-500 px-12 py-4 text-2xl font-bold text-white transition hover:bg-blue-600 active:scale-95"
+          >
+            Start Quiz 🚀
+          </button>
+          <button
+            onClick={handleBackToDashboard}
+            className="max-w-s w-full rounded-2xl border border-white/50 bg-white/30 px-12 py-4 text-center text-2xl font-bold text-black transition hover:bg-white/50 active:scale-95"
+          >
+            Back to Dashboard
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Countdown page
+  if (phase === 'countdown') {
+    return (
+      <div className="font-body fixed inset-0 flex flex-col items-center justify-center gap-4 bg-white/30 backdrop-blur-md">
+        <p className="text-lg text-black/50">Get ready...</p>
+        <div
+          key={countdown}
+          className="animate-bounce text-9xl font-black text-blue-600"
+        >
+          {countdown}
+        </div>
+      </div>
+    );
+  }
+
+  // Loading page
+  if (phase === 'loading') {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-white/30 backdrop-blur-md">
+        <div className="font-body flex flex-col items-center gap-4">
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
+          <p className="text-black/60">Loading question...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error page
+  if (phase === 'error') {
+    return (
+      <div className="fixed inset-0 flex flex-col items-center justify-center gap-6 bg-white/30 px-4 backdrop-blur-md">
+        <div className="text-5xl">⚠️</div>
+        <h2 className="font-body text-2xl font-bold text-black">
+          Something went wrong
+        </h2>
+        <p className="font-body max-w-sm text-center text-black/60">
+          {errorMessage}
+        </p>
+        <button
+          onClick={handleBackToDashboard}
+          className="rounded-2xl bg-blue-500 px-10 py-3 font-bold text-white transition hover:bg-blue-600 active:scale-95"
+        >
+          Back to Dashboard
+        </button>
+      </div>
+    );
+  }
+
+  // Finishing page
+  if (phase === 'finishing') {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-white/30 backdrop-blur-md">
+        <div className="font-body flex flex-col items-center gap-4">
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
+          <p className="text-black/60">Saving your results...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Results page
+  if (phase === 'results') {
+    const correct = results.filter((r) => r.isCorrect).length;
+    const timedOut = results.filter((r) => r.timedOut).length;
+    const totalScore = results.reduce((sum, r) => sum + r.points, 0);
+    const pct =
+      totalQuestions > 0 ? Math.round((correct / totalQuestions) * 100) : 0;
+
+    let longestStreak = 0;
+    let currentStreak = 0;
+    for (const r of results) {
+      if (r.isCorrect) {
+        currentStreak++;
+        if (currentStreak > longestStreak) longestStreak = currentStreak;
+      } else {
+        currentStreak = 0;
+      }
+    }
 
     return (
       <div className="fixed inset-0 h-screen w-screen overflow-y-auto bg-white/30 px-4 pb-10 backdrop-blur-md">
         <div className="mt-10 mb-6 flex flex-col items-center gap-4">
           <div className="text-6xl">
-            {finalScore >= 70 ? '🎉' : finalScore >= 40 ? '👍' : '😅'}
+            {pct >= 70 ? '🎉' : pct >= 40 ? '👍' : '😅'}
           </div>
           <h1 className="font-body text-3xl font-bold text-black">
             Quiz Complete!
           </h1>
           <div className="font-body text-5xl font-black text-blue-600">
-            {finalScore}%
+            {pct}%
           </div>
           <p className="font-body text-lg text-black/70">
-            {correct} / {questions.length} correct · {timedOut} timed out
+            {correct} / {totalQuestions} correct · {timedOut} timed out
           </p>
+          <p className="font-body text-2xl font-bold text-black">
+            {totalScore} pts
+          </p>
+          {longestStreak > 1 && (
+            <p className="font-body text-base text-black/60">
+              🔥 Longest streak: {longestStreak}
+            </p>
+          )}
         </div>
 
         <div className="flex flex-col items-center">
           <button
-            onClick={() => {
-              finishMusicRef.current?.pause();
-              setCurrentIndex(0);
-              setSelectedIndices([]);
-              setIsSubmitted(false);
-              setResults(Array(questions.length).fill(null));
-              setQuizFinished(false);
-              setTimeLeft(questions[0]?.timeLimit ?? 30);
-              setQuizStarted(false);
-              setCountdown(3);
-              bgMusicRef.current?.play().catch(() => {});
-            }}
-            className="font-body mx-auto mt-5 w-full max-w-xl items-center rounded-2xl bg-blue-500 py-4 text-xl font-bold text-white transition hover:bg-blue-600 active:scale-95"
-          >
-            Try Again
-          </button>
-          <a
-            href="/dashboard"
-            className="font-body mt-3 mb-10 block w-full max-w-xl rounded-2xl border border-white/50 bg-white/30 py-4 text-center text-xl font-bold text-black transition hover:bg-white/50 active:scale-95"
+            onClick={handleBackToDashboard}
+            className="font-body mx-auto mt-5 mb-10 block w-full max-w-xl rounded-2xl border border-white/50 bg-white/30 py-4 text-center text-xl font-bold text-black transition hover:bg-white/50 active:scale-95"
           >
             Back to Dashboard
-          </a>
+          </button>
         </div>
 
         <div className="font-body mx-auto flex max-w-xl flex-col gap-3">
-          <p>Review: </p>
-          {questions.map((q, i) => {
-            const r = results[i];
-            const icon = r?.timedOut ? '⏱️' : r?.isCorrect ? '✅' : '❌';
+          <p className="text-black/60">Review</p>
+          {results.map((r, i) => {
+            const icon = r.timedOut ? '⏱️' : r.isCorrect ? '✅' : '❌';
             return (
               <div
-                key={q.id}
+                key={i}
                 className="flex items-start gap-3 rounded-xl border border-white/40 bg-white/50 px-4 py-3"
               >
                 <span className="mt-0.5 text-xl">{icon}</span>
-                <span className="font-body text-sm leading-snug text-black">
-                  {q.question}
-                </span>
+                <div className="flex flex-1 items-center justify-between gap-2">
+                  <span className="font-body text-sm leading-snug text-black">
+                    {r.questionText}
+                  </span>
+                  {r.points > 0 && (
+                    <span className="shrink-0 text-sm font-bold text-blue-600">
+                      +{r.points}
+                    </span>
+                  )}
+                </div>
               </div>
             );
           })}
@@ -332,37 +567,8 @@ export default function QuizInterface({
     );
   }
 
-  const progress = (safeTimeLeft / totalTime) * 100;
-  const isCorrectSubmit =
-    isSubmitted && checkCorrect(currentQuestion, selectedIndices);
-
-  // Answer button styles
-  function getAnswerStyle(index: number) {
-    const base = ANSWER_COLORS[index % ANSWER_COLORS.length];
-    if (!isSubmitted) {
-      const isSelected = selectedIndices.includes(index);
-      return {
-        backgroundColor: base,
-        opacity: 1,
-        outline: isSelected ? '4px solid white' : 'none',
-        outlineOffset: '2px',
-        transform: isSelected ? 'scale(1.05)' : 'scale(1)',
-      };
-    }
-
-    // After submission, show correct/incorrect
-    const isCorrectAnswer = currentQuestion.correctAnswers.includes(index);
-    const wasSelected = selectedIndices.includes(index);
-
-    if (isCorrectAnswer) return { backgroundColor: '#00C853', opacity: 1 }; // green for correct
-    if (wasSelected && !isCorrectAnswer)
-      return { backgroundColor: '#FF3B3B', opacity: 1 }; // red for incorrect
-    return { backgroundColor: base, opacity: 0.6 };
-  }
-
-  const isTrueFalse = questionType === 'TrueFalse';
-  const isMultiSelect = questionType === 'MultiSelect';
-
+  // Quiz page (answering/feedback)
+  if (!question) return null;
   return (
     <div className="fixed inset-0 h-screen w-screen overflow-y-auto bg-white/30 px-4 pb-10 backdrop-blur-md">
       {/* Pause overlay */}
@@ -376,12 +582,12 @@ export default function QuizInterface({
           >
             Resume
           </button>
-          <a
-            href="/dashboard"
+          <button
+            onClick={handleBackToDashboard}
             className="w-full max-w-2xs rounded-2xl border border-white/50 bg-white/20 px-10 py-4 text-center text-xl font-bold text-white transition hover:bg-white/30 active:scale-95"
           >
             Back to Dashboard
-          </a>
+          </button>
         </div>
       )}
 
@@ -394,25 +600,44 @@ export default function QuizInterface({
         ⏸
       </button>
 
-      {/* Timer and question counter*/}
-      <div className="mt-6 mb-2 flex items-center justify-center gap-4 sm:mb-6">
-        {/* Timer */}
+      {/* Timer bar + counters */}
+      <div className="mt-6 mb-2 flex flex-col items-center gap-2">
         <div className="flex items-center gap-2">
           <span className="font-body rounded-full border border-black/20 bg-blue-200 px-5 py-1 text-sm text-black backdrop-blur-md sm:text-lg">
-            00:{safeTimeLeft < 10 ? `0${safeTimeLeft}` : safeTimeLeft}
+            00:{timeLeft < 10 ? `0${timeLeft}` : timeLeft}
           </span>
-
-          {/* Question counter */}
           <span className="font-body rounded-full border border-black/20 bg-blue-200 px-5 py-1 text-sm text-black backdrop-blur-md sm:text-lg">
-            {currentIndex + 1} / {questions.length}
+            {questionIndex + 1} / {totalQuestions}
           </span>
         </div>
       </div>
 
-      {/* Question card */}
+      {/* Feedback banner */}
+      {phase === 'feedback' && lastResult && (
+        <div
+          className={`font-body mx-auto mt-3 flex max-w-xl items-center justify-between rounded-2xl px-5 py-3 text-white transition-all ${
+            lastResult.isTimedOut
+              ? 'bg-orange-500'
+              : lastResult.isCorrect
+                ? 'bg-green-500'
+                : 'bg-red-500'
+          }`}
+        >
+          <span className="font-bold">
+            {lastResult.isTimedOut
+              ? "⏱️ Time's up!"
+              : lastResult.isCorrect
+                ? '✅ Correct!'
+                : '❌ Incorrect'}
+          </span>
+          {lastResult.points > 0 && (
+            <span className="text-lg font-black">+{lastResult.points}</span>
+          )}
+        </div>
+      )}
 
-      <div className="mx-auto mt-8 mb-6 w-full max-w-2xl rounded-3xl border border-white/30 bg-white/20 p-5 text-black shadow-2xl sm:p-12">
-        {/* Check for multi select */}
+      {/* Question card */}
+      <div className="mx-auto mt-6 mb-6 w-full max-w-2xl rounded-3xl border border-white/30 bg-white/20 p-5 text-black shadow-2xl sm:p-12">
         {isMultiSelect && (
           <p className="text-center">
             <span className="font-body mb-5 rounded-full bg-white/70 px-3 py-1 text-xs tracking-wider text-black sm:px-4 sm:text-sm">
@@ -421,14 +646,12 @@ export default function QuizInterface({
           </p>
         )}
         <h2 className="font-body text-center text-sm leading-tight font-bold sm:text-xl">
-          {currentQuestion.question}
+          {question.question}
         </h2>
-
-        {/* Optional question image */}
-        {currentQuestion.imageUrl && (
+        {question.imageUrl && (
           <div className="mt-4 flex justify-center">
             <img
-              src={currentQuestion.imageUrl}
+              src={question.imageUrl}
               alt=""
               className="max-h-30 w-full max-w-lg rounded-2xl object-contain shadow-xl"
             />
@@ -438,18 +661,21 @@ export default function QuizInterface({
 
       {/* Answer buttons */}
       {isTrueFalse ? (
-        // True/False questions
         <div className="font-body mt-5 grid grid-cols-2 gap-5 sm:mt-10 md:mt-20">
-          {currentQuestion.answers.map((answerText, index) => (
+          {question.answers.map((answerText, index) => (
             <button
               key={index}
-              disabled={isSubmitted}
+              disabled={isLocked}
               onClick={() => handleSingleSelect(index)}
               className="h-12 rounded-2xl border-black/30 px-4 py-2 text-sm font-bold text-white transition-all duration-200 active:scale-95 disabled:cursor-not-allowed sm:h-40 sm:py-8 sm:text-xl"
               style={{
                 ...getAnswerStyle(index),
-                backgroundColor: index === 0 ? '#5FAD56' : '#FF3B3B',
-                ...(isSubmitted ? {} : {}),
+                backgroundColor:
+                  phase !== 'feedback'
+                    ? index === 0
+                      ? '#5FAD56'
+                      : '#FF3B3B'
+                    : getAnswerStyle(index).backgroundColor,
               }}
             >
               {index === 0 ? '✓' : '✗'} {answerText}
@@ -457,21 +683,18 @@ export default function QuizInterface({
           ))}
         </div>
       ) : isMultiSelect ? (
-        // Multi-select questions
         <>
           <div className="font-body mt-3 mb-5 grid grid-cols-1 gap-5 sm:mt-5 sm:grid-cols-2 md:mt-10 md:grid-cols-4">
-            {currentQuestion.answers.map((answerText, index) => {
+            {question.answers.map((answerText, index) => {
               const isSelected = selectedIndices.includes(index);
-              const style = getAnswerStyle(index);
               return (
                 <button
                   key={index}
-                  disabled={isSubmitted}
+                  disabled={isLocked}
                   onClick={() => handleMultiToggle(index)}
                   className="relative h-12 rounded-2xl px-4 py-2 text-sm font-semibold text-white transition-all duration-200 active:scale-95 disabled:cursor-not-allowed sm:h-35 sm:py-8 sm:text-xl"
-                  style={style}
+                  style={getAnswerStyle(index)}
                 >
-                  {/* Checkbox indicator */}
                   <span
                     className="absolute top-3 right-3 flex h-6 w-6 items-center justify-center rounded-md border-2 border-white/70 text-sm font-bold"
                     style={{
@@ -489,21 +712,20 @@ export default function QuizInterface({
           </div>
           <div className="mx-auto mt-5 w-full max-w-xs">
             <button
-              disabled={isSubmitted || selectedIndices.length === 0}
+              disabled={isLocked || selectedIndices.length === 0}
               onClick={handleMultiSubmit}
               className="text-md w-full max-w-xs items-center justify-center rounded-2xl bg-blue-500 py-2 font-bold text-white transition hover:bg-blue-600 active:scale-95 disabled:cursor-not-allowed sm:py-4 sm:text-xl"
             >
-              {isSubmitted ? 'Submitted!' : 'Confirm Selection'}
+              {isLocked ? 'Submitted!' : 'Confirm Selection'}
             </button>
           </div>
         </>
       ) : (
-        // Multiple-choice questions
         <div className="font-body mt-20 grid grid-cols-1 gap-5 sm:mt-20 sm:grid-cols-2 md:grid-cols-4">
-          {currentQuestion.answers.map((answerText, index) => (
+          {question.answers.map((answerText, index) => (
             <button
               key={index}
-              disabled={isSubmitted}
+              disabled={isLocked}
               onClick={() => handleSingleSelect(index)}
               className="h-15 rounded-2xl px-4 py-2 text-sm font-semibold shadow-lg transition-all duration-200 active:scale-95 disabled:cursor-not-allowed sm:h-40 sm:py-8 sm:text-xl"
               style={{

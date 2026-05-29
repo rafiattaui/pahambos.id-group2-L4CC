@@ -37,7 +37,6 @@ model User {
   imageKey      String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
-  role          Role      @default(Learner)
   sessions      Session[]
   accounts      Account[]
 
@@ -103,6 +102,8 @@ model Classroom {
   id      String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name    String @db.VarChar(100)
   ownerId String @db.Uuid // Must match User.id type
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
   owner   User            @relation("ClassroomOwner", fields: [ownerId], references: [id])
@@ -114,6 +115,7 @@ model Classroom {
 model UserClassroom {
   userId      String @db.Uuid
   classroomId String @db.Uuid
+  role        Role
 
   // Relations
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)

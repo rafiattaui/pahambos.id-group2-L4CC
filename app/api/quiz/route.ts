@@ -73,6 +73,7 @@ export const POST = WithAuth(async (req, { user }) => {
         return {
           ...cleaned,
           order: Number(cleaned.order),
+          time: Number(cleaned.time), // ← add this
           correctAnswers: Object.entries(q)
             .filter(([k]) => k.match(/^correctAnswers\[(\d+)\]$/))
             .sort(([a], [b]) => a.localeCompare(b))
@@ -131,6 +132,7 @@ export const POST = WithAuth(async (req, { user }) => {
         data: data.questions.map((q, i) => ({
           quizId: quiz.id,
           order: q.order,
+          time: q.time,
           question: q.question,
           type: q.type,
           answers: q.answers,

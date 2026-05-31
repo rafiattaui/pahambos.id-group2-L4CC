@@ -38,6 +38,7 @@ export const CreateQuestionSchema = z.object({
   order: z.int().nonnegative(),
   question: z.string().min(5).max(100),
   type: z.enum(['MultiSelect', 'SingleSelect']),
+  time: z.int().nonnegative().default(30), // time limit in seconds
   imageFile: imageFileSchema.optional(),
   answers: z.array(z.string()).min(2).max(4),
   correctAnswers: z.array(z.int().nonnegative()).min(1).max(4),

@@ -14,16 +14,36 @@ export async function GET(
       where: { createdBy: id },
     });
 
+    if (quizzes.length === 0) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: 'No quizzes found for this user.',
+        },
+        { status: 404 }
+      );
+    }
+
     const userName = await prisma.user.findUnique({
       where: { id },
       select: { name: true },
     });
 
+    if (!userName) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: 'User not found.',
+        },
+        { status: 404 }
+      );
+    }
+
     return NextResponse.json({
       success: true,
       quizzes,
       count: quizzes.length,
-      creator: userName,
+      creator: userName.name,
     });
   } catch (error) {
     return handleError(error);

@@ -12,6 +12,13 @@ export async function GET(
 
     const quizzes = await prisma.quiz.findMany({
       where: { createdBy: id },
+      include: {
+        creator: {
+          select: {
+            name: true,
+          },
+        },
+      },
     });
 
     return NextResponse.json({ success: true, quizzes, count: quizzes.length });

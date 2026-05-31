@@ -10,11 +10,6 @@ export const auth = betterAuth({
   }),
   user: {
     modelName: 'user',
-    additionalFields: {
-      role: {
-        type: 'string',
-      },
-    },
   },
   trustedOrigins: ['http://localhost:3000'],
   advanced: {

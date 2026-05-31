@@ -12,16 +12,19 @@ export async function GET(
 
     const quizzes = await prisma.quiz.findMany({
       where: { createdBy: id },
-      include: {
-        creator: {
-          select: {
-            name: true,
-          },
-        },
-      },
     });
 
-    return NextResponse.json({ success: true, quizzes, count: quizzes.length });
+    const userName = await prisma.user.findUnique({
+      where: { id },
+      select: { name: true },
+    });
+
+    return NextResponse.json({
+      success: true,
+      quizzes,
+      count: quizzes.length,
+      creator: userName,
+    });
   } catch (error) {
     return handleError(error);
   }

@@ -62,7 +62,7 @@ function CreatePageItem({
 
   return (
     <div className="w-full">
-      <Card className="relative flex aspect-6/9 flex-col overflow-hidden rounded-2xl border-2 border-gray-300 shadow-xl sm:aspect-3/4">
+      <Card className="relative flex aspect-6/7 flex-col overflow-hidden rounded-2xl border-2 border-gray-300 shadow-xl sm:aspect-3/4">
         <div className="absolute top-2 right-2 z-10 flex flex-row gap-2">
           <Button
             variant="outline"
@@ -108,11 +108,9 @@ function CreatePageItem({
           <CardTitle className="font-body mt-1 line-clamp-4 text-sm font-bold sm:text-base">
             {quiz.title}
           </CardTitle>
-          <div className="hidden md:block">
-            <CardDescription className="font-body mt-1 line-clamp-3 text-sm text-gray-500">
-              {quiz.description}
-            </CardDescription>
-          </div>
+          <CardDescription className="font-body mt-1 line-clamp-3 text-sm text-gray-500">
+            {quiz.description}
+          </CardDescription>
         </CardContent>
       </Card>
     </div>
@@ -282,7 +280,7 @@ export default function CreatePage() {
           </Button>
         </div>
 
-        <div className="rounded-2x mt-4 grid h-full w-full grid-cols-2 bg-white sm:grid-cols-3 md:grid-cols-4">
+        <div className="rounded-2x mt-4 grid h-full w-full grid-cols-1 bg-white sm:grid-cols-3 md:grid-cols-4">
           {status === 'loading' &&
             Array.from({ length: SKELETON_COUNT }, (_, i) => (
               <div key={i} className="m-4">

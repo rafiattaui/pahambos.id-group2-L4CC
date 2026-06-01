@@ -34,6 +34,7 @@ import NextImage from 'next/image';
 import Cropper, { type Area, type Point } from 'react-easy-crop';
 import { useRouter } from 'next/navigation';
 import { Spinner } from '../ui/spinner';
+import { Textarea } from '../ui/textarea';
 import { toast } from 'sonner';
 
 // Maps to schema's 'SingleSelect' | 'MultiSelect'
@@ -43,7 +44,7 @@ type Question = {
   order: number; // used as the stable local key; DB assigns the real id
   dbId?: string; // optional database ID, assigned after saving
   type: QuestionType;
-  timeLimit?: number; // in seconds, optional
+  time?: number; // in seconds, optional
   question: string;
   answer?: string[]; // the display text for each option (min 2, max 4)
   correctAnswers: number[]; // indices into `answer` — matches schema's correctAnswers: number[]
@@ -544,9 +545,22 @@ function QuestionEditor({
         </FieldLabel>
         <Input
           type="number"
+          max={60}
           placeholder="30"
-          value={question.timeLimit ?? ''}
-          onChange={(e) => onChange({ timeLimit: Number(e.target.value) })}
+          value={question.time ?? ''}
+          onChange={(e) => {
+            const v = e.target.value;
+            onChange({ time: v === '' ? undefined : Number(v) });
+          }}
+          onBlur={(e) => {
+            const v = e.target.value;
+            if (v === '') {
+              onChange({ time: 30 });
+              return;
+            }
+            const n = Math.min(60, Math.max(1, Number(v)));
+            onChange({ time: n });
+          }}
           className="font-body max-w-15"
         />
       </Field>
@@ -728,6 +742,7 @@ export type InitialQuizData = {
   questions: {
     dbId: string;
     order: number;
+    time?: number;
     type: 'SingleSelect' | 'MultiSelect';
     question: string;
     answers: string[];
@@ -758,6 +773,7 @@ export default function CreateQuizForm({
           dbId: q.dbId,
           order: q.order,
           type: toLocalType(q.type),
+          time: q.time,
           question: q.question,
           answer: padAnswers(q.answers),
           correctAnswers: q.correctAnswers,
@@ -839,6 +855,7 @@ export default function CreateQuizForm({
       {
         order: prev.length + 1,
         type: newType,
+        time: 30,
         question: '',
         answer: ['', '', '', ''],
         correctAnswers: [],
@@ -908,8 +925,8 @@ export default function CreateQuizForm({
         });
 
         if (!quizRes.ok) {
-          const d = await quizRes.json();
-          toast.error(d.message || 'Failed to update quiz');
+          const d = await quizRes.json().catch(() => ({}));
+          toast.error(`${d.message} error: Failed to update quiz details`);
           return;
         }
 
@@ -924,8 +941,8 @@ export default function CreateQuizForm({
             body: coverForm,
           });
           if (!coverRes.ok) {
-            const d = await coverRes.json();
-            toast.error(d.message || 'Failed to update cover image');
+            const d = await coverRes.json().catch(() => ({}));
+            toast.error(`${d.message} error: Failed to update cover image`);
             return;
           }
         }
@@ -944,39 +961,43 @@ export default function CreateQuizForm({
         const toUpdate = questions.filter((q) => !!q.dbId);
 
         // DELETE removed questions
-        const deleteResults = await Promise.allSettled(
-          toDelete.map((id) =>
-            fetch(`/api/question/${id}`, {
-              method: 'DELETE',
-              credentials: 'include',
-            })
-          )
-        );
-
-        const deleteFailed = deleteResults.some((r) => r.status === 'rejected');
-        if (deleteFailed) toast.error('Some questions could not be deleted');
+        for (const id of toDelete) {
+          const res = await fetch(`/api/question/${id}`, {
+            method: 'DELETE',
+            credentials: 'include',
+          });
+          if (!res.ok) {
+            const d = await res.json().catch(() => ({}));
+            toast.error(
+              `${d.message} error: Failed to delete a question. Other changes were saved.`
+            );
+            return;
+          }
+        }
 
         // PATCH modified questions
-        const patchResults = await Promise.allSettled(
-          toUpdate.map(async (q) => {
-            const body: Record<string, unknown> = {
+        for (const q of toUpdate) {
+          const res = await fetch(`/api/question/${q.dbId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({
               question: q.question,
+              time: q.time,
               type:
                 q.type === 'multiple-choice' ? 'SingleSelect' : 'MultiSelect',
               answers: (q.answer ?? []).filter((a) => a.trim()),
               correctAnswers: q.correctAnswers,
-            };
-
-            return fetch(`/api/question/${q.dbId}`, {
-              method: 'PATCH',
-              headers: { 'Content-Type': 'application/json' },
-              credentials: 'include',
-              body: JSON.stringify(body),
-            });
-          })
-        );
-        const patchFailed = patchResults.some((r) => r.status === 'rejected');
-        if (patchFailed) toast.error('Some questions could not be updated');
+            }),
+          });
+          if (!res.ok) {
+            const d = await res.json().catch(() => ({}));
+            toast.error(
+              `${d.message} error: Failed to update a question. Other changes were saved.}`
+            );
+            return;
+          }
+        }
 
         // POST new questions
         const questionFiles = await Promise.all(
@@ -988,42 +1009,49 @@ export default function CreateQuizForm({
           }))
         );
 
-        const postResults = await Promise.allSettled(
-          toCreate.map((q, i) => {
-            const qForm = new FormData();
-            qForm.append('quiz.id', initialData.quizId);
-            qForm.append('question.order', String(q.order));
-            qForm.append('question.question', q.question);
-            qForm.append(
-              'question.type',
-              q.type === 'multiple-choice' ? 'SingleSelect' : 'MultiSelect'
+        for (const q of toCreate) {
+          const qForm = new FormData();
+          qForm.append('quiz.id', initialData.quizId);
+          qForm.append('question.order', String(q.order));
+          qForm.append('question.question', q.question);
+          if (q.time !== undefined) {
+            qForm.append('question.time', String(q.time));
+          }
+          qForm.append(
+            'question.type',
+            q.type === 'multiple-choice' ? 'SingleSelect' : 'MultiSelect'
+          );
+          q.answer
+            ?.filter((a) => a.trim())
+            .forEach((ans) => qForm.append('question.answers', ans));
+          q.correctAnswers.forEach((idx) =>
+            qForm.append('question.correctAnswers', String(idx))
+          );
+          if (q.imageUrl?.startsWith('blob:')) {
+            const file = await blobUrlToFile(
+              q.imageUrl,
+              `question-${q.order}.jpg`
             );
-            q.answer
-              ?.filter((a) => a.trim())
-              .forEach((ans) => {
-                qForm.append('question.answers', ans);
-              });
+            qForm.append('question.imageFile', file);
+          }
 
-            q.correctAnswers.forEach((idx) => {
-              qForm.append('question.correctAnswers', String(idx));
-            });
-            const file = questionFiles[i]?.file;
-            if (file) qForm.append('question.imageFile', file);
-            return fetch(`/api/question`, {
-              method: 'POST',
-              credentials: 'include',
-              body: qForm,
-            });
-          })
-        );
-        const postFailed = postResults.some((r) => r.status === 'rejected');
-        if (postFailed) toast.error('Some new questions could not be saved');
-
-        if (!deleteFailed && !patchFailed && !postFailed) {
-          toast.success('Quiz updated successfully!', {
-            className: 'bg-green-600',
+          const res = await fetch(`/api/question`, {
+            method: 'POST',
+            credentials: 'include',
+            body: qForm,
           });
+          if (!res.ok) {
+            const d = await res.json().catch(() => ({}));
+            toast.error(
+              `${d.message} error: Failed to add a new question. Other changes were saved.}`
+            );
+            return;
+          }
         }
+
+        toast.success('Quiz updated successfully!', {
+          className: 'bg-green-600',
+        });
       } else {
         // -- CREATE MODE: create new quiz and questions
         // Convert blob URLs to File objects for multipart upload
@@ -1053,6 +1081,7 @@ export default function CreateQuizForm({
           questions: questions.map((q) => ({
             order: q.order,
             question: q.question,
+            time: q.time,
             // Map local types to schema enum values
             type: q.type === 'multiple-choice' ? 'SingleSelect' : 'MultiSelect',
             answers: (q.answer ?? []).filter((a) => a.trim()), // drop blank trailing slots
@@ -1074,6 +1103,9 @@ export default function CreateQuizForm({
         payload.questions.forEach((q, i) => {
           formData.append(`questions[${i}].order`, String(q.order));
           formData.append(`questions[${i}].question`, q.question);
+          if (q.time !== undefined) {
+            formData.append(`questions[${i}].time`, String(q.time));
+          }
           formData.append(`questions[${i}].type`, q.type);
 
           q.answers.forEach((ans, aIdx) => {
@@ -1190,7 +1222,7 @@ export default function CreateQuizForm({
                 </span>
               </FieldLabel>
 
-              <Input
+              <Textarea
                 placeholder="Enter quiz description"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}

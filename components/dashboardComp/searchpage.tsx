@@ -264,7 +264,7 @@ export default function SearchPage({ query: initialQuery = '' }: SearchQuery) {
           </h2>
         </div>
       )}
-      <div className="mx-auto grid max-w-md grid-cols-2 gap-3 sm:max-w-none sm:grid-cols-3 md:grid-cols-4">
+      <div className="mx-auto grid max-w-md grid-cols-1 gap-3 sm:max-w-none sm:grid-cols-3 md:grid-cols-4">
         {displayLoading
           ? Array.from({ length: ITEMS_PER_PAGE }, (_, i) => (
               <QuizSkeleton key={i} />

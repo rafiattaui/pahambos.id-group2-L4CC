@@ -50,6 +50,7 @@ type Question = {
   correctAnswers: number[]; // indices into `answer` — matches schema's correctAnswers: number[]
   imageUrl?: string | null;
   rawImageUrl?: string | null; // for handling uncropped images before saving
+  imageRemoved?: boolean; // flag to indicate if the existing image was removed
 };
 
 type validationErrors = {
@@ -577,7 +578,11 @@ function QuestionEditor({
           value={question.imageUrl ?? null}
           rawValue={question.rawImageUrl ?? null}
           onChange={(url, rawUrl) =>
-            onChange({ imageUrl: url, rawImageUrl: rawUrl })
+            onChange({
+              imageUrl: url,
+              rawImageUrl: rawUrl,
+              imageRemoved: url === null && rawUrl === null,
+            })
           }
           aspect={16 / 9} // wider ratio suits question images
           label="Add question image"
@@ -996,6 +1001,53 @@ export default function CreateQuizForm({
               `${d.message} error: Failed to update a question. Other changes were saved.}`
             );
             return;
+          }
+        }
+
+        //PUT new question images
+        for (const q of toUpdate) {
+          if (
+            q.dbId &&
+            q.imageUrl &&
+            (q.imageUrl.startsWith('blob:') || q.imageUrl.startsWith('data:'))
+          ) {
+            const file = await blobUrlToFile(
+              q.imageUrl,
+              `question-${q.order}.jpg`
+            );
+            const qForm = new FormData();
+            qForm.append('imageFile', file);
+
+            const imgRes = await fetch(`/api/question/${q.dbId}`, {
+              method: 'PUT',
+              credentials: 'include',
+              body: qForm,
+            });
+
+            if (!imgRes.ok) {
+              const d = await imgRes.json().catch(() => ({}));
+              toast.error(
+                `${d.message} error: Failed to update a question image. Other changes were saved.}`
+              );
+              return;
+            }
+          }
+        }
+
+        for (const q of toUpdate) {
+          if (q.dbId && q.imageRemoved) {
+            const res = await fetch(`/api/question/${q.dbId}/image`, {
+              method: 'DELETE',
+              credentials: 'include',
+            });
+
+            if (!res.ok) {
+              const d = await res.json().catch(() => ({}));
+              toast.error(
+                `${d.message} error: Failed to remove a question image. Other changes were saved.}`
+              );
+              return;
+            }
           }
         }
 

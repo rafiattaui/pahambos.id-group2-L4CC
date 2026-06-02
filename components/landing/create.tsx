@@ -1,11 +1,8 @@
-'use client';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
 import { Placeholder } from './placeholder';
-import { useRouter } from 'next/navigation';
 
 export default function Create() {
-  const router = useRouter();
   return (
     <div className="mx-auto my-32 max-w-4xl items-center rounded-lg bg-white/10 py-16">
       <section
@@ -14,20 +11,15 @@ export default function Create() {
       >
         <div className="flex flex-col items-center">
           <Placeholder />
-          <Button
-            className="font-body mt-6 w-full max-w-72 cursor-pointer bg-blue-500 px-4 py-6 font-bold hover:bg-blue-600 sm:mt-0 sm:max-w-full sm:translate-x-8"
-            onClick={() => {
-              router.push('/dashboard/create');
-            }}
-          >
+          <Button className="mt-6 w-full max-w-72 cursor-pointer bg-blue-500 px-4 py-6 hover:bg-blue-600 sm:mt-0 sm:max-w-full sm:translate-x-8">
             Create Now!
           </Button>
         </div>
         <div className="max-w-md">
-          <h2 className="font-body ml-4 text-4xl font-bold text-white">
+          <h2 className="font-heading ml-4 text-4xl font-bold text-white">
             Create Your Own Quiz
           </h2>
-          <p className="font-body mt-6 mb-6 ml-4 wrap-normal text-white">
+          <p className="mt-6 mb-6 ml-4 wrap-normal text-white">
             Create your own quizzes to help others learn and have fun! Share
             your knowledge and challenge others with your unique quizzes.
           </p>

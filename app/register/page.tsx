@@ -2,7 +2,7 @@ import ImageSlideshow from '@/components/image-slideshow';
 import { SignupForm } from '@/components/signup-form';
 import NavbarLogin from '@/components/header/navbarlogin';
 
-export default function SignupPage() {
+export default async function SignupPage() {
   return (
     <div className="grid min-h-screen grid-cols-1 lg:grid-cols-2">
       <div className="flex min-h-svh flex-col">

@@ -7,6 +7,7 @@ export const UserSchema = z.object({
   updatedAt: z.date(),
   createdAt: z.date(),
   id: z.uuid(),
+  role: z.enum(['Learner', 'Educator']),
 });
 
 // actual user schema to be returned to users
@@ -16,6 +17,7 @@ export const UserPublicSchema = UserSchema.omit({
 
 export const UserUpdateSchema = z.object({
   name: z.string().optional(),
+  role: z.enum(['Learner', 'Educator']).optional(),
 });
 
 export const UserChangePasswordSchema = z.object({

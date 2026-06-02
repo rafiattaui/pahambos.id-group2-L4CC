@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server';
 import { imageFileSchema, UpdateQuizSchema } from '@/lib/schemas/quizschemas';
 import { deleteImage, uploadImage } from '@/lib/cloudinary';
+import { raw } from '@prisma/client/runtime/client';
 
 const PLACEHOLDER_IMAGE_URL =
   'https://res.cloudinary.com/dbj2tvfzg/image/upload/v1778493470/landscape-placeholder_vrw20c.svg';
@@ -55,7 +56,7 @@ export const DELETE = WithAuth(async (req, { user, params }) => {
     if (!quiz) {
       throw new APIError('Invalid Quiz ID', 404);
     } else {
-      if (quiz.createdBy === user.id) {
+      if (quiz.createdBy == user.id) {
         const questions = await prisma.quizQuestion.findMany({
           where: { quizId: id },
         });

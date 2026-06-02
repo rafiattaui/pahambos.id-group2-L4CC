@@ -1,16 +1,9 @@
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
-import Cropper, { type Area } from 'react-easy-crop';
-import { toast } from 'sonner';
+import { useState, useRef } from 'react';
+import Image from 'next/image';
 
 type Tab = 'profile' | 'security';
-
-type User = {
-  name: string;
-  email: string;
-  image?: string | null;
-};
 
 // ── icons (inline SVG to avoid extra deps) ──────────────────────────────────
 const UserIcon = () => (
@@ -140,211 +133,6 @@ const EyeIcon = ({ show }: { show: boolean }) =>
     </svg>
   );
 
-// ────── crop helper (circular, 1:1) ─────────────────────────────────────────────────────────────────
-
-function createImage(url: string): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.addEventListener('load', () => resolve(img));
-    img.addEventListener('error', reject);
-    img.setAttribute('crossOrigin', 'anonymous');
-    img.src = url;
-  });
-}
-
-function getRadianAngle(deg: number) {
-  return (deg * Math.PI) / 180;
-}
-
-async function getCroppedCircleBlob(
-  imageSrc: string,
-  pixelCrop: Area,
-  rotation = 0
-): Promise<Blob | null> {
-  const image = await createImage(imageSrc);
-  const canvas = document.createElement('canvas');
-  const ctx = canvas.getContext('2d');
-  if (!ctx) return null;
-
-  const rotRad = getRadianAngle(rotation);
-  const bBoxW =
-    Math.abs(Math.cos(rotRad) * image.width) +
-    Math.abs(Math.sin(rotRad) * image.height);
-  const bBoxH =
-    Math.abs(Math.sin(rotRad) * image.width) +
-    Math.abs(Math.cos(rotRad) * image.height);
-
-  canvas.width = bBoxW;
-  canvas.height = bBoxH;
-  ctx.translate(bBoxW / 2, bBoxH / 2);
-  ctx.rotate(rotRad);
-  ctx.translate(-image.width / 2, -image.height / 2);
-  ctx.drawImage(image, 0, 0);
-
-  const cropped = document.createElement('canvas');
-  const size = Math.min(pixelCrop.width, pixelCrop.height);
-  cropped.width = size;
-  cropped.height = size;
-
-  const croppedCtx = cropped.getContext('2d');
-  if (!croppedCtx) return null;
-
-  // Clip to circle
-  croppedCtx.beginPath();
-  croppedCtx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2);
-  croppedCtx.clip();
-
-  croppedCtx.drawImage(
-    canvas,
-    pixelCrop.x,
-    pixelCrop.y,
-    pixelCrop.width,
-    pixelCrop.height,
-    0,
-    0,
-    size,
-    size
-  );
-
-  return new Promise((resolve) =>
-    cropped.toBlob((blob) => resolve(blob), 'image/jpeg', 0.92)
-  );
-}
-
-// ── AvatarCropModal ──────────────────────────────────────────────────────────
-
-function AvatarCropModal({
-  rawUrl,
-  onSave,
-  onCancel,
-}: {
-  rawUrl: string;
-  onSave: (blob: Blob, previewUrl: string) => void;
-  onCancel: () => void;
-}) {
-  const [crop, setCrop] = useState({ x: 0, y: 0 });
-  const [zoom, setZoom] = useState(1);
-  const [rotation, setRotation] = useState(0);
-  const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
-  const [saving, setSaving] = useState(false);
-
-  const onCropComplete = useCallback((_: Area, pixels: Area) => {
-    setCroppedAreaPixels(pixels);
-  }, []);
-
-  async function handleSave() {
-    if (!croppedAreaPixels) return;
-    setSaving(true);
-    const blob = await getCroppedCircleBlob(
-      rawUrl,
-      croppedAreaPixels,
-      rotation
-    );
-    if (blob) {
-      const previewUrl = URL.createObjectURL(blob);
-      onSave(blob, previewUrl);
-    }
-    setSaving(false);
-  }
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-      <div className="flex w-full max-w-sm flex-col gap-4 rounded-2xl bg-white p-5 shadow-2xl ring-1 ring-black/5">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <h3 className="font-body text-sm font-bold text-gray-900">
-            Adjust profile photo
-          </h3>
-          <button
-            onClick={onCancel}
-            className="flex h-7 w-7 items-center justify-center rounded-full text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
-            aria-label="Cancel"
-          >
-            <XIcon />
-          </button>
-        </div>
-
-        {/* Cropper */}
-        <div className="relative h-64 w-full overflow-hidden rounded-xl bg-gray-900">
-          <Cropper
-            image={rawUrl}
-            crop={crop}
-            zoom={zoom}
-            rotation={rotation}
-            aspect={1}
-            cropShape="round"
-            showGrid={false}
-            onCropChange={setCrop}
-            onZoomChange={setZoom}
-            onCropComplete={onCropComplete}
-          />
-        </div>
-
-        {/* Zoom slider */}
-        <div className="flex flex-col gap-1.5">
-          <div className="flex items-center justify-between">
-            <span className="font-body text-xs font-bold text-gray-500">
-              Zoom
-            </span>
-            <span className="font-body text-xs font-bold text-gray-400">
-              {Math.round(zoom * 100)}%
-            </span>
-          </div>
-          <input
-            type="range"
-            min={1}
-            max={3}
-            step={0.01}
-            value={zoom}
-            onChange={(e) => setZoom(Number(e.target.value))}
-            className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-gray-200 accent-blue-600"
-            aria-label="Zoom"
-          />
-        </div>
-
-        {/* Rotation slider */}
-        <div className="flex flex-col gap-1.5">
-          <div className="flex items-center justify-between">
-            <span className="font-body text-xs font-bold text-gray-500">
-              Rotation
-            </span>
-            <span className="font-body text-xs font-bold text-gray-400">
-              {rotation}°
-            </span>
-          </div>
-          <input
-            type="range"
-            min={-180}
-            max={180}
-            step={1}
-            value={rotation}
-            onChange={(e) => setRotation(Number(e.target.value))}
-            className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-gray-200 accent-blue-600"
-            aria-label="Rotation"
-          />
-        </div>
-
-        {/* Actions */}
-        <div className="flex gap-2">
-          <button
-            onClick={onCancel}
-            className="font-body flex-1 rounded-xl border border-gray-200 bg-white py-2.5 text-sm font-bold text-gray-500 transition-colors hover:bg-gray-50 hover:text-gray-700"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            className="font-body flex flex-1 items-center justify-center gap-2 rounded-xl bg-blue-500 py-2.5 text-sm font-bold text-white shadow-md shadow-blue-400/30 transition-all hover:bg-blue-700 active:scale-[0.98] disabled:opacity-60"
-          >
-            {saving ? <Spinner /> : null}
-            {saving ? 'Saving…' : 'Apply'}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
 // ── small reusable field ─────────────────────────────────────────────────────
 function Field({
   label,
@@ -373,7 +161,7 @@ function Field({
 }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <label htmlFor={id} className="font-body text-sm font-bold text-gray-700">
+      <label htmlFor={id} className="text-sm font-medium text-gray-700">
         {label}
       </label>
       <div className="relative">
@@ -384,11 +172,10 @@ function Field({
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
           readOnly={readOnly}
-          className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-900 transition-all outline-none placeholder:text-gray-400 read-only:cursor-default read-only:bg-gray-100 read-only:text-gray-400 focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-100 read-only:focus:border-gray-200 read-only:focus:ring-0"
+          className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-900 transition-all outline-none placeholder:text-gray-400 read-only:cursor-default read-only:bg-gray-100 read-only:text-gray-400 focus:border-violet-400 focus:bg-white focus:ring-2 focus:ring-violet-100 read-only:focus:border-gray-200 read-only:focus:ring-0"
         />
         {showToggle && (
           <button
-            title="butt"
             type="button"
             onClick={onToggle}
             className="absolute top-1/2 right-3 -translate-y-1/2 text-gray-400 transition-colors hover:text-gray-600"
@@ -450,17 +237,15 @@ function StrengthBar({ password }: { password: string }) {
 }
 
 // ── main component ───────────────────────────────────────────────────────────
-export default function AccountCard({ user }: { user: User }) {
+export default function AccountCard() {
   const [tab, setTab] = useState<Tab>('profile');
 
   // profile state
-  const [username, setUsername] = useState(user.name);
-  const [email, setEmail] = useState(user.email);
+  const [username, setUsername] = useState('JohnDoe');
+  const [email, setEmail] = useState('john.doe@example.com');
   const [editingUsername, setEditingUsername] = useState(false);
   const [draftUsername, setDraftUsername] = useState('');
-  const [avatarSrc, setAvatarSrc] = useState<string | null>(user.image ?? null);
-  const [rawAvatarUrl, setRawAvatarUrl] = useState<string | null>(null);
-  const [avatarUploading, setAvatarUploading] = useState(false);
+  const [avatarSrc, setAvatarSrc] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const [profileSaving, setProfileSaving] = useState(false);
   const [profileSaved, setProfileSaved] = useState(false);
@@ -486,63 +271,29 @@ export default function AccountCard({ user }: { user: User }) {
   function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    e.target.value = '';
-    const objectUrl = URL.createObjectURL(file);
-    setRawAvatarUrl(objectUrl);
-  }
-
-  async function handleAvatarUpload(blob: Blob, previewUrl: string) {
-    setRawAvatarUrl(null);
-    setAvatarSrc(previewUrl);
-    setAvatarUploading(true);
-    try {
-      const formData = new FormData();
-      formData.append('imageFile', blob, 'avatar.jpg');
-      const res = await fetch('/api/user', {
-        method: 'PUT',
-        credentials: 'include',
-        body: formData,
-      });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.message ?? 'Failed to upload avatar.');
-      }
-    } catch (err) {
-      console.error(err);
-      setAvatarSrc(user.image ?? null);
-      toast.error('An error occurred while uploading your avatar.');
-    } finally {
-      setAvatarUploading(false);
-    }
+    const reader = new FileReader();
+    reader.onload = () => setAvatarSrc(reader.result as string);
+    reader.readAsDataURL(file);
   }
 
   async function handleProfileSave() {
     setProfileSaving(true);
     setProfileSaved(false);
-    try {
-      const res = await fetch('/api/user', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: draftUsername }),
-      });
-
-      if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.message || 'Failed to update profile.');
-      }
-      setUsername(draftUsername);
-      setEditingUsername(false);
-      setProfileSaved(true);
-      setTimeout(() => setProfileSaved(false), 2500);
-    } catch (error) {
-      console.error(error);
-      alert('An error occurred while updating your profile.');
-    } finally {
-      setProfileSaving(false);
-    }
+    // TODO: wire up to your server action / API route
+    await new Promise((r) => setTimeout(r, 900));
+    setUsername(draftUsername);
+    setEditingUsername(false);
+    setProfileSaving(false);
+    setProfileSaved(true);
+    setTimeout(() => setProfileSaved(false), 2500);
   }
 
   async function handleSecuritySave() {
+    setPwError('');
+    if (!currentPw || !newPw || !confirmPw) {
+      setPwError('All fields are required.');
+      return;
+    }
     if (newPw !== confirmPw) {
       setPwError('New passwords do not match.');
       return;
@@ -551,55 +302,36 @@ export default function AccountCard({ user }: { user: User }) {
       setPwError('Password must be at least 8 characters.');
       return;
     }
-
     setSecuritySaving(true);
     setSecuritySaved(false);
-    try {
-      const res = await fetch('/api/user/change-password', {
-        // ← adjust path to match your route
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          currentPassword: currentPw,
-          newPassword: newPw,
-          confirmPassword: confirmPw, // include if your schema requires it
-        }),
-      });
-
-      if (!res.ok) {
-        const err = await res.json();
-        setPwError(err.message ?? 'Something went wrong.');
-        return;
-      }
-
-      setSecuritySaved(true);
-      setCurrentPw('');
-      setNewPw('');
-      setConfirmPw('');
-      setTimeout(() => setSecuritySaved(false), 2500);
-    } catch {
-      setPwError('Network error. Please try again.');
-    } finally {
-      setSecuritySaving(false);
-    }
+    // TODO: wire up to your server action / API route
+    await new Promise((r) => setTimeout(r, 900));
+    setSecuritySaving(false);
+    setSecuritySaved(true);
+    setCurrentPw('');
+    setNewPw('');
+    setConfirmPw('');
+    setTimeout(() => setSecuritySaved(false), 2500);
   }
 
   return (
-    <div className="w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-xl ring-1 shadow-blue-900/10 ring-black/5">
+    <div className="w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-xl ring-1 shadow-violet-900/10 ring-black/5">
       {/* ── tab bar ── */}
       <div className="flex border-b border-gray-100 bg-gray-50/60">
         {(['profile', 'security'] as Tab[]).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
-            className={`font-body relative flex flex-1 items-center justify-center gap-2 py-4 text-sm font-bold transition-colors ${
-              tab === t ? 'text-blue-500' : 'text-gray-400 hover:text-gray-600'
+            className={`relative flex flex-1 items-center justify-center gap-2 py-4 text-sm font-medium transition-colors ${
+              tab === t
+                ? 'text-violet-600'
+                : 'text-gray-400 hover:text-gray-600'
             }`}
           >
             {t === 'profile' ? <UserIcon /> : <LockIcon />}
             {t.charAt(0).toUpperCase() + t.slice(1)}
             {tab === t && (
-              <span className="absolute bottom-0 left-0 h-0.5 w-full rounded-t-full bg-blue-500" />
+              <span className="absolute bottom-0 left-0 h-0.5 w-full rounded-t-full bg-violet-500" />
             )}
           </button>
         ))}
@@ -611,7 +343,7 @@ export default function AccountCard({ user }: { user: User }) {
           {/* avatar */}
           <div className="flex flex-col items-center gap-3">
             <div className="relative">
-              <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-blue-400 to-blue-500 ring-4 ring-blue-100">
+              <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-violet-400 to-indigo-500 ring-4 ring-violet-100">
                 {avatarSrc ? (
                   <img
                     src={avatarSrc}
@@ -623,23 +355,15 @@ export default function AccountCard({ user }: { user: User }) {
                     {initials}
                   </span>
                 )}
-                {/* uploading spinner overlay*/}
-                {avatarUploading && (
-                  <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/30">
-                    <Spinner />
-                  </div>
-                )}
               </div>
               <button
-                onClick={() => !avatarUploading && fileRef.current?.click()}
-                disabled={avatarUploading}
-                className="absolute -right-1 -bottom-1 flex h-8 w-8 items-center justify-center rounded-full bg-blue-500 text-white shadow-md shadow-blue-400/40 transition-colors hover:bg-blue-700"
+                onClick={() => fileRef.current?.click()}
+                className="absolute -right-1 -bottom-1 flex h-8 w-8 items-center justify-center rounded-full bg-violet-600 text-white shadow-md shadow-violet-400/40 transition-colors hover:bg-violet-700"
                 aria-label="Change profile photo"
               >
                 <CameraIcon />
               </button>
               <input
-                aria-label="input"
                 ref={fileRef}
                 type="file"
                 accept="image/*"
@@ -647,21 +371,8 @@ export default function AccountCard({ user }: { user: User }) {
                 onChange={handleAvatarChange}
               />
             </div>
-            <p className="font-body text-xs font-bold text-gray-400">
-              JPG, PNG or GIF · max 5 MB
-            </p>
+            <p className="text-xs text-gray-400">JPG, PNG or GIF · max 5 MB</p>
           </div>
-          {/* Crop modal — rendered outside the avatar div to avoid clipping */}
-          {rawAvatarUrl && (
-            <AvatarCropModal
-              rawUrl={rawAvatarUrl}
-              onSave={handleAvatarUpload}
-              onCancel={() => {
-                URL.revokeObjectURL(rawAvatarUrl);
-                setRawAvatarUrl(null);
-              }}
-            />
-          )}
 
           {/* fields */}
           <div className="flex flex-col gap-4">
@@ -669,7 +380,7 @@ export default function AccountCard({ user }: { user: User }) {
             <div className="flex flex-col gap-1.5">
               <label
                 htmlFor="username"
-                className="font-body text-sm font-bold text-gray-700"
+                className="text-sm font-medium text-gray-700"
               >
                 Username
               </label>
@@ -684,7 +395,7 @@ export default function AccountCard({ user }: { user: User }) {
                     placeholder="Your display name"
                     className={`w-full rounded-xl border px-4 py-2.5 text-sm text-gray-900 transition-all outline-none placeholder:text-gray-400 ${
                       editingUsername
-                        ? 'border-blue-400 bg-white ring-2 ring-blue-100'
+                        ? 'border-violet-400 bg-white ring-2 ring-violet-100'
                         : 'cursor-default border-gray-200 bg-gray-100 text-gray-400'
                     }`}
                   />
@@ -694,7 +405,7 @@ export default function AccountCard({ user }: { user: User }) {
                     <button
                       onClick={handleProfileSave}
                       disabled={profileSaving}
-                      className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-500 text-white shadow-sm transition-all hover:bg-blue-700 active:scale-95 disabled:opacity-60"
+                      className="flex h-9 w-9 items-center justify-center rounded-lg bg-violet-600 text-white shadow-sm transition-all hover:bg-violet-700 active:scale-95 disabled:opacity-60"
                       aria-label="Save username"
                     >
                       {profileSaving ? <Spinner /> : <CheckIcon />}
@@ -716,7 +427,7 @@ export default function AccountCard({ user }: { user: User }) {
                       setEditingUsername(true);
                       setDraftUsername(username);
                     }}
-                    className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-400 transition-colors hover:border-blue-300 hover:text-blue-500"
+                    className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-400 transition-colors hover:border-violet-300 hover:text-violet-500"
                     aria-label="Edit username"
                   >
                     <PencilIcon />
@@ -729,6 +440,7 @@ export default function AccountCard({ user }: { user: User }) {
                 </p>
               )}
             </div>
+
             <Field
               label="Email address"
               id="email"
@@ -790,7 +502,7 @@ export default function AccountCard({ user }: { user: User }) {
           <button
             onClick={handleSecuritySave}
             disabled={securitySaving}
-            className="font-body flex w-full items-center justify-center gap-2 rounded-xl bg-blue-500 py-2.5 text-sm font-bold text-white shadow-md shadow-blue-400/30 transition-all hover:bg-blue-700 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-violet-600 py-2.5 text-sm font-semibold text-white shadow-md shadow-violet-400/30 transition-all hover:bg-violet-700 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
           >
             {securitySaving ? (
               <>

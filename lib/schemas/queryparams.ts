@@ -2,28 +2,11 @@ import { z, ZodObject } from 'zod';
 import { CategoryEnum } from './quizschemas';
 import { APIError } from '../api/errors';
 
-function toObjectWithArrays(params: URLSearchParams) {
-  const result: Record<string, string | string[]> = {};
-
-  for (const [key, value] of params.entries()) {
-    const existing = result[key];
-    if (existing === undefined) {
-      result[key] = value;
-    } else if (Array.isArray(existing)) {
-      existing.push(value);
-    } else {
-      result[key] = [existing, value];
-    }
-  }
-
-  return result;
-}
-
 export function parseQueryParams<T extends ZodObject>(
   params: URLSearchParams,
   schema: T
 ): z.infer<T> {
-  const result = schema.safeParse(toObjectWithArrays(params));
+  const result = schema.safeParse(Object.fromEntries(params));
 
   if (!result.success) {
     throw new APIError('Invalid query parameters', 400);
@@ -50,8 +33,7 @@ export const QuizListQuerySchema = z.object({
     .default('asc')
     .describe('Sort based on creation date'),
   tags: z
-    .union([CategoryEnum, z.array(CategoryEnum)])
-    .transform((v) => (Array.isArray(v) ? v : [v]))
+    .array(CategoryEnum)
     .optional()
     .describe('Only return quizzes containing these tags'),
   name: z

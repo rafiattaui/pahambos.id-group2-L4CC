@@ -13,7 +13,6 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { AlertDestructive } from './alert';
 import { authClient } from '@/lib/auth-client';
-import { useSearchParams } from 'next/navigation';
 
 export function LoginForm({
   className,
@@ -25,13 +24,6 @@ export function LoginForm({
     title: string;
     description: string;
   } | null>(null);
-  const searchParams = useSearchParams();
-  const next = searchParams.get('next');
-  const safeNext =
-    next && next.startsWith('/') && !next.startsWith('//') ? next : null;
-  const registerHref = safeNext
-    ? `/register?next=${encodeURIComponent(safeNext)}`
-    : '/register';
 
   const onSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -61,7 +53,7 @@ export function LoginForm({
           onSuccess: () => {
             setIsLoading(false);
             router.refresh();
-            router.push(safeNext ?? '/dashboard');
+            router.push('/dashboard');
           },
           onError: (ctx) => {
             // display the error message
@@ -156,7 +148,7 @@ export function LoginForm({
             <FieldDescription className="font-body text-center text-black">
               Don&apos;t have an account?{' '}
               <a
-                href={registerHref}
+                href="/register"
                 className="underline underline-offset-4 hover:text-blue-600!"
               >
                 Sign up

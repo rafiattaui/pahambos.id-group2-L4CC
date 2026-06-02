@@ -5,7 +5,7 @@ import Learn from '@/components/landing/learn';
 import Create from '@/components/landing/create';
 import FadeInSection from '@/components/animation/fade-in-section';
 
-export default async function Home() {
+export default function Home() {
   return (
     <div className="overflow-x-hidden">
       <header className="sticky top-0 z-50 w-full bg-white backdrop-blur-md">

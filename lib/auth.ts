@@ -10,8 +10,12 @@ export const auth = betterAuth({
   }),
   user: {
     modelName: 'user',
+    additionalFields: {
+      role: {
+        type: 'string',
+      },
+    },
   },
-  trustedOrigins: ['http://localhost:3000'],
   advanced: {
     defaultCookieAttributes: {
       secure: process.env.NODE_ENV === 'production',

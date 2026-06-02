@@ -2,7 +2,7 @@ import { LoginForm } from '@/components/login-form';
 import ImageSlideshow from '@/components/image-slideshow';
 import NavbarLogin from '@/components/header/navbarlogin';
 
-export default function loginPage() {
+export default async function loginPage() {
   return (
     <div className="grid min-h-screen grid-cols-1 lg:grid-cols-2">
       <div className="flex min-h-svh flex-col">

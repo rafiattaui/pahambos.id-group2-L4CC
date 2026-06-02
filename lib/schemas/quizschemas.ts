@@ -24,8 +24,8 @@ export const QuizQuestionSchema = z.object({
   question: z.string().min(5).max(100),
   type: z.enum(['MultiSelect', 'SingleSelect']),
   time: z.int().nonnegative().default(30), // time limit in seconds
-  imageUrl: z.url().optional(),
-  imageKey: z.string().optional(),
+  imageUrl: z.url().optional().nullable(),
+  imageKey: z.string().optional().nullable(),
   answers: z.array(z.string()).min(2).max(4),
   correctAnswers: z.array(z.int().nonnegative()).min(1).max(4), // allow multiple correct answers for flexibility
 });

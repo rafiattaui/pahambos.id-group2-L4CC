@@ -24,14 +24,6 @@ interface AnswerResult {
   points: number;
 }
 
-interface FinishStats {
-  totalCorrect: number;
-  totalIncorrect: number;
-  totalResponseTime: number;
-  longestStreak: number;
-  finalScore: number;
-}
-
 type Phase =
   | 'init' // creating session
   | 'splash' // before countdown

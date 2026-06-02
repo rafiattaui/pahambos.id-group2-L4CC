@@ -1,0 +1,148 @@
+'use client';
+
+import { useMemo, useState } from 'react';
+import { Button } from '@/components/ui/button';
+
+type MockQuestion = {
+  id: string;
+  order: number;
+  question: string;
+  answers: string[];
+  correctAnswer: number;
+};
+
+const mockQuestions: MockQuestion[] = [
+  {
+    id: 'q1',
+    order: 0,
+    question: 'Which planet is known as the Red Planet?',
+    answers: ['Venus', 'Mars', 'Jupiter', 'Mercury'],
+    correctAnswer: 1,
+  },
+  {
+    id: 'q2',
+    order: 1,
+    question: 'What is 9 x 7?',
+    answers: ['54', '56', '63', '72'],
+    correctAnswer: 2,
+  },
+  {
+    id: 'q3',
+    order: 2,
+    question: 'Who wrote Romeo and Juliet?',
+    answers: ['Charles Dickens', 'William Shakespeare', 'Jane Austen', 'Mark Twain'],
+    correctAnswer: 1,
+  },
+];
+
+const answerColors = [
+  'bg-red-500 hover:bg-red-600',
+  'bg-blue-500 hover:bg-blue-600',
+  'bg-yellow-500 hover:bg-yellow-600 text-slate-900',
+  'bg-green-500 hover:bg-green-600',
+];
+
+export default function DashCarItem() {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const [score, setScore] = useState(0);
+  const [finished, setFinished] = useState(false);
+
+  const current = mockQuestions[currentIndex];
+  const total = mockQuestions.length;
+  const progressPercent = useMemo(
+    () => Math.round(((currentIndex + 1) / total) * 100),
+    [currentIndex, total]
+  );
+
+  const handlePick = (answerIndex: number) => {
+    if (selectedIndex !== null || finished) return;
+    setSelectedIndex(answerIndex);
+    if (answerIndex === current.correctAnswer) {
+      setScore((prev) => prev + 1000);
+    }
+  };
+
+  const handleNext = () => {
+    if (currentIndex === total - 1) {
+      setFinished(true);
+      return;
+    }
+    setCurrentIndex((prev) => prev + 1);
+    setSelectedIndex(null);
+  };
+
+  const restart = () => {
+    setCurrentIndex(0);
+    setSelectedIndex(null);
+    setScore(0);
+    setFinished(false);
+  };
+
+  if (finished) {
+    return (
+      <div className="rounded-2xl border bg-white p-6 shadow-sm">
+        <h2 className="text-2xl font-bold">Quiz Finished</h2>
+        <p className="mt-2 text-slate-600">Placeholder leaderboard preview</p>
+        <div className="mt-4 rounded-xl bg-slate-100 p-4">
+          <p className="text-lg font-semibold">You: {score} points</p>
+          <p className="text-sm text-slate-500">Correct answers: {Math.floor(score / 1000)} / {total}</p>
+        </div>
+        <Button className="mt-4" onClick={restart}>
+          Play Again
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-2xl border bg-white p-6 shadow-sm">
+      <div className="mb-4 flex items-center justify-between">
+        <span className="rounded-full bg-slate-100 px-3 py-1 text-sm font-medium">
+          Question {currentIndex + 1}/{total}
+        </span>
+        <span className="text-sm font-semibold text-slate-700">Score: {score}</span>
+      </div>
+
+      <div className="mb-5 h-2 w-full overflow-hidden rounded-full bg-slate-200">
+        <div
+          className="h-full bg-indigo-500 transition-all duration-300"
+          style={{ width: `${progressPercent}%` }}
+        />
+      </div>
+
+      <h3 className="mb-5 text-xl font-bold text-slate-900">{current.question}</h3>
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        {current.answers.map((answer, idx) => {
+          const isSelected = selectedIndex === idx;
+          const isCorrect = idx === current.correctAnswer;
+          const showCorrect = selectedIndex !== null && isCorrect;
+          const showWrong = selectedIndex !== null && isSelected && !isCorrect;
+
+          return (
+            <button
+              key={idx}
+              onClick={() => handlePick(idx)}
+              className={[
+                'rounded-xl px-4 py-3 text-left font-semibold text-white transition',
+                answerColors[idx % answerColors.length],
+                selectedIndex !== null ? 'opacity-80' : '',
+                showCorrect ? 'ring-4 ring-emerald-300 opacity-100' : '',
+                showWrong ? 'ring-4 ring-red-300 opacity-100' : '',
+              ].join(' ')}
+            >
+              {String.fromCharCode(65 + idx)}. {answer}
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="mt-5 flex justify-end">
+        <Button onClick={handleNext} disabled={selectedIndex === null}>
+          {currentIndex === total - 1 ? 'Finish' : 'Next Question'}
+        </Button>
+      </div>
+    </div>
+  );
+}

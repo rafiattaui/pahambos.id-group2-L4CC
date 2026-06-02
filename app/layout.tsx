@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono, Fredoka, Quicksand } from 'next/font/google';
 import AnimatedBackground from '@/components/header/animation';
+import { Toaster } from '@/components/ui/sonner';
 import './globals.css';
 
 const geistSans = Geist({
@@ -41,6 +42,7 @@ export default function RootLayout({
       >
         <AnimatedBackground />
         <main className="relative z-10">{children}</main>
+        <Toaster position="top-center" />
       </body>
     </html>
   );

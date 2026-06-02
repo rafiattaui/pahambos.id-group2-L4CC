@@ -29,6 +29,7 @@ export const POST = WithAuth(async (req, { user }) => {
       question: formData.get('question.question'),
       imageFile: formData.get('question.imageFile') ?? undefined,
       answers: formData.getAll('question.answers') as string[],
+      time: Number(formData.get('question.time')), // time limit in seconds
       type: formData.get('question.type'),
       correctAnswers: formData
         .getAll('question.correctAnswers')
@@ -74,8 +75,10 @@ export const POST = WithAuth(async (req, { user }) => {
         data: {
           order: nextOrder,
           question: data.question,
+          type: data.type,
           answers: data.answers,
           correctAnswers: data.correctAnswers,
+          time: data.time,
           imageUrl,
           imageKey,
           quizId,

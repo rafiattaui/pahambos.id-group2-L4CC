@@ -2,12 +2,13 @@ import { WithAuth } from '@/lib/api/auth-protected';
 import { handleError } from '@/lib/api/errors';
 import { prisma } from '@/lib/prisma';
 import {
+  imageFileSchema,
   PublicQuestionSchema,
   UpdateQuestionSchema,
 } from '@/lib/schemas/quizschemas';
 import { NextRequest, NextResponse } from 'next/server';
 import { APIError } from '@/lib/api/errors';
-import { uploadImage } from '@/lib/cloudinary';
+import { deleteImage, uploadImage } from '@/lib/cloudinary';
 
 const PLACEHOLDER_IMAGE_URL =
   'https://res.cloudinary.com/dbj2tvfzg/image/upload/v1778493470/landscape-placeholder_vrw20c.svg';
@@ -92,10 +93,102 @@ export const DELETE = WithAuth(async (req, { user, params }) => {
   }
 });
 
-// TODO - Implement QuizQuestion PATCH
 export const PATCH = WithAuth(async (req, { user, params }) => {
-  return NextResponse.json(
-    { success: false, message: 'Not implemented' },
-    { status: 501 }
-  );
+  try {
+    const rawData = await req.json();
+    const data = UpdateQuestionSchema.parse(rawData);
+    const { id } = await params;
+
+    const question = await prisma.quizQuestion.findUnique({
+      where: { id },
+      include: {
+        quiz: true,
+      },
+    });
+
+    if (!question) {
+      throw new APIError('Question not found', 404);
+    }
+
+    if (user.id !== question.quiz.createdBy) {
+      throw new APIError('Unauthorized to update this question', 403);
+    }
+
+    const updatedQuestion = await prisma.quizQuestion.update({
+      where: { id },
+      data: {
+        question: data.question,
+        type: data.type,
+        time: data.time,
+        answers: data.answers,
+        correctAnswers: data.correctAnswers,
+      },
+    });
+
+    const res = PublicQuestionSchema.parse(updatedQuestion);
+    return NextResponse.json(
+      {
+        success: true,
+        ...res,
+      },
+      { status: 200 }
+    );
+  } catch (err) {
+    return handleError(err);
+  }
+});
+
+export const PUT = WithAuth(async (req, { user, params }) => {
+  try {
+    const rawData = await req.formData();
+    const imageFile = imageFileSchema.parse(rawData.get('imageFile'));
+
+    if (!imageFile) {
+      throw new APIError('No image file provided', 400);
+    }
+
+    const quizQuestion = await prisma.quizQuestion.findUnique({
+      where: { id: (await params).id },
+      include: {
+        quiz: true,
+      },
+    });
+
+    if (!quizQuestion) {
+      throw new APIError('Question not found', 404);
+    }
+
+    if (user.id !== quizQuestion.quiz.createdBy) {
+      throw new APIError('Unauthorized to update this question', 403);
+    }
+
+    // Upload new image to Cloudinary
+    const uploadResult = await uploadImage(imageFile, 'quiz-questions');
+
+    // Delete old image from Cloudinary if it exists and is not the placeholder
+    if (
+      quizQuestion.imageKey &&
+      quizQuestion.imageKey !== PLACEHOLDER_IMAGE_KEY
+    ) {
+      await deleteImage(quizQuestion.imageKey);
+    }
+
+    await prisma.quizQuestion.update({
+      where: { id: quizQuestion.id },
+      data: {
+        imageUrl: uploadResult.imageUrl,
+        imageKey: uploadResult.imageKey,
+      },
+    });
+
+    return NextResponse.json(
+      {
+        success: true,
+        imageUrl: uploadResult.imageUrl,
+      },
+      { status: 200 }
+    );
+  } catch (err) {
+    return handleError(err);
+  }
 });

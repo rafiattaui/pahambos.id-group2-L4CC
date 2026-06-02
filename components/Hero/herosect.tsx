@@ -3,7 +3,12 @@
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 
+import { authClient } from '@/lib/auth-client';
+
 export default function HeroSect() {
+  const { data: session } = authClient.useSession();
+  const ctaHref = session ? '/dashboard' : '/register';
+
   return (
     <div>
       <section className="flex min-h-screen flex-col items-center justify-center">
@@ -27,7 +32,7 @@ export default function HeroSect() {
           Join us today and unlock your full potential!
         </p>
         <div className="mt-10 flex w-full max-w-md flex-row items-center justify-center gap-4">
-          <a href="/register" className="w-full max-w-72 sm:w-auto">
+          <a href={ctaHref} className="w-full max-w-72 sm:w-auto">
             <Button className="w-full max-w-72 cursor-pointer items-center bg-blue-500 px-6 py-6 hover:scale-110 hover:bg-blue-700 active:scale-120 sm:w-72">
               Get Started <ArrowRight />
             </Button>

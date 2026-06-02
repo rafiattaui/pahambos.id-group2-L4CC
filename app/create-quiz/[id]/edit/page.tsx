@@ -46,6 +46,7 @@ export default async function EditQuizPage({ params }: PageProps) {
     questions: quiz.questions.map((q) => ({
       dbId: q.id,
       order: q.order,
+      time: q.time ?? undefined, // time is optional in the form, so convert null → undefined
       // Prisma stores these as string enums matching the schema
       type: q.type as 'SingleSelect' | 'MultiSelect',
       question: q.question,

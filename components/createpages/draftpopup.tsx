@@ -11,6 +11,7 @@ type QuestionType = 'multiple-choice' | 'multiple-select-choice';
 type Question = {
   order: number; // DB assigns id; order is the local stable key
   type: QuestionType;
+  time?: number; // in seconds, optional for backward compatibility with old drafts
   question: string;
   answer?: string[];
   correctAnswers: number[]; // indices into answer[], matches schema's correctAnswers
@@ -59,6 +60,7 @@ function formFingerprint(form: QuizFormState): string {
       return {
         type: q.type,
         question: q.question.trim().toLowerCase(),
+        time: q.time ?? '',
         answer: q.answer?.map((a) => a.trim().toLowerCase()).sort(),
         correctAnswers: normalized_ca.sort((a, b) => a - b).join('|'),
       };

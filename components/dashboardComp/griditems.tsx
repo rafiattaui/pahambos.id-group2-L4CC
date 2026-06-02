@@ -35,7 +35,7 @@ export type Quiz = {
 export function QuizSkeleton() {
   return (
     <div className="w-full">
-      <div className="relative flex aspect-7/9 flex-col overflow-hidden rounded-2xl border-2 border-gray-300 shadow-xl sm:aspect-3/4">
+      <div className="relative flex aspect-6/7 flex-col overflow-hidden rounded-2xl border-2 border-gray-300 shadow-xl sm:aspect-3/4">
         <div className="relative p-0">
           <Skeleton className="h-28 w-full rounded-none sm:h-40" />
           <div className="absolute inset-x-1 bottom-3 flex items-center justify-between sm:inset-x-4">
@@ -78,7 +78,7 @@ export default function GridItems({ quiz }: { quiz: Quiz }) {
         }}
         className="block h-full w-full text-left"
       >
-        <Card className="relative flex aspect-7/9 flex-col overflow-hidden rounded-2xl border-2 border-gray-300 shadow-xl sm:aspect-3/4">
+        <Card className="relative flex aspect-6/7 flex-col overflow-hidden rounded-2xl border-2 border-gray-300 shadow-xl sm:aspect-3/4">
           <CardHeader className="relative p-0">
             <Image
               src={quiz.imageUrl || '/placeholderquiz.png'}
@@ -106,11 +106,9 @@ export default function GridItems({ quiz }: { quiz: Quiz }) {
             <CardTitle className="font-body line-clamp-4 text-sm font-bold sm:text-base">
               {quiz.title}
             </CardTitle>
-            <div className="hidden md:block">
-              <CardDescription className="font-body mt-1 line-clamp-3 text-sm text-gray-500">
-                {quiz.description}
-              </CardDescription>
-            </div>
+            <CardDescription className="font-body mt-1 line-clamp-3 text-sm text-gray-500">
+              {quiz.description}
+            </CardDescription>
           </CardContent>
         </Card>
       </button>

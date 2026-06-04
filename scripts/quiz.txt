@@ -1,0 +1,24 @@
+# Lines starting with # are ignored
+
+[quiz]
+title=My Science Quiz
+description=A fun quiz about basic science
+category=Science
+
+[question]
+question=What is the chemical symbol for water?
+type=SingleSelect
+answers=H2O|CO2|O2|NaCl
+correctAnswers=0
+
+[question]
+question=Which of these are planets in our solar system?
+type=MultiSelect
+answers=Mars|Pluto|Jupiter|Sun
+correctAnswers=0|2
+
+[question]
+question=How many bones are in the adult human body?
+type=SingleSelect
+answers=196|206|216|226
+correctAnswers=1

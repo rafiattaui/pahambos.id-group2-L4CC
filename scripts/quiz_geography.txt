@@ -1,0 +1,52 @@
+[quiz]
+title=World Geography
+description=Countries, capitals, and physical geography
+category=Geography
+
+[question]
+question=What is the capital of Australia?
+type=SingleSelect
+answers=Sydney|Melbourne|Brisbane|Canberra
+correctAnswers=3
+
+[question]
+question=Which is the longest river in the world?
+type=SingleSelect
+answers=Amazon|Mississippi|Nile|Yangtze
+correctAnswers=2
+
+[question]
+question=Which of these countries are in South America?
+type=MultiSelect
+answers=Brazil|Mexico|Argentina|Colombia
+correctAnswers=0|2|3
+
+[question]
+question=What is the smallest country in the world?
+type=SingleSelect
+answers=Monaco|Liechtenstein|Vatican City|San Marino
+correctAnswers=2
+
+[question]
+question=Which ocean is the largest?
+type=SingleSelect
+answers=Atlantic|Indian|Arctic|Pacific
+correctAnswers=3
+
+[question]
+question=Mount Everest is located in which mountain range?
+type=SingleSelect
+answers=Andes|Alps|Rockies|Himalayas
+correctAnswers=3
+
+[question]
+question=What is the capital of Japan?
+type=SingleSelect
+answers=Osaka|Kyoto|Tokyo|Hiroshima
+correctAnswers=2
+
+[question]
+question=Which of these are African countries?
+type=MultiSelect
+answers=Nigeria|Pakistan|Kenya|Egypt
+correctAnswers=0|2|3

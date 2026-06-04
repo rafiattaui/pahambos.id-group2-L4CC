@@ -1,0 +1,52 @@
+[quiz]
+title=Tech Fundamentals
+description=Test your knowledge of core technology concepts
+category=Technology
+
+[question]
+question=What does CPU stand for?
+type=SingleSelect
+answers=Central Processing Unit|Computer Personal Unit|Core Processing Utility|Central Program Unit
+correctAnswers=0
+
+[question]
+question=Which language is primarily used for styling web pages?
+type=SingleSelect
+answers=HTML|JavaScript|CSS|Python
+correctAnswers=2
+
+[question]
+question=What does HTTP stand for?
+type=SingleSelect
+answers=HyperText Transfer Protocol|High Transfer Text Protocol|HyperText Transmission Process|Hosted Text Transfer Protocol
+correctAnswers=0
+
+[question]
+question=Which of these are programming languages?
+type=MultiSelect
+answers=Python|Photoshop|Rust|Go
+correctAnswers=0|2|3
+
+[question]
+question=What is the base of the binary number system?
+type=SingleSelect
+answers=8|10|2|16
+correctAnswers=2
+
+[question]
+question=Which company developed the Android operating system?
+type=SingleSelect
+answers=Apple|Microsoft|Google|Samsung
+correctAnswers=2
+
+[question]
+question=What does RAM stand for?
+type=SingleSelect
+answers=Random Access Memory|Read Access Module|Rapid Application Memory|Remote Access Manager
+correctAnswers=0
+
+[question]
+question=Which of these are cloud providers?
+type=MultiSelect
+answers=AWS|Oracle DB|Azure|Google Cloud
+correctAnswers=0|2|3

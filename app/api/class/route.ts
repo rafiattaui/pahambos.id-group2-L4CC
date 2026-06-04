@@ -17,10 +17,12 @@ const shape = (cls: any) => ({
   members: cls.members
     .filter((m: any) => m.userId !== cls.ownerId)
     .map((m: any) => m.user),
-});
+}); // use the already made zod schemas.
 
 export const GET = WithAuth(
   async (req: NextRequest, { user }: { user: { id: string } }) => {
+    // this could be seperated into two functions, perhaps a filter query parameter
+    // because it could possible be a heavy query.
     try {
       const [owned, joined] = await Promise.all([
         prisma.classroom.findMany({
@@ -52,6 +54,8 @@ export const POST = WithAuth(
   async (req: NextRequest, { user }: { user: { id: string } }) => {
     try {
       const body = await req.json();
+
+      // body should be validated with zod schema.
 
       if (body?.action === 'create') {
         const { name } = body.name?.trim();
@@ -108,6 +112,8 @@ export const PATCH = WithAuth(
       const classroomId = body?.classroomId?.trim();
       const name = body?.name?.trim();
 
+      // use zod validation
+
       if (!classroomId) throw new APIError('classroomId is required.', 400);
       if (!name) throw new APIError('name is required.', 400);
       if (name.length > 100)
@@ -137,6 +143,8 @@ export const DELETE = WithAuth(
     try {
       const body = await req.json();
       const classroomId = body?.classroomId?.trim();
+
+      // use zod
 
       if (!classroomId) throw new APIError('classroomId is required.', 400);
 

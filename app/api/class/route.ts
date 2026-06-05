@@ -18,19 +18,12 @@ const shape = (cls: any) => ({
   members: cls.members
     .filter((m: any) => m.userId !== cls.ownerId)
     .map((m: any) => m.user),
-}); // use the already made zod schemas.
-
-const ClassroomActionSchema = z.object({
-  action: z.enum(['create', 'join']),
 });
 
-const ClassroomUpdateSchema = z.object({
-  classroomId: z.string(),
-  name: z.string().min(1).max(100),
-});
+// Get Classrooms for Educator and Learner
 
 export const GET = WithAuth(
-  async (req: NextRequest, { user }: { user: { id: string } }) => {
+  async (_req: NextRequest, { user }: { user: { id: string } }) => {
     try {
       const [owned, joined] = await Promise.all([
         prisma.classroom.findMany({
@@ -58,88 +51,57 @@ export const GET = WithAuth(
   }
 );
 
+// Create Classrooms
+
+const ClassroomCreateSchema = z.object({
+  name: z.string().min(1).max(100),
+});
+
 export const POST = WithAuth(
   async (req: NextRequest, { user }: { user: { id: string } }) => {
     try {
       const body = await req.json();
+      const { name } = ClassroomCreateSchema.parse(body);
 
-      const classroom_data = ClassroomActionSchema.parse(body);
+      const classroom = await prisma.classroom.create({
+        data: {
+          name,
+          ownerId: user.id,
+          members: { create: { userId: user.id } },
+        },
+        include,
+      });
 
-      // body should be validated with zod schema.
-
-      if (classroom_data.action === 'create') {
-        if (classroom_data.name)
-          throw new APIError('Class name is required', 400);
-        if (classroom_data.name.length > 100)
-          throw new APIError('Class name must be 100 characters or less', 400);
-
-        const classroom = await prisma.classroom.create({
-          data: {
-            name,
-            ownerId: user.id,
-            members: { create: { userId: user.id } },
-          },
-          include,
-        });
-        return NextResponse.json(shape(classroom), { status: 201 });
-      }
-
-      if (body?.action === 'join') {
-        const classroomId = body.classroomId?.trim();
-        if (!classroomId) throw new APIError('classroomId is required.', 400);
-
-        const classroom = await prisma.classroom.findUnique({
-          where: { id: classroomId },
-        });
-        if (!classroom) throw new APIError('Classroom not found.', 404);
-        if (classroom.ownerId === user.id)
-          throw new APIError('You are the educator of this class.', 403);
-
-        await prisma.userClassroom.upsert({
-          where: { userId_classroomId: { userId: user.id, classroomId } },
-          create: { userId: user.id, classroomId },
-          update: {},
-        });
-
-        const updated = await prisma.classroom.findUniqueOrThrow({
-          where: { id: classroomId },
-          include,
-        });
-        return NextResponse.json({ classroom: shape(updated) });
-      }
-
-      throw new APIError(`Unknown action "${body?.action}".`, 400);
+      return NextResponse.json(shape(classroom), { status: 201 });
     } catch (error) {
       return handleError(error);
     }
   }
 );
 
+// Update Classroom Name
+
+const ClassroomUpdateSchema = z.object({
+  classroomId: z.string(),
+  name: z.string().min(1).max(100),
+});
+
 export const PATCH = WithAuth(
   async (req: NextRequest, { user }: { user: { id: string } }) => {
     try {
       const body = await req.json();
-
-      const data = ClassroomUpdateSchema.parse(body);
-
-      // const classroomId = body?.classroomId?.trim();
-      // const name = body?.name?.trim();
-
-      // use zod validation
-
-      if (data.name.length > 100)
-        throw new APIError('Class name must be 100 characters or fewer.', 400);
+      const { classroomId, name } = ClassroomUpdateSchema.parse(body);
 
       const classroom = await prisma.classroom.findUnique({
-        where: { id: data.classroomId },
+        where: { id: classroomId },
       });
       if (!classroom) throw new APIError('Classroom not found.', 404);
       if (classroom.ownerId !== user.id)
         throw new APIError('Only the educator can do this.', 403);
 
       const updated = await prisma.classroom.update({
-        where: { id: data.classroomId },
-        data: { name: data.name },
+        where: { id: classroomId },
+        data: { name },
         include,
       });
       return NextResponse.json({ classroom: shape(updated) });
@@ -149,16 +111,18 @@ export const PATCH = WithAuth(
   }
 );
 
+// Delete Classroom or Remove Member
+
+const ClassroomDeleteSchema = z.object({
+  classroomId: z.string(),
+  memberId: z.string().optional(),
+});
+
 export const DELETE = WithAuth(
   async (req: NextRequest, { user }: { user: { id: string } }) => {
     try {
       const body = await req.json();
-      const classroomId = z
-        .object({ classroomId: z.string() })
-        .parse(body)
-        .classroomId.trim();
-
-      // use zod
+      const { classroomId, memberId } = ClassroomDeleteSchema.parse(body);
 
       const classroom = await prisma.classroom.findUnique({
         where: { id: classroomId },
@@ -167,8 +131,7 @@ export const DELETE = WithAuth(
       if (classroom.ownerId !== user.id)
         throw new APIError('Only the educator can do this.', 403);
 
-      if (body?.memberId) {
-        const memberId = body.memberId.trim();
+      if (memberId) {
         if (memberId === user.id)
           throw new APIError(
             'You cannot remove yourself as the educator.',

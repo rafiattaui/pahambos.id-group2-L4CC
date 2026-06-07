@@ -734,19 +734,16 @@ export default function ClassroomPage() {
     if (!newName.trim()) return;
     setCreating(true);
     setCreateError('');
-    const { data, error } = await apiFetch<{ classroom: Classroom }>(
-      '/api/class',
-      {
-        method: 'POST',
-        body: JSON.stringify({ name: newName.trim() }),
-      }
-    );
+    const { data, error } = await apiFetch<Classroom>('/api/class', {
+      method: 'POST',
+      body: JSON.stringify({ name: newName.trim() }),
+    });
     setCreating(false);
     if (error || !data) {
       setCreateError(error ?? 'Failed to create class.');
       return;
     }
-    setOwnedClasses((p) => [...p, data.classroom]);
+    setOwnedClasses((p) => [...p, data]);
     setNewName('');
     setShowCreate(false);
   }
@@ -994,7 +991,7 @@ export default function ClassroomPage() {
         >
           <OverlayHeader
             title="Join a Class"
-            gradient="from-emerald-500 to-teal-600"
+            gradient="from-orange-500 to-orange-600"
             onClose={() => {
               setShowJoin(false);
               setJoinStatus('idle');
@@ -1029,7 +1026,7 @@ export default function ClassroomPage() {
             <button
               onClick={handleJoin}
               disabled={!joinId.trim() || joining || joinStatus === 'success'}
-              className="mt-1 flex w-full items-center justify-center gap-1.5 rounded-xl bg-emerald-600 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-700 active:scale-[0.98] disabled:opacity-40"
+              className="mt-1 flex w-full items-center justify-center gap-1.5 rounded-xl bg-orange-600 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-700 active:scale-[0.98] disabled:opacity-40"
             >
               {joining && <Spinner />} Join Class
             </button>

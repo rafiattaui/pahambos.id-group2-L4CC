@@ -245,11 +245,8 @@ export default function DashCarousel() {
     <section className="mt-32">
       {/* Featured */}
       <div>
-        <span className="font-body ml-2 text-2xl font-bold text-slate-800">
-          Featured
-        </span>
         <CarouselSection
-          title=""
+          title="Featured"
           quizzes={featured}
           status={featuredStatus}
           onSelect={setSelectedQuiz}

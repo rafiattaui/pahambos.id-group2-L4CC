@@ -51,7 +51,7 @@ export const POST = WithAuth(
 
       await prisma.userClassroom.upsert({
         where: { userId_classroomId: { userId: user.id, classroomId } },
-        create: { userId: user.id, classroomId },
+        create: { userId: user.id, classroomId, role: 'Learner' },
         update: {},
       });
 

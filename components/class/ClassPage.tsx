@@ -1,25 +1,43 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type Role = 'Learner' | 'Educator';
-
-interface User {
+interface ClassUser {
   id: string;
   name: string;
   email: string;
+  image?: string | null;
 }
 
 interface Classroom {
   id: string;
   name: string;
-  owner: User | string;
-  members: User[];
+  owner: ClassUser;
+  members: ClassUser[];
 }
 
-// ─── Palette for class cards ──────────────────────────────────────────────────
+// ─── API helper ───────────────────────────────────────────────────────────────
+
+async function apiFetch<T>(
+  url: string,
+  options?: RequestInit
+): Promise<{ data: T | null; error: string | null }> {
+  try {
+    const res = await fetch(url, {
+      headers: { 'Content-Type': 'application/json' },
+      ...options,
+    });
+    const json = await res.json();
+    if (!res.ok) return { data: null, error: json.error ?? 'Request failed.' };
+    return { data: json as T, error: null };
+  } catch {
+    return { data: null, error: 'Network error. Please try again.' };
+  }
+}
+
+// ─── Palette ──────────────────────────────────────────────────────────────────
 
 const CARD_GRADIENTS = [
   'from-violet-500 to-indigo-600',
@@ -36,60 +54,6 @@ function cardGradient(id: string) {
     CARD_GRADIENTS.length;
   return CARD_GRADIENTS[idx];
 }
-
-// ─── Mock Data ────────────────────────────────────────────────────────────────
-
-const MOCK_EDUCATOR_CLASSES: Classroom[] = [
-  {
-    id: '1',
-    name: 'Mathematics 101',
-    owner: 'You',
-    members: [
-      { id: 'u1', name: 'Andi Pratama', email: 'andi@example.com' },
-      { id: 'u2', name: 'Budi Santoso', email: 'budi@example.com' },
-      { id: 'u3', name: 'Citra Dewi', email: 'citra@example.com' },
-    ],
-  },
-  {
-    id: '2',
-    name: 'Science Basics',
-    owner: 'You',
-    members: [
-      { id: 'u4', name: 'Dian Rahayu', email: 'dian@example.com' },
-      { id: 'u5', name: 'Eko Wijaya', email: 'eko@example.com' },
-    ],
-  },
-  {
-    id: '3',
-    name: 'English Writing',
-    owner: 'You',
-    members: [],
-  },
-];
-
-const MOCK_LEARNER_CLASSES: Classroom[] = [
-  {
-    id: '4',
-    name: 'History & Culture',
-    owner: 'Mr. Budi Hartono',
-    members: [
-      { id: 'u6', name: 'Fajar Nugraha', email: 'fajar@example.com' },
-      { id: 'u7', name: 'Gita Lestari', email: 'gita@example.com' },
-      { id: 'u8', name: 'Hendra Kusuma', email: 'hendra@example.com' },
-      { id: 'u9', name: 'Indah Permata', email: 'indah@example.com' },
-      { id: 'u10', name: 'Joko Widodo', email: 'joko@example.com' },
-    ],
-  },
-  {
-    id: '5',
-    name: 'Biology 101',
-    owner: 'Ms. Sari Dewi',
-    members: [
-      { id: 'u11', name: 'Kartini Sari', email: 'kartini@example.com' },
-      { id: 'u12', name: 'Luhut Pandjaitan', email: 'luhut@example.com' },
-    ],
-  },
-];
 
 // ─── Avatar ───────────────────────────────────────────────────────────────────
 
@@ -129,40 +93,84 @@ function Avatar({
   );
 }
 
-// ─── Class Card ───────────────────────────────────────────────────────────────
+// ─── Spinner ──────────────────────────────────────────────────────────────────
 
-function ClassCard({ cls, onClick }: { cls: Classroom; onClick: () => void }) {
-  const grad = cardGradient(cls.id);
+function Spinner({ className = 'h-4 w-4' }: { className?: string }) {
   return (
-    <button
-      onClick={onClick}
-      className="group font-body flex w-full flex-col overflow-hidden rounded-2xl bg-white text-left shadow-md ring-1 ring-black/5 transition hover:-translate-y-0.5 hover:shadow-lg"
+    <svg
+      className={`animate-spin ${className}`}
+      fill="none"
+      viewBox="0 0 24 24"
     >
-      {/* Coloured banner */}
-      <div
-        className={`relative h-28 w-full bg-linear-to-br ${grad} flex items-end p-3`}
-      >
-        {/* learner count */}
-        <span className="ml-auto rounded-full bg-white/20 px-2.5 py-0.5 text-[11px] font-semibold text-white backdrop-blur-sm">
-          {cls.members.length}{' '}
-          {cls.members.length === 1 ? 'learner' : 'learners'}
-        </span>
-      </div>
-
-      {/* Card body */}
-      <div className="flex flex-col gap-1 p-4">
-        <p className="truncate text-sm font-bold text-slate-800 transition group-hover:text-blue-700">
-          {cls.name}
-        </p>
-        <p className="truncate text-xs text-slate-500">
-          {typeof cls.owner === 'string' ? cls.owner : cls.owner.name}
-        </p>
-      </div>
-    </button>
+      <circle
+        className="opacity-25"
+        cx="12"
+        cy="12"
+        r="10"
+        stroke="currentColor"
+        strokeWidth="4"
+      />
+      <path
+        className="opacity-75"
+        fill="currentColor"
+        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+      />
+    </svg>
   );
 }
 
-// ─── Overlay Modal ────────────────────────────────────────────────────────────
+// ─── Error banner ─────────────────────────────────────────────────────────────
+
+function ErrorBanner({
+  message,
+  onDismiss,
+}: {
+  message: string;
+  onDismiss: () => void;
+}) {
+  return (
+    <div className="flex items-start gap-2 rounded-xl bg-red-50 px-3 py-2.5 text-xs font-medium text-red-600 ring-1 ring-red-100">
+      <span className="flex-1">{message}</span>
+      <button onClick={onDismiss} className="shrink-0 hover:text-red-800">
+        ✕
+      </button>
+    </div>
+  );
+}
+
+// ─── Labeled input ────────────────────────────────────────────────────────────
+
+function LabeledInput({
+  label,
+  placeholder,
+  value,
+  onChange,
+  type = 'text',
+  disabled = false,
+}: {
+  label: string;
+  placeholder: string;
+  value: string;
+  onChange: (v: string) => void;
+  type?: string;
+  disabled?: boolean;
+}) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <label className="text-xs font-semibold text-slate-500">{label}</label>
+      <input
+        type={type}
+        value={value}
+        placeholder={placeholder}
+        disabled={disabled}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-800 transition placeholder:text-slate-400 focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-200 focus:outline-none disabled:opacity-50"
+      />
+    </div>
+  );
+}
+
+// ─── Overlay ──────────────────────────────────────────────────────────────────
 
 function Overlay({
   onClose,
@@ -172,7 +180,7 @@ function Overlay({
   children: React.ReactNode;
 }) {
   return (
-    <div className="font-body fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div
         className="absolute inset-0 bg-black/40 backdrop-blur-sm"
         onClick={onClose}
@@ -218,107 +226,105 @@ function OverlayHeader({
   );
 }
 
-function LabeledInput({
+// ─── Class Card ───────────────────────────────────────────────────────────────
+
+function ClassCard({
+  cls,
+  badge,
+  onClick,
+}: {
+  cls: Classroom;
+  badge?: React.ReactNode;
+  onClick: () => void;
+}) {
+  const grad = cardGradient(cls.id);
+  return (
+    <button
+      onClick={onClick}
+      className="group flex w-full flex-col overflow-hidden rounded-2xl bg-white text-left shadow-md ring-1 ring-black/5 transition hover:-translate-y-0.5 hover:shadow-lg"
+    >
+      <div
+        className={`relative h-28 w-full bg-linear-to-br ${grad} flex items-end p-3`}
+      >
+        {badge && <span className="absolute top-3 left-3">{badge}</span>}
+        <span className="ml-auto rounded-full bg-white/20 px-2.5 py-0.5 text-[11px] font-semibold text-white backdrop-blur-sm">
+          {cls.members.length}{' '}
+          {cls.members.length === 1 ? 'learner' : 'learners'}
+        </span>
+      </div>
+      <div className="flex flex-col gap-1 p-4">
+        <p className="truncate text-sm font-bold text-slate-800 transition group-hover:text-blue-700">
+          {cls.name}
+        </p>
+        <p className="truncate text-xs text-slate-500">{cls.owner.name}</p>
+      </div>
+    </button>
+  );
+}
+
+// ─── Section header ───────────────────────────────────────────────────────────
+
+function SectionHeader({
   label,
-  placeholder,
-  value,
-  onChange,
-  type = 'text',
+  count,
+  action,
 }: {
   label: string;
-  placeholder: string;
-  value: string;
-  onChange: (v: string) => void;
-  type?: string;
+  count: number;
+  action?: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col gap-1.5">
-      <label className="text-xs font-semibold text-slate-500">{label}</label>
-      <input
-        type={type}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-800 transition placeholder:text-slate-400 focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-200 focus:outline-none"
-      />
+    <div className="mb-3 flex items-center justify-between">
+      <div className="flex items-center gap-2">
+        <h2 className="text-base font-bold text-slate-800">{label}</h2>
+        <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-500">
+          {count}
+        </span>
+      </div>
+      {action}
     </div>
   );
 }
 
-// ─── Educator View ────────────────────────────────────────────────────────────
+// ─── Class ID display with copy button ───────────────────────────────────────
 
-function EducatorView() {
-  const [classes, setClasses] = useState<Classroom[]>(MOCK_EDUCATOR_CLASSES);
-  const [selectedClass, setSelectedClass] = useState<Classroom | null>(null);
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [showAddLearner, setShowAddLearner] = useState(false);
-  const [newClassName, setNewClassName] = useState('');
-  const [newLearnerName, setNewLearnerName] = useState('');
-  const [newLearnerEmail, setNewLearnerEmail] = useState('');
+function ClassIdDisplay({ id }: { id: string }) {
+  const [copied, setCopied] = useState(false);
 
-  function handleCreateClass() {
-    if (!newClassName.trim()) return;
-    const c: Classroom = {
-      id: Date.now().toString(),
-      name: newClassName.trim(),
-      owner: 'You',
-      members: [],
-    };
-    setClasses((p) => [...p, c]);
-    setNewClassName('');
-    setShowCreateModal(false);
+  function handleCopy() {
+    navigator.clipboard.writeText(id);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   }
-
-  function handleDeleteClass(id: string) {
-    setClasses((p) => p.filter((c) => c.id !== id));
-    setSelectedClass(null);
-  }
-
-  function handleAddLearner() {
-    if (!selectedClass || !newLearnerName.trim() || !newLearnerEmail.trim())
-      return;
-    const m: User = {
-      id: Date.now().toString(),
-      name: newLearnerName.trim(),
-      email: newLearnerEmail.trim(),
-    };
-    const updated = classes.map((c) =>
-      c.id === selectedClass.id ? { ...c, members: [...c.members, m] } : c
-    );
-    setClasses(updated);
-    setSelectedClass(updated.find((c) => c.id === selectedClass.id) ?? null);
-    setNewLearnerName('');
-    setNewLearnerEmail('');
-    setShowAddLearner(false);
-  }
-
-  function handleRemoveLearner(memberId: string) {
-    if (!selectedClass) return;
-    const updated = classes.map((c) =>
-      c.id === selectedClass.id
-        ? { ...c, members: c.members.filter((m) => m.id !== memberId) }
-        : c
-    );
-    setClasses(updated);
-    setSelectedClass(updated.find((c) => c.id === selectedClass.id) ?? null);
-  }
-
-  const grad = selectedClass ? cardGradient(selectedClass.id) : '';
 
   return (
-    <>
-      {/* Header */}
-      <div className="font-body mb-4 flex items-center justify-between">
-        <div>
-          <p className="text-xs font-semibold tracking-widest text-blue-500 uppercase">
-            Educator
-          </p>
-          <h2 className="text-lg font-bold text-slate-800">My Classes</h2>
-        </div>
-        <button
-          onClick={() => setShowCreateModal(true)}
-          className="flex items-center gap-1.5 rounded-xl bg-blue-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 active:scale-95"
-        >
+    <div className="flex items-center gap-2 rounded-xl bg-slate-50 px-4 py-3 ring-1 ring-black/5">
+      <div className="min-w-0 flex-1">
+        <p className="text-[11px] font-semibold tracking-wider text-slate-400 uppercase">
+          Class ID
+        </p>
+        <p className="font-mono text-xs break-all text-slate-600">{id}</p>
+      </div>
+      <button
+        onClick={handleCopy}
+        className="shrink-0 rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-200 hover:text-slate-600"
+        title="Copy class ID"
+      >
+        {copied ? (
+          <svg
+            className="h-4 w-4 text-emerald-500"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M5 13l4 4L19 7"
+            />
+          </svg>
+        ) : (
           <svg
             className="h-4 w-4"
             fill="none"
@@ -329,91 +335,166 @@ function EducatorView() {
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
-              d="M12 4v16m8-8H4"
+              d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-4 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
             />
           </svg>
-          New Class
-        </button>
-      </div>
+        )}
+      </button>
+    </div>
+  );
+}
 
-      {/* Grid */}
-      {classes.length === 0 ? (
-        <div className="flex flex-col items-center gap-2 py-14 text-center">
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-100">
-            <svg
-              className="h-7 w-7 text-slate-400"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={1.5}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M4 6h16M4 10h16M4 14h10"
-              />
-            </svg>
-          </div>
-          <p className="text-sm font-medium text-slate-600">No classes yet</p>
-          <p className="text-xs text-slate-400">
-            Create your first class to get started.
-          </p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-          {classes.map((cls) => (
-            <ClassCard
-              key={cls.id}
-              cls={cls}
-              onClick={() => setSelectedClass(cls)}
+// ─── Educator class detail overlay ───────────────────────────────────────────
+
+function EducatorClassOverlay({
+  cls,
+  onClose,
+  onUpdate,
+  onDelete,
+}: {
+  cls: Classroom;
+  onClose: () => void;
+  onUpdate: (updated: Classroom) => void;
+  onDelete: (id: string) => void;
+}) {
+  const [editingName, setEditingName] = useState(false);
+  const [editedName, setEditedName] = useState('');
+  const [renaming, setRenaming] = useState(false);
+  const [renameError, setRenameError] = useState('');
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
+  const [removingId, setRemovingId] = useState<string | null>(null);
+  const [removeError, setRemoveError] = useState('');
+
+  async function handleRename() {
+    if (!editedName.trim()) return;
+    setRenaming(true);
+    setRenameError('');
+    const { data, error } = await apiFetch<{ classroom: Classroom }>(
+      '/api/class',
+      {
+        method: 'PATCH',
+        body: JSON.stringify({ classroomId: cls.id, name: editedName.trim() }),
+      }
+    );
+    setRenaming(false);
+    if (error || !data) {
+      setRenameError(error ?? 'Failed to rename.');
+      return;
+    }
+    onUpdate(data.classroom);
+    setEditingName(false);
+    setEditedName('');
+  }
+
+  async function handleDelete() {
+    setDeleting(true);
+    setDeleteError('');
+    const { error } = await apiFetch('/api/class', {
+      method: 'DELETE',
+      body: JSON.stringify({ classroomId: cls.id }),
+    });
+    setDeleting(false);
+    if (error) {
+      setDeleteError(error);
+      return;
+    }
+    onDelete(cls.id);
+    onClose();
+  }
+
+  async function handleRemoveMember(memberId: string) {
+    setRemovingId(memberId);
+    setRemoveError('');
+    const { error } = await apiFetch('/api/class', {
+      method: 'DELETE',
+      body: JSON.stringify({ classroomId: cls.id, memberId }),
+    });
+    setRemovingId(null);
+    if (error) {
+      setRemoveError(error);
+      return;
+    }
+    onUpdate({ ...cls, members: cls.members.filter((m) => m.id !== memberId) });
+  }
+
+  return (
+    <Overlay onClose={onClose}>
+      <OverlayHeader
+        title={editingName ? 'Rename Class' : cls.name}
+        gradient={cardGradient(cls.id)}
+        onClose={onClose}
+      />
+      <div className="flex flex-1 flex-col gap-4 overflow-y-auto p-5">
+        {/* Rename form */}
+        {editingName ? (
+          <div className="flex flex-col gap-3 rounded-2xl bg-slate-50 p-4 ring-1 ring-black/5">
+            <LabeledInput
+              label="New Class Name"
+              placeholder={cls.name}
+              value={editedName}
+              onChange={setEditedName}
+              disabled={renaming}
             />
-          ))}
-        </div>
-      )}
-
-      {/* ── Class detail overlay ── */}
-      {selectedClass && (
-        <Overlay
-          onClose={() => {
-            setSelectedClass(null);
-            setShowAddLearner(false);
-          }}
-        >
-          <OverlayHeader
-            title={selectedClass.name}
-            gradient={grad}
-            onClose={() => {
-              setSelectedClass(null);
-              setShowAddLearner(false);
-            }}
-          />
-
-          <div className="flex flex-1 flex-col gap-4 overflow-y-auto p-5">
-            {/* Actions row */}
+            {renameError && (
+              <ErrorBanner
+                message={renameError}
+                onDismiss={() => setRenameError('')}
+              />
+            )}
             <div className="flex gap-2">
               <button
-                onClick={() => setShowAddLearner((v) => !v)}
-                className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-blue-600 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700 active:scale-95"
+                onClick={handleRename}
+                disabled={!editedName.trim() || renaming}
+                className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-blue-600 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:opacity-40"
               >
-                <svg
-                  className="h-4 w-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M12 4v16m8-8H4"
-                  />
-                </svg>
-                Add Learner
+                {renaming && <Spinner />} Save
               </button>
               <button
-                onClick={() => handleDeleteClass(selectedClass.id)}
-                className="flex items-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-sm font-semibold text-red-600 transition hover:bg-red-100 active:scale-95"
+                onClick={() => {
+                  setEditingName(false);
+                  setEditedName('');
+                  setRenameError('');
+                }}
+                className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-100"
               >
+                Cancel
+              </button>
+            </div>
+          </div>
+        ) : (
+          /* Action row */
+          <div className="flex gap-2">
+            <button
+              onClick={() => {
+                setEditingName(true);
+                setEditedName(cls.name);
+              }}
+              className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
+            >
+              <svg
+                className="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M15.232 5.232l3.536 3.536M9 11l6.586-6.586a2 2 0 112.828 2.828L11.828 13.828A2 2 0 0110 14H8v-2a2 2 0 01.586-1.414z"
+                />
+              </svg>
+              Rename
+            </button>
+            <button
+              onClick={handleDelete}
+              disabled={deleting}
+              className="ml-auto flex items-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-3.5 py-2.5 text-sm font-semibold text-red-600 transition hover:bg-red-100 disabled:opacity-40"
+            >
+              {deleting ? (
+                <Spinner className="h-4 w-4 text-red-500" />
+              ) : (
                 <svg
                   className="h-4 w-4"
                   fill="none"
@@ -427,402 +508,534 @@ function EducatorView() {
                     d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
                   />
                 </svg>
-                Delete Class
-              </button>
-            </div>
-
-            {/* Add learner form */}
-            {showAddLearner && (
-              <div className="flex flex-col gap-3 rounded-2xl bg-slate-50 p-4 ring-1 ring-black/5">
-                <p className="text-xs font-bold tracking-widest text-slate-500 uppercase">
-                  New Learner
-                </p>
-                <LabeledInput
-                  label="Full Name"
-                  placeholder="e.g. Andi Pratama"
-                  value={newLearnerName}
-                  onChange={setNewLearnerName}
-                />
-                <LabeledInput
-                  label="Email"
-                  placeholder="e.g. andi@example.com"
-                  value={newLearnerEmail}
-                  onChange={setNewLearnerEmail}
-                  type="email"
-                />
-                <div className="flex gap-2">
-                  <button
-                    onClick={handleAddLearner}
-                    disabled={!newLearnerName.trim() || !newLearnerEmail.trim()}
-                    className="flex-1 rounded-xl bg-blue-600 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:opacity-40"
-                  >
-                    Add to Class
-                  </button>
-                  <button
-                    onClick={() => setShowAddLearner(false)}
-                    className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-100"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Learner list */}
-            <div>
-              <p className="mb-2 text-xs font-bold tracking-widest text-slate-400 uppercase">
-                Learners · {selectedClass.members.length}
-              </p>
-              {selectedClass.members.length === 0 ? (
-                <div className="rounded-2xl border border-dashed border-slate-200 py-8 text-center">
-                  <p className="text-sm text-slate-400">
-                    No learners yet. Add one above.
-                  </p>
-                </div>
-              ) : (
-                <ul className="flex flex-col gap-2">
-                  {selectedClass.members.map((m) => (
-                    <li
-                      key={m.id}
-                      className="flex items-center gap-3 rounded-xl bg-slate-50 px-4 py-3 ring-1 ring-black/5"
-                    >
-                      <Avatar name={m.name} size="lg" />
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-semibold text-slate-800">
-                          {m.name}
-                        </p>
-                        <p className="truncate text-xs text-slate-500">
-                          {m.email}
-                        </p>
-                      </div>
-                      <button
-                        onClick={() => handleRemoveLearner(m.id)}
-                        className="shrink-0 rounded-lg p-1.5 text-slate-400 transition hover:bg-red-50 hover:text-red-500"
-                        title="Remove"
-                      >
-                        <svg
-                          className="h-4 w-4"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                          strokeWidth={2}
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M6 18L18 6M6 6l12 12"
-                          />
-                        </svg>
-                      </button>
-                    </li>
-                  ))}
-                </ul>
               )}
-            </div>
+              Delete
+            </button>
           </div>
-        </Overlay>
+        )}
+
+        {deleteError && (
+          <ErrorBanner
+            message={deleteError}
+            onDismiss={() => setDeleteError('')}
+          />
+        )}
+
+        {/* Class ID */}
+        <ClassIdDisplay id={cls.id} />
+
+        {/* Learner list */}
+        <div>
+          <p className="mb-2 text-xs font-bold tracking-widest text-slate-400 uppercase">
+            Learners · {cls.members.length}
+          </p>
+          {removeError && (
+            <ErrorBanner
+              message={removeError}
+              onDismiss={() => setRemoveError('')}
+            />
+          )}
+          {cls.members.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-slate-200 py-8 text-center">
+              <p className="text-sm text-slate-400">
+                No learners have joined yet.
+              </p>
+            </div>
+          ) : (
+            <ul className="flex flex-col gap-2">
+              {cls.members.map((m) => (
+                <li
+                  key={m.id}
+                  className="flex items-center gap-3 rounded-xl bg-slate-50 px-4 py-3 ring-1 ring-black/5"
+                >
+                  <Avatar name={m.name} size="lg" />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold text-slate-800">
+                      {m.name}
+                    </p>
+                    <p className="truncate text-xs text-slate-500">{m.email}</p>
+                  </div>
+                  <button
+                    onClick={() => handleRemoveMember(m.id)}
+                    disabled={removingId === m.id}
+                    className="shrink-0 rounded-lg p-1.5 text-slate-400 transition hover:bg-red-50 hover:text-red-500 disabled:opacity-40"
+                    title="Remove learner"
+                  >
+                    {removingId === m.id ? (
+                      <Spinner />
+                    ) : (
+                      <svg
+                        className="h-4 w-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={2}
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M6 18L18 6M6 6l12 12"
+                        />
+                      </svg>
+                    )}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
+    </Overlay>
+  );
+}
+
+// ─── Learner class detail overlay ─────────────────────────────────────────────
+
+function LearnerClassOverlay({
+  cls,
+  onClose,
+}: {
+  cls: Classroom;
+  onClose: () => void;
+}) {
+  return (
+    <Overlay onClose={onClose}>
+      <OverlayHeader
+        title={cls.name}
+        gradient={cardGradient(cls.id)}
+        onClose={onClose}
+      />
+      <div className="flex flex-1 flex-col gap-4 overflow-y-auto p-5">
+        {/* Educator */}
+        <div className="flex items-center gap-3 rounded-xl bg-slate-50 px-4 py-3 ring-1 ring-black/5">
+          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-100">
+            <svg
+              className="h-4 w-4 text-blue-600"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+              />
+            </svg>
+          </div>
+          <div>
+            <p className="text-[11px] font-semibold tracking-wider text-slate-400 uppercase">
+              Educator
+            </p>
+            <p className="text-sm font-semibold text-slate-800">
+              {cls.owner.name}
+            </p>
+          </div>
+        </div>
+
+        {/* Classmates */}
+        <div>
+          <p className="mb-2 text-xs font-bold tracking-widest text-slate-400 uppercase">
+            Classmates · {cls.members.length}
+          </p>
+          {cls.members.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-slate-200 py-8 text-center">
+              <p className="text-sm text-slate-400">No classmates yet.</p>
+            </div>
+          ) : (
+            <ul className="flex flex-col gap-2">
+              {cls.members.map((m) => (
+                <li
+                  key={m.id}
+                  className="flex items-center gap-3 rounded-xl bg-slate-50 px-4 py-3 ring-1 ring-black/5"
+                >
+                  <Avatar name={m.name} size="lg" />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold text-slate-800">
+                      {m.name}
+                    </p>
+                    <p className="truncate text-xs text-slate-500">{m.email}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
+    </Overlay>
+  );
+}
+
+// ─── Root ─────────────────────────────────────────────────────────────────────
+
+export default function ClassroomPage() {
+  const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState('');
+
+  const [ownedClasses, setOwnedClasses] = useState<Classroom[]>([]);
+  const [joinedClasses, setJoinedClasses] = useState<Classroom[]>([]);
+
+  // Track selected overlay via ref — avoids setState inside useEffect
+  const selectedOwnedRef = useRef<Classroom | null>(null);
+  const [selectedOwned, _setSelectedOwned] = useState<Classroom | null>(null);
+  const [selectedJoined, setSelectedJoined] = useState<Classroom | null>(null);
+
+  function setSelectedOwned(cls: Classroom | null) {
+    selectedOwnedRef.current = cls;
+    _setSelectedOwned(cls);
+  }
+
+  // Create modal
+  const [showCreate, setShowCreate] = useState(false);
+  const [newName, setNewName] = useState('');
+  const [creating, setCreating] = useState(false);
+  const [createError, setCreateError] = useState('');
+
+  // Join modal
+  const [showJoin, setShowJoin] = useState(false);
+  const [joinId, setJoinId] = useState('');
+  const [joining, setJoining] = useState(false);
+  const [joinStatus, setJoinStatus] = useState<'idle' | 'success' | 'error'>(
+    'idle'
+  );
+  const [joinError, setJoinError] = useState('');
+
+  useEffect(() => {
+    (async () => {
+      const { data, error } = await apiFetch<{
+        educatorClasses: Classroom[];
+        learnerClasses: Classroom[];
+      }>('/api/class');
+      setLoading(false);
+      if (error || !data) {
+        setFetchError(error ?? 'Failed to load classrooms.');
+        return;
+      }
+      setOwnedClasses(data.educatorClasses);
+      setJoinedClasses(data.learnerClasses);
+    })();
+  }, []);
+
+  // Sync the open educator overlay when ownedClasses updates — no setState in useEffect
+  function updateOwnedClasses(updater: (prev: Classroom[]) => Classroom[]) {
+    setOwnedClasses((prev) => {
+      const next = updater(prev);
+      // Keep the open overlay in sync using the ref
+      if (selectedOwnedRef.current) {
+        const fresh = next.find((c) => c.id === selectedOwnedRef.current!.id);
+        selectedOwnedRef.current = fresh ?? null;
+        _setSelectedOwned(fresh ?? null);
+      }
+      return next;
+    });
+  }
+
+  async function handleCreate() {
+    if (!newName.trim()) return;
+    setCreating(true);
+    setCreateError('');
+    const { data, error } = await apiFetch<{ classroom: Classroom }>(
+      '/api/class',
+      {
+        method: 'POST',
+        body: JSON.stringify({ name: newName.trim() }),
+      }
+    );
+    setCreating(false);
+    if (error || !data) {
+      setCreateError(error ?? 'Failed to create class.');
+      return;
+    }
+    setOwnedClasses((p) => [...p, data.classroom]);
+    setNewName('');
+    setShowCreate(false);
+  }
+
+  async function handleJoin() {
+    if (!joinId.trim()) return;
+    setJoining(true);
+    setJoinError('');
+    setJoinStatus('idle');
+    const { data, error } = await apiFetch<{ classroom: Classroom }>(
+      `/api/class/${joinId.trim()}`,
+      {
+        method: 'POST',
+      }
+    );
+    setJoining(false);
+    if (error || !data) {
+      setJoinError(error ?? 'Failed to join class.');
+      setJoinStatus('error');
+      return;
+    }
+    setJoinedClasses((p) => {
+      const exists = p.some((c) => c.id === data.classroom.id);
+      return exists
+        ? p.map((c) => (c.id === data.classroom.id ? data.classroom : c))
+        : [...p, data.classroom];
+    });
+    setJoinStatus('success');
+    setTimeout(() => {
+      setJoinId('');
+      setJoinStatus('idle');
+      setShowJoin(false);
+    }, 1200);
+  }
+
+  return (
+    <div className="flex w-full items-start justify-center p-6">
+      <div className="w-full max-w-7xl overflow-hidden rounded-2xl bg-white shadow-xl ring-1 ring-black/5">
+        <div className="p-8">
+          {loading ? (
+            <div className="flex items-center justify-center gap-2 py-20 text-slate-500">
+              <Spinner className="h-5 w-5" />
+              <span className="text-sm">Loading classrooms…</span>
+            </div>
+          ) : fetchError ? (
+            <div className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-600 ring-1 ring-red-100">
+              {fetchError}
+            </div>
+          ) : (
+            <div className="flex flex-col gap-10">
+              {/* ── My Classes (owned / educator) ── */}
+              <section>
+                <SectionHeader
+                  label="My Classes"
+                  count={ownedClasses.length}
+                  action={
+                    <button
+                      onClick={() => {
+                        setShowCreate(true);
+                        setCreateError('');
+                      }}
+                      className="flex items-center gap-1.5 rounded-xl bg-blue-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 active:scale-95"
+                    >
+                      <svg
+                        className="h-4 w-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={2}
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M12 4v16m8-8H4"
+                        />
+                      </svg>
+                      New Class
+                    </button>
+                  }
+                />
+                {ownedClasses.length === 0 ? (
+                  <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-slate-200 py-12 text-center">
+                    <p className="text-sm font-medium text-slate-500">
+                      No classes yet
+                    </p>
+                    <p className="text-xs text-slate-400">
+                      Create your first class to get started.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+                    {ownedClasses.map((cls) => (
+                      <ClassCard
+                        key={cls.id}
+                        cls={cls}
+                        badge={
+                          <span className="rounded-full bg-white/30 px-2 py-0.5 text-[10px] font-bold tracking-wide text-white uppercase backdrop-blur-sm">
+                            Educator
+                          </span>
+                        }
+                        onClick={() => setSelectedOwned(cls)}
+                      />
+                    ))}
+                  </div>
+                )}
+              </section>
+
+              {/* Divider */}
+              <div className="border-t border-slate-100" />
+
+              {/* ── Joined Classes (learner) ── */}
+              <section>
+                <SectionHeader
+                  label="Joined Classes"
+                  count={joinedClasses.length}
+                  action={
+                    <button
+                      onClick={() => {
+                        setShowJoin(true);
+                        setJoinStatus('idle');
+                        setJoinError('');
+                      }}
+                      className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-100 active:scale-95"
+                    >
+                      <svg
+                        className="h-4 w-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={2}
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
+                        />
+                      </svg>
+                      Join Class
+                    </button>
+                  }
+                />
+                {joinedClasses.length === 0 ? (
+                  <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-slate-200 py-12 text-center">
+                    <p className="text-sm font-medium text-slate-500">
+                      No joined classes yet
+                    </p>
+                    <p className="text-xs text-slate-400">
+                      Use a classroom ID from your educator to join.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+                    {joinedClasses.map((cls) => (
+                      <ClassCard
+                        key={cls.id}
+                        cls={cls}
+                        badge={
+                          <span className="rounded-full bg-white/30 px-2 py-0.5 text-[10px] font-bold tracking-wide text-white uppercase backdrop-blur-sm">
+                            Learner
+                          </span>
+                        }
+                        onClick={() => setSelectedJoined(cls)}
+                      />
+                    ))}
+                  </div>
+                )}
+              </section>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ── Educator detail overlay ── */}
+      {selectedOwned && (
+        <EducatorClassOverlay
+          cls={selectedOwned}
+          onClose={() => setSelectedOwned(null)}
+          onUpdate={(updated) =>
+            updateOwnedClasses((p) =>
+              p.map((c) => (c.id === updated.id ? updated : c))
+            )
+          }
+          onDelete={(id) => {
+            updateOwnedClasses((p) => p.filter((c) => c.id !== id));
+          }}
+        />
+      )}
+
+      {/* ── Learner detail overlay ── */}
+      {selectedJoined && (
+        <LearnerClassOverlay
+          cls={selectedJoined}
+          onClose={() => setSelectedJoined(null)}
+        />
       )}
 
       {/* ── Create class overlay ── */}
-      {showCreateModal && (
-        <Overlay onClose={() => setShowCreateModal(false)}>
+      {showCreate && (
+        <Overlay
+          onClose={() => {
+            setShowCreate(false);
+            setCreateError('');
+          }}
+        >
           <OverlayHeader
             title="New Class"
             gradient="from-blue-500 to-blue-600"
-            onClose={() => setShowCreateModal(false)}
+            onClose={() => {
+              setShowCreate(false);
+              setCreateError('');
+            }}
           />
           <div className="flex flex-col gap-3 p-5">
             <LabeledInput
               label="Class Name"
               placeholder="e.g. Mathematics 101"
-              value={newClassName}
-              onChange={setNewClassName}
+              value={newName}
+              onChange={setNewName}
+              disabled={creating}
             />
+            {createError && (
+              <ErrorBanner
+                message={createError}
+                onDismiss={() => setCreateError('')}
+              />
+            )}
             <button
-              onClick={handleCreateClass}
-              disabled={!newClassName.trim()}
-              className="mt-1 w-full rounded-xl bg-blue-600 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700 active:scale-[0.98] disabled:opacity-40"
+              onClick={handleCreate}
+              disabled={!newName.trim() || creating}
+              className="mt-1 flex w-full items-center justify-center gap-1.5 rounded-xl bg-blue-600 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700 active:scale-[0.98] disabled:opacity-40"
             >
-              Create Class
+              {creating && <Spinner />} Create Class
             </button>
           </div>
         </Overlay>
       )}
-    </>
-  );
-}
 
-// ─── Learner View ─────────────────────────────────────────────────────────────
-
-function LearnerView() {
-  const [classes, setClasses] = useState<Classroom[]>(MOCK_LEARNER_CLASSES);
-  const [selectedClass, setSelectedClass] = useState<Classroom | null>(null);
-  const [showJoinModal, setShowJoinModal] = useState(false);
-  const [joinCode, setJoinCode] = useState('');
-  const [joinFeedback, setJoinFeedback] = useState<
-    'idle' | 'success' | 'error'
-  >('idle');
-
-  function handleJoin() {
-    if (!joinCode.trim()) return;
-    if (joinCode.trim().toUpperCase() === 'MATH202') {
-      const newClass: Classroom = {
-        id: Date.now().toString(),
-        name: 'Mathematics 202',
-        owner: 'Mr. Agus Setiawan',
-        members: [
-          { id: 'u20', name: 'Kartini Sari', email: 'kartini@example.com' },
-          { id: 'u21', name: 'Luhut Pandjaitan', email: 'luhut@example.com' },
-          { id: 'u22', name: 'Maya Anggraeni', email: 'maya@example.com' },
-        ],
-      };
-      setClasses((p) => [...p, newClass]);
-      setJoinFeedback('success');
-      setTimeout(() => {
-        setJoinCode('');
-        setJoinFeedback('idle');
-        setShowJoinModal(false);
-      }, 1200);
-    } else {
-      setJoinFeedback('error');
-    }
-  }
-
-  const grad = selectedClass ? cardGradient(selectedClass.id) : '';
-
-  return (
-    <>
-      {/* Header */}
-      <div className="font-body mb-4 flex items-center justify-between">
-        <div>
-          <p className="text-xs font-semibold tracking-widest text-blue-500 uppercase">
-            Learner
-          </p>
-          <h2 className="text-lg font-bold text-slate-800">My Classes</h2>
-        </div>
-        <button
-          onClick={() => {
-            setShowJoinModal(true);
-            setJoinFeedback('idle');
+      {/* ── Join class overlay ── */}
+      {showJoin && (
+        <Overlay
+          onClose={() => {
+            setShowJoin(false);
+            setJoinStatus('idle');
           }}
-          className="flex items-center gap-1.5 rounded-xl bg-blue-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 active:scale-95"
         >
-          <svg
-            className="h-4 w-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
-            />
-          </svg>
-          Join Class
-        </button>
-      </div>
-
-      {/* Grid */}
-      {classes.length === 0 ? (
-        <div className="flex flex-col items-center gap-2 py-14 text-center">
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-100">
-            <svg
-              className="h-7 w-7 text-slate-400"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={1.5}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0118 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"
-              />
-            </svg>
-          </div>
-          <p className="text-sm font-medium text-slate-600">No classes yet</p>
-          <p className="text-xs text-slate-400">
-            Join a class using an invite code from your educator.
-          </p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-          {classes.map((cls) => (
-            <ClassCard
-              key={cls.id}
-              cls={cls}
-              onClick={() => setSelectedClass(cls)}
-            />
-          ))}
-        </div>
-      )}
-
-      {/* Join hint
-      <p className="mt-4 rounded-xl border border-dashed border-slate-200 bg-slate-50 px-4 py-3 text-center text-xs text-slate-500">
-        Try joining with code <span className="font-mono font-semibold text-blue-600">MATH202</span>
-      </p> */}
-
-      {/* ── Class detail overlay ── */}
-      {selectedClass && (
-        <Overlay onClose={() => setSelectedClass(null)}>
-          <OverlayHeader
-            title={selectedClass.name}
-            gradient={grad}
-            onClose={() => setSelectedClass(null)}
-          />
-
-          <div className="flex flex-1 flex-col gap-4 overflow-y-auto p-5">
-            {/* Owner */}
-            <div className="flex items-center gap-3 rounded-xl bg-slate-50 px-4 py-3 ring-1 ring-black/5">
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-100">
-                <svg
-                  className="h-4 w-4 text-blue-600"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                  />
-                </svg>
-              </div>
-              <div>
-                <p className="text-[11px] font-semibold tracking-wider text-slate-400 uppercase">
-                  Educator
-                </p>
-                <p className="text-sm font-semibold text-slate-800">
-                  {typeof selectedClass.owner === 'string'
-                    ? selectedClass.owner
-                    : selectedClass.owner.name}
-                </p>
-              </div>
-            </div>
-
-            {/* Classmates */}
-            <div>
-              <p className="mb-2 text-xs font-bold tracking-widest text-slate-400 uppercase">
-                Classmates · {selectedClass.members.length}
-              </p>
-              {selectedClass.members.length === 0 ? (
-                <div className="rounded-2xl border border-dashed border-slate-200 py-8 text-center">
-                  <p className="text-sm text-slate-400">No classmates yet.</p>
-                </div>
-              ) : (
-                <ul className="flex flex-col gap-2">
-                  {selectedClass.members.map((m) => (
-                    <li
-                      key={m.id}
-                      className="flex items-center gap-3 rounded-xl bg-slate-50 px-4 py-3 ring-1 ring-black/5"
-                    >
-                      <Avatar name={m.name} size="lg" />
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-semibold text-slate-800">
-                          {m.name}
-                        </p>
-                        <p className="truncate text-xs text-slate-500">
-                          {m.email}
-                        </p>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          </div>
-        </Overlay>
-      )}
-
-      {/* ── Join overlay ── */}
-      {showJoinModal && (
-        <Overlay onClose={() => setShowJoinModal(false)}>
           <OverlayHeader
             title="Join a Class"
-            gradient="from-blue-500 to-blue-600"
-            onClose={() => setShowJoinModal(false)}
+            gradient="from-emerald-500 to-teal-600"
+            onClose={() => {
+              setShowJoin(false);
+              setJoinStatus('idle');
+            }}
           />
           <div className="flex flex-col gap-3 p-5">
             <LabeledInput
-              label="Invite Code"
-              placeholder="e.g. MATH202"
-              value={joinCode}
+              label="Classroom ID"
+              placeholder="Paste the classroom ID from your educator"
+              value={joinId}
               onChange={(v) => {
-                setJoinCode(v);
-                setJoinFeedback('idle');
+                setJoinId(v);
+                setJoinStatus('idle');
+                setJoinError('');
               }}
+              disabled={joining || joinStatus === 'success'}
             />
-            {joinFeedback === 'error' && (
-              <p className="rounded-xl bg-red-50 px-3 py-2.5 text-xs font-medium text-red-600 ring-1 ring-red-100">
-                Invalid code. Please check with your educator.
-              </p>
+            {joinStatus === 'error' && (
+              <ErrorBanner
+                message={joinError || 'Invalid ID. Check with your educator.'}
+                onDismiss={() => {
+                  setJoinStatus('idle');
+                  setJoinError('');
+                }}
+              />
             )}
-            {joinFeedback === 'success' && (
+            {joinStatus === 'success' && (
               <p className="rounded-xl bg-emerald-50 px-3 py-2.5 text-xs font-medium text-emerald-600 ring-1 ring-emerald-100">
                 🎉 Joined successfully!
               </p>
             )}
             <button
               onClick={handleJoin}
-              disabled={!joinCode.trim() || joinFeedback === 'success'}
-              className="mt-1 w-full rounded-xl bg-blue-600 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700 active:scale-[0.98] disabled:opacity-40"
+              disabled={!joinId.trim() || joining || joinStatus === 'success'}
+              className="mt-1 flex w-full items-center justify-center gap-1.5 rounded-xl bg-emerald-600 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-700 active:scale-[0.98] disabled:opacity-40"
             >
-              Join Class
+              {joining && <Spinner />} Join Class
             </button>
           </div>
         </Overlay>
       )}
-    </>
-  );
-}
-
-// ─── Role Toggle ──────────────────────────────────────────────────────────────
-
-function RoleToggle({
-  role,
-  onChange,
-}: {
-  role: Role;
-  onChange: (r: Role) => void;
-}) {
-  return (
-    <div className="mb-5 flex items-center justify-center">
-      <div className="flex items-center gap-1 rounded-xl border border-black/8 bg-slate-100 p-1">
-        {(['Learner', 'Educator'] as Role[]).map((r) => (
-          <button
-            key={r}
-            onClick={() => onChange(r)}
-            className={`rounded-lg px-4 py-1.5 text-xs font-semibold transition ${
-              role === r
-                ? 'bg-white text-blue-700 shadow-sm ring-1 ring-black/5'
-                : 'text-slate-500 hover:text-slate-700'
-            }`}
-          >
-            {r}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// ─── Root ─────────────────────────────────────────────────────────────────────
-
-export default function ClassroomDetails() {
-  const [role, setRole] = useState<Role>('Educator');
-
-  return (
-    <div className="flex w-full items-start justify-center p-6">
-      <div className="w-full max-w-7xl overflow-hidden rounded-2xl bg-white shadow-xl ring-1 ring-black/5">
-        <div className="p-8">
-          {/* Role toggle — remove in production, read from session */}
-          <RoleToggle role={role} onChange={setRole} />
-          {role === 'Educator' ? <EducatorView /> : <LearnerView />}
-        </div>
-      </div>
     </div>
   );
 }

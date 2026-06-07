@@ -4,6 +4,7 @@ import Discover from '@/components/landing/discover';
 import Learn from '@/components/landing/learn';
 import Create from '@/components/landing/create';
 import FadeInSection from '@/components/animation/fade-in-section';
+import BottomPage from '@/components/landing/bottompage';
 
 export default async function Home() {
   return (
@@ -25,6 +26,8 @@ export default async function Home() {
       <FadeInSection direction="right">
         <Create />
       </FadeInSection>
+
+      <BottomPage />
     </div>
   );
 }

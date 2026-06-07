@@ -187,6 +187,11 @@ export async function GET(req: NextRequest) {
             }
           : undefined,
       },
+      include: {
+        creator: {
+          select: { name: true },
+        },
+      },
     });
 
     let nextCursor: typeof cursor | null = null;
@@ -196,7 +201,12 @@ export async function GET(req: NextRequest) {
       nextCursor = nextQuiz!.id;
     }
 
-    return NextResponse.json({ data: quizList, nextCursor }, { status: 200 });
+    const data = quizList.map(({ creator, ...quiz }) => ({
+      ...quiz,
+      creatorName: creator?.name ?? 'Anonymous',
+    }));
+
+    return NextResponse.json({ data, nextCursor }, { status: 200 });
   } catch (error) {
     return handleError(error);
   }

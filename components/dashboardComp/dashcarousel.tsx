@@ -306,6 +306,12 @@ export default function DashCarousel() {
               >
                 <span className="font-body text-gray-500">Category:</span>{' '}
                 {selectedQuiz.category}
+                {selectedQuiz.creatorName && (
+                  <CardDescription className="font-body text-gray-400">
+                    <span className="text-gray-500">By:</span>{' '}
+                    {selectedQuiz.creatorName}
+                  </CardDescription>
+                )}
               </CardDescription>
             </CardHeader>
             <CardContent>

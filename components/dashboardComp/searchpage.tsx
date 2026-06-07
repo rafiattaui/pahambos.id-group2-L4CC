@@ -25,7 +25,7 @@ import {
   InputGroupInput,
 } from '../ui/input-group';
 import { SlidersVertical, Search } from 'lucide-react';
-import { Quiz, mockQuizzes } from '../dashboardComp/quizmockup';
+import { Quiz } from '../dashboardComp/quizmockup';
 import GridItems, { QuizSkeleton } from './griditems';
 import getQuizzes from '@/components/dashboardComp/quizzes';
 
@@ -85,10 +85,7 @@ export default function SearchPage({ query: initialQuery = '' }: SearchQuery) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [inputValue, setInputValue] = useState(query);
-  const categories = [
-    'All',
-    ...new Set(mockQuizzes.map((quiz) => quiz.category)),
-  ];
+  const categories = ['All', ...new Set(quizzes.map((quiz) => quiz.category))];
   const [selectedCategory, setSelectedCategory] = useState<string[]>([]);
   const [sortOption, setSortOption] = useState<SortOption>('a-z');
 

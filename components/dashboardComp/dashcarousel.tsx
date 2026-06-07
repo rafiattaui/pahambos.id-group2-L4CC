@@ -8,9 +8,9 @@ import {
   CarouselPrevious,
 } from '../ui/carousel';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import DashCarItem from './dashcaritem';
-import { mockQuizzes, type Quiz } from './quizmockup';
+import { type Quiz } from './quizmockup';
 import { X, ChevronRight } from 'lucide-react';
 import {
   Card,
@@ -22,20 +22,167 @@ import {
   CardAction,
 } from '../ui/card';
 import { Button } from '../ui/button';
+import { Skeleton } from '../ui/skeleton';
 import { dashboardHref } from '@/components/dashboardComp/dashboardHref';
 import Link from 'next/link';
+
+// ── Types ─────────────────────────────────────────────────────────────────────
 
 export type CategoryTextColor = {
   category: string;
   textColor: string;
 };
 
-export default function DashCarousel() {
-  const sortedQuiz = [...mockQuizzes].sort((a, b) =>
-    a.title.localeCompare(b.title)
-  );
+type FetchStatus = 'idle' | 'loading' | 'success' | 'error';
 
+// ── Featured algorithm ────────────────────────────────────────────────────────
+// Sorted by newest first (createdAt DESC).
+// When you have play counts / ratings, replace with:
+//   score = plays * 0.6 + avgRating * 0.4
+function getFeatured(quizzes: Quiz[]): Quiz[] {
+  return [...quizzes]
+    .sort(
+      (a, b) =>
+        new Date(b.createdAt ?? 0).getTime() -
+        new Date(a.createdAt ?? 0).getTime()
+    )
+    .slice(0, 12); // cap at 12 items in the featured row
+}
+
+// ── Fetch helpers ─────────────────────────────────────────────────────────────
+
+async function fetchQuizzesByCategory(category: string): Promise<Quiz[]> {
+  const res = await fetch(
+    `/api/quiz?tags=${encodeURIComponent(category)}&limit=12`,
+    { credentials: 'include' }
+  );
+  if (!res.ok) throw new Error(`Failed to fetch ${category} quizzes`);
+  const data = await res.json();
+  return (data.data ?? []) as Quiz[];
+}
+
+async function fetchAllQuizzes(): Promise<Quiz[]> {
+  const res = await fetch('/api/quiz?limit=12', { credentials: 'include' });
+  if (!res.ok) throw new Error('Failed to fetch quizzes');
+  const data = await res.json();
+  return (data.data ?? []) as Quiz[];
+}
+
+// ── Skeleton carousel ─────────────────────────────────────────────────────────
+
+function CarouselSkeleton() {
+  return (
+    <div className="flex gap-4 overflow-hidden px-2">
+      {Array.from({ length: 4 }, (_, i) => (
+        <div
+          key={i}
+          className="min-w-[calc(50%-1rem)] md:min-w-[calc(33%-1rem)] lg:min-w-[calc(25%-1rem)]"
+        >
+          <Skeleton className="aspect-[4/3] w-full rounded-2xl" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ── Section component (avoids repeating carousel JSX) ────────────────────────
+
+function CarouselSection({
+  title,
+  category,
+  quizzes,
+  status,
+  onSelect,
+}: {
+  title: string;
+  category?: string; // omit for Featured (no "See More" link)
+  quizzes: Quiz[];
+  status: FetchStatus;
+  onSelect: (quiz: Quiz) => void;
+}) {
+  return (
+    <div className="mt-20">
+      <div className="flex flex-row justify-between">
+        <span className="font-body ml-2 text-2xl font-bold text-slate-800">
+          {title}
+        </span>
+        {category && (
+          <Link
+            href={dashboardHref(`search?q=${encodeURIComponent(category)}`)}
+            className="ml-2"
+          >
+            <span className="font-body flex cursor-pointer flex-wrap text-blue-600 hover:underline active:text-blue-800">
+              See More <ChevronRight />
+            </span>
+          </Link>
+        )}
+      </div>
+
+      <div className="relative mx-auto mt-4">
+        <div className="pointer-events-none absolute inset-y-0 left-0 z-20 w-20 rounded-l-2xl bg-linear-to-r from-blue-100/95 from-5% to-transparent to-20% md:w-xs" />
+        <div className="pointer-events-none absolute inset-y-0 right-0 z-20 w-20 rounded-r-2xl bg-linear-to-l from-blue-100/95 from-5% to-transparent to-20% md:w-xs" />
+        <div className="relative z-10">
+          {status === 'loading' && <CarouselSkeleton />}
+
+          {status === 'error' && (
+            <p className="py-8 text-center text-sm text-red-400">
+              Failed to load quizzes.
+            </p>
+          )}
+
+          {status === 'success' && quizzes.length === 0 && (
+            <p className="py-8 text-center text-sm text-gray-400">
+              No quizzes here yet.
+            </p>
+          )}
+
+          {status === 'success' && quizzes.length > 0 && (
+            <Carousel opts={{ loop: true }}>
+              <CarouselContent>
+                {quizzes.map((quiz) => (
+                  <CarouselItem
+                    key={quiz.id}
+                    className="aspect-[4/3] basis-1/2 p-4 md:basis-1/3 lg:basis-1/4"
+                  >
+                    <button
+                      type="button"
+                      onClick={() => onSelect(quiz)}
+                      className="w-full text-left"
+                      aria-label={`Open quiz ${quiz.title}`}
+                      title={`Open quiz ${quiz.title}`}
+                    >
+                      <DashCarItem quiz={quiz} />
+                    </button>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselPrevious />
+              <CarouselNext />
+            </Carousel>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Main component ────────────────────────────────────────────────────────────
+
+const CATEGORIES = ['Mathematics', 'Technology', 'Science'] as const;
+
+export default function DashCarousel() {
   const [selectedQuiz, setSelectedQuiz] = useState<Quiz | null>(null);
+
+  // One status + data pair per section
+  const [featured, setFeatured] = useState<Quiz[]>([]);
+  const [featuredStatus, setFeaturedStatus] = useState<FetchStatus>('idle');
+
+  const [categoryQuizzes, setCategoryQuizzes] = useState<
+    Record<string, Quiz[]>
+  >({});
+  const [categoryStatus, setCategoryStatus] = useState<
+    Record<string, FetchStatus>
+  >({});
 
   const categoriesText: CategoryTextColor[] = [
     { category: 'Mathematics', textColor: 'text-blue-500' },
@@ -47,181 +194,81 @@ export default function DashCarousel() {
     { category: 'General', textColor: 'text-gray-500' },
   ];
 
-  function categoryfilter(category: string) {
-    const filtered = mockQuizzes.filter((quiz) => quiz.category === category);
-    return filtered;
-  }
+  // Fetch featured (all quizzes, sorted by newest)
+  useEffect(() => {
+    let cancelled = false;
+
+    async function load() {
+      setFeaturedStatus('loading');
+      const all = await fetchAllQuizzes();
+      if (cancelled) return;
+      setFeatured(getFeatured(all));
+      setFeaturedStatus('success');
+    }
+
+    load().catch(() => {
+      if (!cancelled) setFeaturedStatus('error');
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Fetch each category independently so they load in parallel
+  // without blocking each other
+  useEffect(() => {
+    const controllers: AbortController[] = [];
+
+    CATEGORIES.forEach((category) => {
+      const controller = new AbortController();
+      controllers.push(controller);
+
+      setCategoryStatus((prev) => ({ ...prev, [category]: 'loading' }));
+
+      fetchQuizzesByCategory(category)
+        .then((quizzes) => {
+          if (controller.signal.aborted) return;
+          setCategoryQuizzes((prev) => ({ ...prev, [category]: quizzes }));
+          setCategoryStatus((prev) => ({ ...prev, [category]: 'success' }));
+        })
+        .catch(() => {
+          if (controller.signal.aborted) return;
+          setCategoryStatus((prev) => ({ ...prev, [category]: 'error' }));
+        });
+    });
+
+    return () => controllers.forEach((c) => c.abort());
+  }, []);
 
   return (
     <section className="mt-32">
+      {/* Featured */}
       <div>
-        <span className="font-body ml-2 text-2xl font-bold text-white">
+        <span className="font-body ml-2 text-2xl font-bold text-slate-800">
           Featured
         </span>
-        <div className="relative mx-auto mt-4">
-          <div className="pointer-events-none absolute inset-y-0 left-0 z-20 w-20 rounded-l-2xl bg-linear-to-r from-black/70 from-5% to-transparent to-20% md:w-xs" />
-          <div className="pointer-events-none absolute inset-y-0 right-0 z-20 w-20 rounded-r-2xl bg-linear-to-l from-black/70 from-5% to-transparent to-20% md:w-xs" />
-          <div className="relative z-10">
-            <Carousel opts={{ loop: true }}>
-              <CarouselContent>
-                {sortedQuiz.map((quiz) => (
-                  <CarouselItem
-                    key={quiz.id}
-                    className="basis-1/2 p-4 md:basis-1/3 lg:basis-1/4"
-                  >
-                    <button
-                      type="button"
-                      onClick={() => setSelectedQuiz(quiz)}
-                      className="w-full text-left"
-                      aria-label={'Open quiz ' + quiz.title}
-                      title={'Open quiz ' + quiz.title}
-                    >
-                      <DashCarItem quiz={quiz} />
-                    </button>
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
-              <CarouselPrevious />
-              <CarouselNext />
-            </Carousel>
-          </div>
-        </div>
+        <CarouselSection
+          title=""
+          quizzes={featured}
+          status={featuredStatus}
+          onSelect={setSelectedQuiz}
+        />
       </div>
 
-      <div className="mt-20">
-        <div className="flex flex-row justify-between">
-          <span className="font-body ml-2 text-2xl font-bold text-white">
-            Mathematics
-          </span>
-          <Link
-            href={dashboardHref(
-              `search?q=${encodeURIComponent('Mathematics')}`
-            )}
-            className="ml-2"
-          >
-            <span className="font-body flex cursor-pointer flex-wrap text-white hover:underline active:text-blue-400">
-              See More <ChevronRight />
-            </span>
-          </Link>
-        </div>
-        <div className="relative mx-auto mt-4">
-          <div className="pointer-events-none absolute inset-y-0 left-0 z-20 w-20 rounded-l-2xl bg-linear-to-r from-black/70 from-5% to-transparent to-20% md:w-xs" />
-          <div className="pointer-events-none absolute inset-y-0 right-0 z-20 w-20 rounded-r-2xl bg-linear-to-l from-black/70 from-5% to-transparent to-20% md:w-xs" />
-          <div className="relative z-10">
-            <Carousel opts={{ loop: true }}>
-              <CarouselContent>
-                {categoryfilter('Mathematics').map((quiz) => (
-                  <CarouselItem
-                    key={quiz.id}
-                    className="basis-1/2 p-4 md:basis-1/3 lg:basis-1/4"
-                  >
-                    <button
-                      type="button"
-                      onClick={() => setSelectedQuiz(quiz)}
-                      className="w-full text-left"
-                      aria-label={'Open quiz ' + quiz.title}
-                      title={'Open quiz ' + quiz.title}
-                    >
-                      <DashCarItem quiz={quiz} />
-                    </button>
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
-              <CarouselPrevious />
-              <CarouselNext />
-            </Carousel>
-          </div>
-        </div>
-      </div>
+      {/* Category sections */}
+      {CATEGORIES.map((category) => (
+        <CarouselSection
+          key={category}
+          title={category}
+          category={category}
+          quizzes={categoryQuizzes[category] ?? []}
+          status={categoryStatus[category] ?? 'idle'}
+          onSelect={setSelectedQuiz}
+        />
+      ))}
 
-      <div className="mt-20">
-        <div className="flex flex-row justify-between">
-          <span className="font-body ml-2 text-2xl font-bold text-white">
-            Technology
-          </span>
-          <Link
-            href={dashboardHref(`search?q=${encodeURIComponent('Technology')}`)}
-            className="ml-2"
-          >
-            <span className="font-body flex cursor-pointer flex-wrap text-white hover:underline active:text-blue-400">
-              See More <ChevronRight />
-            </span>
-          </Link>
-        </div>
-        <div className="relative mx-auto mt-4">
-          <div className="pointer-events-none absolute inset-y-0 left-0 z-20 w-20 rounded-l-2xl bg-linear-to-r from-black/70 from-5% to-transparent to-20% md:w-xs" />
-          <div className="pointer-events-none absolute inset-y-0 right-0 z-20 w-20 rounded-r-2xl bg-linear-to-l from-black/70 from-5% to-transparent to-20% md:w-xs" />
-          <div className="relative z-10">
-            <Carousel opts={{ loop: true }}>
-              <CarouselContent>
-                {categoryfilter('Technology').map((quiz) => (
-                  <CarouselItem
-                    key={quiz.id}
-                    className="basis-1/2 p-4 md:basis-1/3 lg:basis-1/4"
-                  >
-                    <button
-                      type="button"
-                      onClick={() => setSelectedQuiz(quiz)}
-                      className="w-full text-left"
-                      aria-label={'Open quiz ' + quiz.title}
-                      title={'Open quiz ' + quiz.title}
-                    >
-                      <DashCarItem quiz={quiz} />
-                    </button>
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
-              <CarouselPrevious />
-              <CarouselNext />
-            </Carousel>
-          </div>
-        </div>
-      </div>
-
-      <div className="mt-20">
-        <div className="flex flex-row justify-between">
-          <span className="font-body ml-2 text-2xl font-bold text-white">
-            Science
-          </span>
-          <Link
-            href={dashboardHref(`search?q=${encodeURIComponent('Science')}`)}
-            className="ml-2"
-          >
-            <span className="font-body flex cursor-pointer flex-wrap text-white hover:underline active:text-blue-400">
-              See More <ChevronRight />
-            </span>
-          </Link>
-        </div>
-        <div className="relative mx-auto mt-4">
-          <div className="pointer-events-none absolute inset-y-0 left-0 z-20 w-20 rounded-l-2xl bg-linear-to-r from-black/70 from-5% to-transparent to-20% md:w-xs" />
-          <div className="pointer-events-none absolute inset-y-0 right-0 z-20 w-20 rounded-r-2xl bg-linear-to-l from-black/70 from-5% to-transparent to-20% md:w-xs" />
-          <div className="relative z-10">
-            <Carousel opts={{ loop: true }}>
-              <CarouselContent>
-                {categoryfilter('Science').map((quiz) => (
-                  <CarouselItem
-                    key={quiz.id}
-                    className="basis-1/2 p-4 md:basis-1/3 lg:basis-1/4"
-                  >
-                    <button
-                      type="button"
-                      onClick={() => setSelectedQuiz(quiz)}
-                      className="w-full text-left"
-                      aria-label={'Open quiz'}
-                      title={'Open quiz '}
-                    >
-                      <DashCarItem quiz={quiz} />
-                    </button>
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
-              <CarouselPrevious />
-              <CarouselNext />
-            </Carousel>
-          </div>
-        </div>
-      </div>
-
+      {/* Quiz detail modal */}
       {selectedQuiz && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
@@ -241,7 +288,7 @@ export default function DashCarousel() {
                 </Button>
               </CardAction>
               <Image
-                src={'/placeholderquiz.png'}
+                src={selectedQuiz.imageUrl || '/placeholderquiz.png'}
                 alt={selectedQuiz.title}
                 width={400}
                 height={200}
@@ -251,7 +298,11 @@ export default function DashCarousel() {
                 {selectedQuiz.title}
               </CardTitle>
               <CardDescription
-                className={`font-body categoriesText ${categoriesText.find((c) => c.category === selectedQuiz.category)?.textColor || 'text-gray-500'}`}
+                className={`font-body ${
+                  categoriesText.find(
+                    (c) => c.category === selectedQuiz.category
+                  )?.textColor || 'text-gray-500'
+                }`}
               >
                 <span className="font-body text-gray-500">Category:</span>{' '}
                 {selectedQuiz.category}

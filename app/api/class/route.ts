@@ -67,7 +67,7 @@ export const POST = WithAuth(
         data: {
           name,
           ownerId: user.id,
-          members: { create: { userId: user.id } },
+          members: { create: { userId: user.id, role: 'Learner' } },
         },
         include,
       });

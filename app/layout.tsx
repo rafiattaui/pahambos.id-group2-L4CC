@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono, Fredoka, Quicksand } from 'next/font/google';
-import AnimatedBackground from '@/components/header/animation';
 import { Toaster } from '@/components/ui/sonner';
 import './globals.css';
 
@@ -40,6 +39,14 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${fredoka.variable} ${quicksand.variable} antialiased`}
       >
+        <div
+          className="pointer-events-none fixed inset-0 -z-10 opacity-20"
+          style={{
+            backgroundImage:
+              'radial-gradient(circle, #93c5fd 1px, transparent 1px)',
+            backgroundSize: '32px 32px',
+          }}
+        />
         <main className="relative z-10">{children}</main>
         <Toaster position="top-center" />
       </body>

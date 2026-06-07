@@ -40,7 +40,6 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${fredoka.variable} ${quicksand.variable} antialiased`}
       >
-        <AnimatedBackground />
         <main className="relative z-10">{children}</main>
         <Toaster position="top-center" />
       </body>

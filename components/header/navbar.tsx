@@ -46,11 +46,11 @@ export default function Navbar(props: { sections: string[] }) {
   };
 
   return (
-    <nav className="relative flex w-full flex-row items-center">
+    <nav className="relative flex w-full flex-row items-center border-b">
       <a href="/dashboard" className="flex items-center gap-2">
         <Logo></Logo>
       </a>
-      <div className="absolute left-1/2 hidden -translate-x-1/2 items-center md:flex">
+      <div className="absolute left-1/2 hidden -translate-x-1/2 items-center text-slate-800 md:flex">
         {props.sections.map((section, index) => (
           <div
             key={index}
@@ -71,7 +71,7 @@ export default function Navbar(props: { sections: string[] }) {
           <>
             <Button
               onClick={() => router.push('/register')}
-              className="bg-blue-500 text-white hover:bg-blue-700"
+              className="bg-blue-600 text-white hover:bg-blue-700"
             >
               Register
             </Button>

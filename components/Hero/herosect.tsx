@@ -212,16 +212,6 @@ export default function HeroSect() {
   return (
     <div>
       <section className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden">
-        {/* Decorative dots pattern background */}
-        <div
-          className="pointer-events-none absolute inset-0 -z-10 opacity-30"
-          style={{
-            backgroundImage:
-              'radial-gradient(circle, #93c5fd 1px, transparent 1px)',
-            backgroundSize: '32px 32px',
-          }}
-        />
-
         {/* Left pencil — floats with gentle animation */}
         <div
           className="pointer-events-none absolute bottom-16 left-0 hidden items-end md:flex"
@@ -267,7 +257,7 @@ export default function HeroSect() {
 
         <div className="mt-10 flex w-full max-w-md flex-row items-center justify-center gap-4">
           <a href={ctaHref} className="w-full max-w-72 sm:w-auto">
-            <Button className="w-full max-w-72 cursor-pointer items-center bg-blue-600 px-6 py-6 hover:scale-110 hover:bg-blue-700 active:scale-105 sm:w-72">
+            <Button className="font-body w-full max-w-72 cursor-pointer items-center bg-blue-600 px-6 py-6 font-bold hover:scale-110 hover:bg-blue-700 active:scale-105 sm:w-72">
               Get Started <ArrowRight />
             </Button>
           </a>

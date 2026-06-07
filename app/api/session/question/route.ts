@@ -163,7 +163,10 @@ export const POST = WithAuth(async (req, { user }) => {
       questionData.correctAnswers.every((a) => answer.includes(a)) &&
       answer.every((a) => questionData.correctAnswers.includes(a));
 
-    const points = answeredCorrectly ? 250 : 0;
+    const hintKey = `hint:user:${user.id}:quiz:${session.quizId}:q:${session.currentQuestionIndex}`;
+    const usedHint = !!(await redis.exists(hintKey));
+
+    const points = answeredCorrectly ? (usedHint ? 100 : 250) : 0;
 
     const metrics = r_MetricsSchema.parse({
       totalResponseTime: parseInt(rawMetrics.totalResponseTime || '0', 10),
@@ -171,6 +174,7 @@ export const POST = WithAuth(async (req, { user }) => {
       totalIncorrect: parseInt(rawMetrics.totalIncorrect || '0', 10),
       longestStreak: parseInt(rawMetrics.longestStreak || '0', 10),
       currentStreak: parseInt(rawMetrics.currentStreak || '0', 10),
+      hintsUsed: parseInt(rawMetrics.hintsUsed || '0', 10),
     });
     const newStreak = answeredCorrectly ? metrics.currentStreak + 1 : 0;
     console.log(newStreak, metrics.currentStreak, metrics.longestStreak);
@@ -186,6 +190,7 @@ export const POST = WithAuth(async (req, { user }) => {
 
     const pipe = redis.pipeline();
     pipe.hincrby(`session:${session.id}`, 'score', points);
+    pipe.hset(`session:${session.id}`, 'hintsUsed', 0); // reset hints used for next question
     pipe.hset(`session:${session.id}`, 'status', 'waiting'); // set session to waiting for next question
     // query /next to increment question index
     pipe.hincrby(
@@ -208,6 +213,11 @@ export const POST = WithAuth(async (req, { user }) => {
       `metrics:${session.id}`,
       'longestStreak',
       Math.max(newStreak, metrics.longestStreak)
+    );
+    pipe.hset(
+      `metrics:${session.id}`,
+      'hintsUsed',
+      usedHint ? metrics.hintsUsed + 1 : metrics.hintsUsed
     );
     pipe.rpush(`session:${session.id}:answers`, JSON.stringify(answerData));
     await pipe.exec();

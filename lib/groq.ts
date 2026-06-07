@@ -17,6 +17,6 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 // Pre-configured model ready to use
-const model = groq('llama-3.1-8b-instant');
+const model = groq('openai/gpt-oss-20b');
 
 export { groq, model };

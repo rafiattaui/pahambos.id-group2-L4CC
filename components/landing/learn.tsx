@@ -23,7 +23,7 @@ export default function Learn() {
         <div className="flex flex-col items-center">
           <Placeholder />
           <Button
-            className="font-body mt-6 w-full max-w-72 cursor-pointer bg-blue-600 px-4 py-6 font-bold hover:bg-blue-600 sm:mt-0 sm:max-w-full sm:translate-x-8"
+            className="font-body mt-6 w-full max-w-72 cursor-pointer bg-blue-600 px-4 py-6 font-bold hover:scale-105 hover:bg-blue-700 sm:mt-0 sm:max-w-full sm:translate-x-8"
             onClick={() => {
               router.push('/dashboard/search');
             }}

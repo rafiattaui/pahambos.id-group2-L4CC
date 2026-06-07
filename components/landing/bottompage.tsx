@@ -34,7 +34,7 @@ export default function BottomPage() {
           <h2 className="font-body text-center text-3xl font-bold text-slate-800">
             The Numbers Speak for Themselves{' '}
           </h2>
-          <div className="mx-auto flex max-w-lg justify-center gap-4 divide-x divide-slate-200 rounded-2xl border border-slate-100 bg-white px-8 py-6 shadow-sm">
+          <div className="mx-auto flex max-w-lg flex-col justify-center gap-4 divide-y divide-slate-200 rounded-2xl border border-slate-100 bg-white px-8 py-6 shadow-sm sm:flex-row sm:divide-x sm:divide-y-0">
             <div className="0 px-8 py-6 text-center">
               <p className="font-body text-3xl font-bold text-blue-600">
                 10000+
@@ -387,7 +387,7 @@ export default function BottomPage() {
               Join thousands of students already learning with PahamBos.
               It&apos;s free to get started!
             </p>
-            <div className="flex justify-center gap-4">
+            <div className="flex flex-col justify-center gap-4 sm:flex-row">
               <Link href={ctaHref}>
                 <Button className="font-body rounded-md bg-white px-8 py-6 font-bold text-blue-600 transition-all hover:scale-105 hover:bg-blue-600 hover:text-white">
                   Get Started Free <ArrowRight />

@@ -28,10 +28,11 @@ export async function GetQuestionWithCache(
   return PublicQuestionSchema.parse(question);
 }
 
-export async function invalidateQuestionCache(
-  quizId: string,
-  questionIndex: number
-) {
-  const cacheKey = `quiz:${quizId}:question:${questionIndex}`;
-  await redis.del(cacheKey);
+export async function invalidateQuestionCache(quizId: string) {
+  // because orders could be out of sync,
+  // we should just invalidate all questions for the quiz to be safe
+  const keys = await redis.keys(`quiz:${quizId}:question:*`);
+  if (keys.length > 0) {
+    await redis.del(keys);
+  }
 }

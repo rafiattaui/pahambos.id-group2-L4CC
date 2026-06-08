@@ -17,6 +17,7 @@ export const r_SessionSchema = z.object({
   currentQuestionIndex: z.number().default(0),
   questionStartTime: z.coerce.date(),
   totalQuestions: z.number().default(0),
+  hintsUsed: z.number().default(0),
 });
 
 // questions:{question_id} - individual question data
@@ -40,6 +41,7 @@ export const r_MetricsSchema = z.object({
   totalResponseTime: z.number().default(0),
   longestStreak: z.number().default(0),
   currentStreak: z.number().default(0),
+  hintsUsed: z.number().default(0),
 });
 
 // todo - leaderboards

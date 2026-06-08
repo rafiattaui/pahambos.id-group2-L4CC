@@ -39,6 +39,7 @@ export const POST = WithAuth(async (req, { user, params }) => {
       totalResponseTime: parseInt(rawMetrics.totalResponseTime || '0', 10),
       longestStreak: parseInt(rawMetrics.longestStreak || '0', 10),
       currentStreak: parseInt(rawMetrics.currentStreak || '0', 10),
+      hintsUsed: parseInt(rawMetrics.hintsUsed || '0', 10),
     });
 
     await prisma.userPerformance.create({
@@ -49,6 +50,7 @@ export const POST = WithAuth(async (req, { user, params }) => {
         accuracyRate: metrics.totalCorrect / session.totalQuestions,
         timeTaken: metrics.totalResponseTime,
         completedAt: new Date(),
+        hintsUsed: metrics.hintsUsed,
       },
     });
 

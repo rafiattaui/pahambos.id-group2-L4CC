@@ -17,6 +17,7 @@
     "gen:docs": "pnpm gen:auth && pnpm exec next-openapi-gen generate"
   },
   "dependencies": {
+    "@ai-sdk/groq": "^3.0.39",
     "@mantine/carousel": "^8.3.15",
     "@mantine/core": "^8.3.15",
     "@mantine/dates": "^8.3.15",
@@ -26,6 +27,7 @@
     "@mantine/notifications": "^8.3.15",
     "@prisma/adapter-pg": "^7.4.1",
     "@prisma/client": "^7.4.1",
+    "ai": "^6.0.197",
     "better-auth": "^1.4.19",
     "class-variance-authority": "^0.7.1",
     "cloudinary": "^2.10.0",

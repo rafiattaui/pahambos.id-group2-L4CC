@@ -49,6 +49,7 @@ export const DELETE = WithAuth(async (req, { user, params }) => {
     pipe.del(`metrics:${sessionId}`);
     pipe.del(`session:${sessionId}`);
     pipe.del(`session:${sessionId}:answers`);
+    pipe.del(`hint-rl:user:${user.id}`); // clear all hint rate limit keys for this quiz
     await pipe.exec();
     return NextResponse.json({
       success: true,

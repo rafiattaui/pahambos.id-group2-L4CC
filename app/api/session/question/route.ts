@@ -163,8 +163,11 @@ export const POST = WithAuth(async (req, { user }) => {
       questionData.correctAnswers.every((a) => answer.includes(a)) &&
       answer.every((a) => questionData.correctAnswers.includes(a));
 
-    const hintKey = `hint:user:${user.id}:quiz:${session.quizId}:q:${session.currentQuestionIndex}`;
-    const usedHint = !!(await redis.exists(hintKey));
+    const hintKey = `hint-rl:user:${user.id}:quiz:${session.quizId}:q:${session.currentQuestionIndex}`;
+    const usedHint =
+      (await redis.get(hintKey)) !== null &&
+      parseInt((await redis.get(hintKey)) || '0', 10) > 0;
+    console.log('Used hint:', usedHint);
 
     const points = answeredCorrectly ? (usedHint ? 100 : 250) : 0;
 

@@ -10,6 +10,7 @@ import { model } from '@/lib/groq';
 import { generateText, Output } from 'ai';
 import { type GroqLanguageModelOptions } from '@ai-sdk/groq';
 import { z } from 'zod';
+import { generateFeedback } from '@/lib/session/ai';
 
 export const POST = WithAuth(async (req, { user, params }) => {
   try {
@@ -62,13 +63,13 @@ export const POST = WithAuth(async (req, { user, params }) => {
     pipe.del(`session:${session.id}`);
     pipe.del(`metrics:${session.id}`);
     pipe.del(`player_session:${user.id}`);
+    pipe.del(`hint-rl:user:${user.id}`); // clear all hint rate limit keys for this quiz
     // pipe.del(`session:${session.id}:answers`); don't delete this yet
     // we need to generate feedback from ai so we need the answers for that.
     await pipe.exec();
 
     // ai feedback logic
-
-    const answers = await redis.lrange(`session:${session.id}:answers`, 0, -1);
+    // const feedback = await generateFeedback(session, session.id);
 
     return NextResponse.json({
       success: true,

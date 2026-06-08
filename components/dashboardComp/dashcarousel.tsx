@@ -291,7 +291,7 @@ export default function DashCarousel() {
                 height={200}
                 className="mt-4 mb-4 items-center justify-center rounded-2xl"
               />
-              <CardTitle className="font-heading">
+              <CardTitle className="font-body font-bold">
                 {selectedQuiz.title}
               </CardTitle>
               <CardDescription

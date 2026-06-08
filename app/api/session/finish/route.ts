@@ -69,11 +69,15 @@ export const POST = WithAuth(async (req, { user, params }) => {
     await pipe.exec();
 
     // ai feedback logic
-    // const feedback = await generateFeedback(session, session.id);
+    const feedback = await generateFeedback(session, session.id);
+
+    pipe.del(`session:${session.id}:answers`); // now we can delete the answers after generating feedback
+    await pipe.exec();
 
     return NextResponse.json({
       success: true,
       message: 'Session finalized and performance recorded.',
+      data: { feedback },
     });
   } catch (error) {
     return handleError(error);

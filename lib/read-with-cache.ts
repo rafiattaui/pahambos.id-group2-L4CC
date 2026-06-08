@@ -25,7 +25,14 @@ export async function GetQuestionWithCache(
     await redis.set(cacheKey, JSON.stringify(question), 'EX', 60 * 60); // Cache for 1 hour
   }
 
-  return PublicQuestionSchema.parse(question);
+  const parsed = PublicQuestionSchema.safeParse(question);
+
+  if (!parsed.success) {
+    console.error('Failed to parse question:', parsed.error);
+    return null;
+  }
+
+  return parsed.data;
 }
 
 export async function invalidateQuestionCache(

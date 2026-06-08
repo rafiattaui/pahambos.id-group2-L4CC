@@ -2,6 +2,7 @@ import { NextResponse, NextRequest } from 'next/server';
 import { handleError } from '@/lib/api/errors';
 import { WithAuth } from '@/lib/api/auth-protected';
 import redis from '@/lib/redis';
+import { r_SessionSchema } from '@/lib/schemas/sessionschemas';
 
 export const GET = WithAuth(async (req, { user, params }) => {
   try {
@@ -23,10 +24,12 @@ export const GET = WithAuth(async (req, { user, params }) => {
       );
     }
 
+    const session = r_SessionSchema.parse(sessionData);
+
     return NextResponse.json({
       success: true,
       sessionId,
-      sessionData,
+      session,
     });
   } catch (error) {
     return handleError(error);

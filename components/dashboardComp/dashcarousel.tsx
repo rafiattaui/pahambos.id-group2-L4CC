@@ -78,7 +78,7 @@ function CarouselSkeleton() {
           key={i}
           className="min-w-[calc(50%-1rem)] md:min-w-[calc(33%-1rem)] lg:min-w-[calc(25%-1rem)]"
         >
-          <Skeleton className="aspect-[4/3] w-full rounded-2xl" />
+          <Skeleton className="aspect-[3/2] w-full rounded-2xl" />
         </div>
       ))}
     </div>
@@ -142,7 +142,7 @@ function CarouselSection({
                 {quizzes.map((quiz) => (
                   <CarouselItem
                     key={quiz.id}
-                    className="aspect-[4/3] basis-1/2 p-4 md:basis-1/3 lg:basis-1/4"
+                    className="aspect-[3/2] basis-1/2 p-4 md:basis-1/3 lg:basis-1/4"
                   >
                     <button
                       type="button"

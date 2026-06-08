@@ -78,6 +78,15 @@ Main features:
 
 ## 8. AI Features (MANDATORY)
 
+- **AI Dependencies:**
+  - Groq (AI Provider)
+  - Vercel AI SDK
+- AI Usage:
+  - Mid-Quiz Session Hints:
+    - If the player is struggling with question, they can request for a hint generated with AI, however if they answer the question successfully after, it will reward them with less points than if they were to answer without AI.
+  - End of Quiz Feedback:
+    - At the end of the quiz, the player will receive feedback generated with AI and tailored with their results during the quiz. The feedback will consist of ways for the player to improve and recommend material to study for improvement.
+
 ## 9. Security Implementation (MANDATORY)
 
 - **Input Sanitization: Prisma**

@@ -53,8 +53,9 @@ export const POST = WithAuth(async (req, { user }) => {
     // answers are sent as questions[0].answers[0], questions[0].answers[1], etc.
     // re-group them into an array
     const rawQuestions = Array.from(questionsMap.entries())
-      .sort(([a], [b]) => a - b)
-      .map(([, q]) => {
+      .sort(([, a], [, b]) => Number(a.order) - Number(b.order)) // sort by intended order
+      .map(([, q], normalizedIndex) => {
+        // normalizedIndex = 0, 1, 2, ...
         const answers: string[] = [];
         const cleaned: Record<string, unknown> = {};
 
@@ -72,8 +73,7 @@ export const POST = WithAuth(async (req, { user }) => {
 
         return {
           ...cleaned,
-          order: Number(cleaned.order),
-          time: Number(cleaned.time), // ← add this
+          order: normalizedIndex, // ← always 0-based, sequential, no gaps
           correctAnswers: Object.entries(q)
             .filter(([k]) => k.match(/^correctAnswers\[(\d+)\]$/))
             .sort(([a], [b]) => a.localeCompare(b))

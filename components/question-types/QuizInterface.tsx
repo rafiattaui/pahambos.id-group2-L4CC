@@ -28,7 +28,6 @@ type Phase =
   | 'init' // creating session
   | 'splash' // before countdown
   | 'countdown' // 3-2-1
-  | 'loading' // fetching next question
   | 'answering' // timer running
   | 'feedback' // showing correct/incorrect briefly
   | 'finishing' // calling /finish
@@ -204,7 +203,6 @@ export default function QuizInterface({ quizId }: { quizId: string }) {
 
   // Load question from server
   const loadQuestion = useCallback(async () => {
-    setPhase('loading');
     setSelectedIndices([]);
     setLastResult(null);
     submitLockRef.current = false;
@@ -375,7 +373,7 @@ export default function QuizInterface({ quizId }: { quizId: string }) {
   const questionType = question ? resolveType(question) : 'SingleSelect';
   const isTrueFalse = questionType === 'TrueFalse';
   const isMultiSelect = questionType === 'MultiSelect';
-  const isLocked = phase === 'feedback' || phase === 'loading';
+  const isLocked = phase === 'feedback';
 
   // Init page
   if (phase === 'init') {
@@ -428,18 +426,6 @@ export default function QuizInterface({ quizId }: { quizId: string }) {
           className="animate-bounce text-9xl font-black text-blue-600"
         >
           {countdown}
-        </div>
-      </div>
-    );
-  }
-
-  // Loading page
-  if (phase === 'loading') {
-    return (
-      <div className="fixed inset-0 flex items-center justify-center bg-white/30 backdrop-blur-md">
-        <div className="font-body flex flex-col items-center gap-4">
-          <div className="h-10 w-10 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
-          <p className="text-black/60">Loading question...</p>
         </div>
       </div>
     );

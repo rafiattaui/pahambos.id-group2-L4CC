@@ -9,6 +9,8 @@ const addQuizToClassroomSchema = z.object({
   dueDate: z.coerce.date(),
 });
 
+// GET route to fetch all quiz assignments for a classroom along with
+// completion status for the requesting user, or all users if the requester is the educator
 export const GET = WithAuth(async (req, { user, params }) => {
   try {
     const { id } = await params;
@@ -99,6 +101,7 @@ export const GET = WithAuth(async (req, { user, params }) => {
             numLearnersCompleted: completions.length,
             learnersCompleted: completions.map((p) => p.user),
           }),
+          userHasCompleted: completions.some((p) => p.userId === user.id),
         };
       }),
     });

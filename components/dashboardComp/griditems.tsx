@@ -14,11 +14,12 @@ import {
 import Image from 'next/image';
 import { CategoryTextColor } from './dashcarousel';
 import { Skeleton } from '../ui/skeleton';
-import { X } from 'lucide-react';
+import { ArrowRight, X } from 'lucide-react';
 
 export type Quiz = {
   id: string;
   createdBy: string;
+  creatorName?: string;
   title: string;
   description: string;
   numQuestions: number;
@@ -29,7 +30,8 @@ export type Quiz = {
     | 'History'
     | 'Geography'
     | 'Technology'
-    | 'General';
+    | 'General'
+    | 'Language';
 };
 
 export function QuizSkeleton() {
@@ -60,13 +62,37 @@ export default function GridItems({ quiz }: { quiz: Quiz }) {
   const [selectedQuiz, setSelectedQuiz] = useState<Quiz | null>(null);
 
   const categoriesText: CategoryTextColor[] = [
-    { category: 'Mathematics', textColor: 'text-blue-500' },
-    { category: 'Science', textColor: 'text-green-500' },
-    { category: 'History', textColor: 'text-yellow-500' },
-    { category: 'Geography', textColor: 'text-purple-500' },
-    { category: 'Literature', textColor: 'text-pink-500' },
-    { category: 'Technology', textColor: 'text-cyan-500' },
-    { category: 'General', textColor: 'text-gray-500' },
+    {
+      category: 'Mathematics',
+      textColor: 'text-blue-500',
+      bgColor: 'bg-blue-100',
+    },
+    {
+      category: 'Science',
+      textColor: 'text-green-500',
+      bgColor: 'bg-green-100',
+    },
+    {
+      category: 'History',
+      textColor: 'text-yellow-500',
+      bgColor: 'bg-yellow-100',
+    },
+    {
+      category: 'Geography',
+      textColor: 'text-purple-500',
+      bgColor: 'bg-purple-100',
+    },
+    {
+      category: 'Language',
+      textColor: 'text-pink-500',
+      bgColor: 'bg-pink-100',
+    },
+    {
+      category: 'Technology',
+      textColor: 'text-cyan-500',
+      bgColor: 'bg-cyan-100',
+    },
+    { category: 'General', textColor: 'text-gray-500', bgColor: 'bg-gray-100' },
   ];
 
   return (
@@ -76,7 +102,7 @@ export default function GridItems({ quiz }: { quiz: Quiz }) {
         onClick={() => {
           setSelectedQuiz(quiz);
         }}
-        className="block h-full w-full text-left"
+        className="block h-full w-full cursor-pointer rounded-2xl border border-slate-100 text-left shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-md"
       >
         <Card className="relative flex aspect-6/7 flex-col overflow-hidden rounded-2xl border-2 border-gray-300 shadow-xl sm:aspect-3/4">
           <CardHeader className="relative p-0">
@@ -90,23 +116,23 @@ export default function GridItems({ quiz }: { quiz: Quiz }) {
             <div className="absolute inset-x-1 bottom-3 flex items-center justify-between sm:inset-x-4">
               <div className="rounded-md bg-white p-1 sm:p-1.5">
                 <span
-                  className={`font-body text-xs sm:text-sm ${categoriesText.find((c) => c.category === quiz.category)?.textColor || 'text-gray-500'}`}
+                  className={`font-body rounded-md p-1 text-xs font-bold sm:text-sm ${categoriesText.find((c) => c.category === quiz.category)?.textColor} ${categoriesText.find((c) => c.category === quiz.category)?.bgColor || 'bg-gray-100'}`}
                 >
                   {quiz.category}
                 </span>
               </div>
               <div className="rounded-md bg-white p-1 sm:p-1.5">
-                <span className="font-body text-xs sm:text-sm">
+                <span className="font-body text-xs font-bold text-slate-700 sm:text-sm">
                   {quiz.numQuestions} Qs
                 </span>
               </div>
             </div>
           </CardHeader>
           <CardContent className="px-2 sm:p-3">
-            <CardTitle className="font-body line-clamp-4 text-sm font-bold sm:text-base">
+            <CardTitle className="font-body line-clamp-4 text-sm font-bold text-slate-800 sm:text-base">
               {quiz.title}
             </CardTitle>
-            <CardDescription className="font-body mt-1 line-clamp-3 text-sm text-gray-500">
+            <CardDescription className="font-body mt-1 line-clamp-3 text-sm text-slate-400">
               {quiz.description}
             </CardDescription>
           </CardContent>
@@ -126,7 +152,7 @@ export default function GridItems({ quiz }: { quiz: Quiz }) {
               <CardAction>
                 <Button
                   onClick={() => setSelectedQuiz(null)}
-                  className="absolute top-2 right-2 flex items-center justify-center rounded-full bg-transparent p-2 hover:bg-gray-300"
+                  className="absolute top-2 right-2 flex items-center justify-center rounded-full bg-transparent p-1 transition-colors hover:bg-slate-100"
                 >
                   <X size={10} color="#000000" />
                 </Button>
@@ -138,20 +164,42 @@ export default function GridItems({ quiz }: { quiz: Quiz }) {
                 height={200}
                 className="mt-4 mb-4 items-center justify-center rounded-2xl"
               />
-              <CardTitle>{selectedQuiz.title}</CardTitle>
-              <CardDescription
-                className={`categoriesText ${categoriesText.find((c) => c.category === selectedQuiz.category)?.textColor || 'text-gray-500'}`}
-              >
-                <span className="text-gray-500">Category:</span>{' '}
-                {selectedQuiz.category}
+              <CardTitle className="font-body font-bold">
+                {selectedQuiz.title}
+              </CardTitle>
+              <CardDescription className="font-body flex flex-col">
+                <p className="text-slate-400">
+                  Created by
+                  <span className="mb-2 font-semibold text-slate-600">
+                    : {selectedQuiz.creatorName || 'Anonymous'}
+                  </span>
+                </p>
+
+                <div className="mt-1 flex items-center gap-2">
+                  <span
+                    className={`rounded-full bg-cyan-100 px-2 py-0.5 text-xs font-bold ${categoriesText.find((c) => c.category === quiz.category)?.textColor} ${categoriesText.find((c) => c.category === quiz.category)?.bgColor || 'bg-gray-100'}`}
+                  >
+                    {selectedQuiz.category}
+                  </span>
+                  <span className="text-xs text-slate-400">•</span>
+                  <span className="text-xs text-slate-500">
+                    {selectedQuiz.numQuestions} Questions
+                  </span>
+                </div>
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <CardDescription>{selectedQuiz.description}</CardDescription>
+              <CardDescription className="font-body">
+                <div className="mt-3 rounded-xl bg-slate-50 px-4 py-3">
+                  <p className="text-sm text-slate-600">
+                    {selectedQuiz.description}
+                  </p>
+                </div>
+              </CardDescription>
             </CardContent>
             <CardFooter>
-              <Button className="w-full bg-blue-500 text-white hover:bg-blue-700 active:translate-y-1">
-                Start Quiz
+              <Button className="font-body w-full bg-blue-600 font-bold hover:bg-blue-700">
+                Start Quiz <ArrowRight className="ml-1 h-4 w-4" />
               </Button>
             </CardFooter>
           </Card>

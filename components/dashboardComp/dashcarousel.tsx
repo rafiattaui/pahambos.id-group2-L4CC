@@ -11,7 +11,7 @@ import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import DashCarItem from './dashcaritem';
 import { type Quiz } from './quizmockup';
-import { X, ChevronRight } from 'lucide-react';
+import { X, ChevronRight, ArrowRight } from 'lucide-react';
 import {
   Card,
   CardTitle,
@@ -25,13 +25,13 @@ import { Button } from '../ui/button';
 import { Skeleton } from '../ui/skeleton';
 import { dashboardHref } from '@/components/dashboardComp/dashboardHref';
 import Link from 'next/link';
-import usePathname from 'next/navigation';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 export type CategoryTextColor = {
   category: string;
   textColor: string;
+  bgColor?: string;
 };
 
 type FetchStatus = 'idle' | 'loading' | 'success' | 'error';
@@ -185,13 +185,37 @@ export default function DashCarousel() {
   >({});
 
   const categoriesText: CategoryTextColor[] = [
-    { category: 'Mathematics', textColor: 'text-blue-500' },
-    { category: 'Science', textColor: 'text-green-500' },
-    { category: 'History', textColor: 'text-yellow-500' },
-    { category: 'Geography', textColor: 'text-purple-500' },
-    { category: 'Literature', textColor: 'text-pink-500' },
-    { category: 'Technology', textColor: 'text-cyan-500' },
-    { category: 'General', textColor: 'text-gray-500' },
+    {
+      category: 'Mathematics',
+      textColor: 'text-blue-500',
+      bgColor: 'bg-blue-100',
+    },
+    {
+      category: 'Science',
+      textColor: 'text-green-500',
+      bgColor: 'bg-green-100',
+    },
+    {
+      category: 'History',
+      textColor: 'text-yellow-500',
+      bgColor: 'bg-yellow-100',
+    },
+    {
+      category: 'Geography',
+      textColor: 'text-purple-500',
+      bgColor: 'bg-purple-100',
+    },
+    {
+      category: 'Literature',
+      textColor: 'text-pink-500',
+      bgColor: 'bg-pink-100',
+    },
+    {
+      category: 'Technology',
+      textColor: 'text-cyan-500',
+      bgColor: 'bg-cyan-100',
+    },
+    { category: 'General', textColor: 'text-gray-500', bgColor: 'bg-gray-100' },
   ];
 
   // Fetch featured (all quizzes, sorted by newest)
@@ -242,7 +266,7 @@ export default function DashCarousel() {
   }, []);
 
   return (
-    <section className="mt-32">
+    <section className="mt-20">
       {/* Featured */}
       <div>
         <CarouselSection
@@ -279,7 +303,7 @@ export default function DashCarousel() {
               <CardAction>
                 <Button
                   onClick={() => setSelectedQuiz(null)}
-                  className="absolute top-2 right-2 flex items-center justify-center rounded-full bg-transparent p-2 hover:bg-gray-300"
+                  className="absolute top-2 right-2 flex items-center justify-center rounded-full bg-transparent p-1 transition-colors hover:bg-slate-100"
                 >
                   <X size={10} color="#000000" />
                 </Button>
@@ -294,31 +318,39 @@ export default function DashCarousel() {
               <CardTitle className="font-body font-bold">
                 {selectedQuiz.title}
               </CardTitle>
-              <CardDescription
-                className={`font-body ${
-                  categoriesText.find(
-                    (c) => c.category === selectedQuiz.category
-                  )?.textColor || 'text-gray-500'
-                }`}
-              >
-                <span className="font-body text-gray-500">Category:</span>{' '}
-                {selectedQuiz.category}
-                {selectedQuiz.creatorName && (
-                  <CardDescription className="font-body text-gray-400">
-                    <span className="text-gray-500">By:</span>{' '}
-                    {selectedQuiz.creatorName}
-                  </CardDescription>
-                )}
+              <CardDescription className="font-body flex flex-col">
+                <p className="text-slate-400">
+                  Created by
+                  <span className="mb-2 font-semibold text-slate-600">
+                    : {selectedQuiz.creatorName || 'Anonymous'}
+                  </span>
+                </p>
+
+                <div className="mt-1 flex items-center gap-2">
+                  <span
+                    className={`rounded-full bg-cyan-100 px-2 py-0.5 text-xs font-bold ${categoriesText.find((c) => c.category === selectedQuiz.category)?.textColor} ${categoriesText.find((c) => c.category === selectedQuiz.category)?.bgColor || 'bg-gray-100'}`}
+                  >
+                    {selectedQuiz.category}
+                  </span>
+                  <span className="text-xs text-slate-400">•</span>
+                  <span className="text-xs text-slate-500">
+                    {selectedQuiz.numQuestions} Questions
+                  </span>
+                </div>
               </CardDescription>
             </CardHeader>
             <CardContent>
               <CardDescription className="font-body">
-                {selectedQuiz.description}
+                <div className="mt-3 rounded-xl bg-slate-50 px-4 py-3">
+                  <p className="text-sm text-slate-600">
+                    {selectedQuiz.description}
+                  </p>
+                </div>
               </CardDescription>
             </CardContent>
             <CardFooter>
-              <Button className="font-body w-full bg-blue-500 font-bold text-white hover:bg-blue-700 active:translate-y-1">
-                Start Quiz
+              <Button className="font-body w-full bg-blue-600 font-bold hover:bg-blue-700">
+                Start Quiz <ArrowRight className="ml-1 h-4 w-4" />
               </Button>
             </CardFooter>
           </Card>

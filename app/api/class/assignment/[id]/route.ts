@@ -159,3 +159,38 @@ export const POST = WithAuth(async (req, { user, params }) => {
     return handleError(error);
   }
 });
+
+export const DELETE = WithAuth(async (req, { user, params }) => {
+  try {
+    const { id } = await params;
+
+    // check if classroom quiz assignment exists
+    const classroomQuiz = await prisma.classroomQuiz.findUnique({
+      where: { id },
+      include: {
+        Classroom: true,
+      },
+    });
+
+    if (!classroomQuiz) {
+      throw new APIError('Classroom quiz assignment not found.', 404);
+    }
+
+    // check if user is the educator of the classroom
+    if (classroomQuiz.Classroom.ownerId !== user.id) {
+      throw new APIError('Only the educator can remove quiz assignments.', 403);
+    }
+
+    // delete the classroom quiz assignment
+    await prisma.classroomQuiz.delete({
+      where: { id },
+    });
+
+    return NextResponse.json({
+      success: true,
+      message: 'Quiz assignment removed from classroom successfully.',
+    });
+  } catch (error) {
+    return handleError(error);
+  }
+});

@@ -379,6 +379,130 @@ export default function DashboardMain({
               />
             </svg>
           </div>
+
+          {/* 100 full mark — top right, rough handwritten style */}
+          <div className="pointer-events-none absolute -top-1 right-2 opacity-20">
+            <svg
+              viewBox="0 0 180 100"
+              className="w-44"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              {/* Rough underline scribble */}
+              <path
+                d="M8 85 Q50 92 95 86 Q130 80 168 88"
+                stroke="white"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                fill="none"
+                opacity="0.6"
+              />
+              <path
+                d="M20 90 Q70 96 110 91 Q145 86 165 93"
+                stroke="white"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                fill="none"
+                opacity="0.4"
+              />
+
+              {/* "1" — slightly tilted, rough */}
+              <path
+                d="M10 28 L18 18 L18 65"
+                stroke="white"
+                strokeWidth="6"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M10 65 L26 65"
+                stroke="white"
+                strokeWidth="4"
+                strokeLinecap="round"
+              />
+
+              {/* First "0" — wobbly circle */}
+              <path
+                d="M52 18 Q72 14 76 32 Q80 50 72 62 Q62 74 48 68 Q34 62 36 44 Q38 26 52 18 Z"
+                stroke="white"
+                strokeWidth="5.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                fill="none"
+              />
+
+              {/* Second "0" — wobbly circle, slightly different shape */}
+              <path
+                d="M108 20 Q128 15 133 34 Q137 53 128 64 Q117 76 103 69 Q89 62 91 43 Q93 24 108 20 Z"
+                stroke="white"
+                strokeWidth="5.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                fill="none"
+              />
+
+              {/* Circle/star accent around the 100 */}
+              <path
+                d="M155 15 L157 22 L164 22 L158 26 L161 33 L155 29 L149 33 L151 26 L145 22 L152 22 Z"
+                stroke="white"
+                strokeWidth="1.8"
+              />
+
+              {/* Small circle accent bottom left */}
+              <circle cx="8" cy="72" r="3" stroke="white" strokeWidth="1.8" />
+            </svg>
+          </div>
+
+          {/* Checkmark + circle — bottom left, like a graded paper mark */}
+          <div className="pointer-events-none absolute bottom-16 left-4 opacity-15">
+            <svg
+              viewBox="0 0 80 80"
+              className="w-16"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              {/* Rough circle */}
+              <path
+                d="M40 8 Q62 6 70 24 Q78 42 68 58 Q56 74 38 72 Q20 70 12 54 Q4 38 14 22 Q24 6 40 8 Z"
+                stroke="white"
+                strokeWidth="3.5"
+                strokeLinecap="round"
+                fill="none"
+              />
+              {/* Big checkmark inside */}
+              <path
+                d="M22 40 L34 54 L58 26"
+                stroke="white"
+                strokeWidth="4.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </div>
+
+          {/* Pencil scribble lines — like underlining a grade */}
+          <div className="pointer-events-none absolute right-0 bottom-6 left-0 px-6 opacity-10">
+            <svg
+              viewBox="0 0 400 30"
+              className="w-full"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M0 10 Q100 6 200 10 Q300 14 400 8"
+                stroke="white"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
+              <path
+                d="M0 20 Q80 16 180 20 Q280 24 400 18"
+                stroke="white"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                opacity="0.6"
+              />
+            </svg>
+          </div>
           <div className="flex flex-col items-center justify-center">
             <h2 className="font-body text-2xl font-bold text-white drop-shadow-sm">
               Performance Summary

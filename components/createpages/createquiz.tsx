@@ -27,6 +27,7 @@ import {
   Crop,
   X,
   ImageIcon,
+  NotebookPen,
 } from 'lucide-react';
 import { useState, useEffect, useRef, useMemo } from 'react';
 import DraftPopup, { QuizDraft } from '@/components/createpages/draftpopup';
@@ -1200,7 +1201,9 @@ export default function CreateQuizForm({
 
   return (
     <div className="flex justify-center">
-      <main className="relative mt-4 h-full w-full max-w-2xl items-center justify-center rounded-2xl bg-linear-to-br from-blue-400 from-5% to-white to-30% p-10">
+      <main className="relative mt-4 h-full w-full max-w-2xl items-center justify-center overflow-hidden rounded-2xl border border-slate-100 bg-white bg-linear-to-b from-white to-blue-100 p-10 shadow-sm">
+        <div className="absolute inset-0 h-1.5 bg-gradient-to-r from-blue-600 to-orange-400" />{' '}
+        {/* color bar */}
         <Button
           variant="ghost"
           className="absolute top-4 left-4 mb-4 flex items-center gap-2 rounded-4xl"
@@ -1208,10 +1211,16 @@ export default function CreateQuizForm({
         >
           <ArrowLeft />
         </Button>
-
         <FieldGroup className="mt-4">
           <FieldTitle>
-            <h1 className="font-body text-2xl font-bold">Quiz Creation Form</h1>
+            <div className="mb-6 flex items-center gap-2">
+              <h1 className="font-body text-2xl font-bold text-slate-800">
+                Quiz Creation Form
+              </h1>
+              <div className="rounded-xl bg-blue-600 p-2">
+                <NotebookPen className="h-5 w-5 text-white" />
+              </div>
+            </div>
           </FieldTitle>
 
           <FieldSet>
@@ -1255,7 +1264,7 @@ export default function CreateQuizForm({
                 className={
                   validationErrors.title
                     ? 'font-body border-red-400'
-                    : 'font-body'
+                    : 'font-body focus:border-blue-500 focus:ring-2 focus:ring-blue-500'
                 }
               />
               {validationErrors.title && (
@@ -1370,7 +1379,7 @@ export default function CreateQuizForm({
                 </Field>
 
                 <Button
-                  className="font-body bg-blue-500 font-bold hover:scale-105 hover:bg-blue-700"
+                  className="font-body bg-blue-600 font-bold hover:scale-105 hover:bg-blue-700"
                   ref={addButtonRef}
                   onClick={addQuestion}
                 >
@@ -1379,13 +1388,13 @@ export default function CreateQuizForm({
                 {!isEditMode && (
                   <Button
                     onClick={() => setDraftOpen(true)}
-                    className="font-body bg-blue-500 font-bold hover:scale-105 hover:bg-blue-700"
+                    className="font-body border border-blue-600 bg-white font-bold text-blue-600 hover:scale-105 hover:bg-blue-50"
                   >
                     Save Draft <Save className="h-4 w-4" />
                   </Button>
                 )}
                 <Button
-                  className="font-body bg-blue-500 font-bold hover:scale-105 hover:bg-blue-700"
+                  className="font-body bg-blue-800 font-bold text-white hover:scale-105 hover:bg-blue-900"
                   onClick={handleSubmit}
                   disabled={isSubmitting}
                 >

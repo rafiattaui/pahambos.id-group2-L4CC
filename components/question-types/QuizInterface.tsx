@@ -2,6 +2,8 @@
 
 import { useRouter } from 'next/navigation';
 import { useState, useCallback, useRef, useEffect } from 'react';
+import { r_SessionSchema } from '@/lib/schemas/sessionschemas';
+import { z } from 'zod';
 
 export type QuestionType = 'SingleSelect' | 'MultiSelect' | 'TrueFalse';
 
@@ -23,6 +25,10 @@ interface AnswerResult {
   timedOut: boolean;
   points: number;
 }
+
+const c_SessionSchema = r_SessionSchema.extend({
+  id: z.string(),
+});
 
 type Phase =
   | 'init' // creating session
@@ -58,13 +64,15 @@ async function createSession(
     throw new Error(data.message ?? 'Failed to create session');
 
   const sessionRes = await fetch('/api/session');
-  const sessionData = await sessionRes.json();
-  if (!sessionData.success)
-    throw new Error(sessionData.message ?? 'Failed to retrieve session data');
+  const rawData = await sessionRes.json();
+  const session = c_SessionSchema.parse(rawData.session);
+  if (!session) throw new Error('Failed to retrieve session data');
+
+  console.log(session);
 
   return {
-    sessionId: sessionData.sessionId,
-    totalQuestions: parseInt(sessionData.sessionData.totalQuestions, 10),
+    sessionId: session.id,
+    totalQuestions: session.totalQuestions,
   };
 }
 

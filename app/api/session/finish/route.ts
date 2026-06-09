@@ -51,6 +51,7 @@ export const POST = WithAuth(async (req, { user, params }) => {
         timeTaken: metrics.totalResponseTime,
         completedAt: new Date(),
         hintsUsed: metrics.hintsUsed,
+        longestStreak: metrics.longestStreak,
       },
     });
 

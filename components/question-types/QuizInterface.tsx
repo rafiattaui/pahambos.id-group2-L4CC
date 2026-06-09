@@ -141,11 +141,14 @@ export default function QuizInterface({ quizId }: { quizId: string }) {
   const [results, setResults] = useState<AnswerResult[]>([]);
   const [errorMessage, setErrorMessage] = useState<string>('');
 
-  const [isPaused, setIsPaused] = useState(false);
+  const [hint, setHint] = useState<string | null>(null);
+  const [hintLoading, setHintLoading] = useState(false);
+  const [hintUsed, setHintUsed] = useState(false);
 
   const bgMusicRef = useRef<HTMLAudioElement | null>(null);
   const finishMusicRef = useRef<HTMLAudioElement | null>(null);
   const submitLockRef = useRef(false); // prevent double-submit
+  const hintLockRef = useRef(false); // prevent double hint request
 
   async function handleBackToDashboard() {
     if (phase !== 'results') {
@@ -183,16 +186,16 @@ export default function QuizInterface({ quizId }: { quizId: string }) {
     };
   }, []);
 
-  // React to pause/resume separately
+  // Pause/resume audio based on phase
   useEffect(() => {
     const audio = bgMusicRef.current;
     if (!audio || phase == 'splash') return;
-    if (isPaused || phase === 'results' || phase === 'error') {
+    if (phase === 'results' || phase === 'error') {
       audio.pause();
     } else {
       audio.play().catch((err) => console.log('Playback blocked:', err));
     }
-  }, [isPaused, phase]);
+  }, [phase]);
 
   useEffect(() => {
     if (phase === 'results') {
@@ -205,6 +208,10 @@ export default function QuizInterface({ quizId }: { quizId: string }) {
   const loadQuestion = useCallback(async () => {
     setSelectedIndices([]);
     setLastResult(null);
+    setHint(null);
+    setHintLoading(false);
+    setHintUsed(false);
+    hintLockRef.current = false;
     submitLockRef.current = false;
     try {
       const { question: q, questionStartTime: startTime } =
@@ -287,14 +294,14 @@ export default function QuizInterface({ quizId }: { quizId: string }) {
 
   // Timer
   useEffect(() => {
-    if (phase !== 'answering' || isPaused) return;
+    if (phase !== 'answering') return;
     if (timeLeft <= 0) {
       handleTimeoutRef.current();
       return;
     }
     const id = setTimeout(() => setTimeLeft((t) => (t ?? 1) - 1), 1000);
     return () => clearTimeout(id);
-  }, [timeLeft, phase, isPaused]);
+  }, [timeLeft, phase]);
 
   // Answer submission
   const handleSubmit = useCallback(
@@ -342,6 +349,28 @@ export default function QuizInterface({ quizId }: { quizId: string }) {
   function handleMultiSubmit() {
     if (phase !== 'answering' || selectedIndices.length === 0) return;
     handleSubmit(selectedIndices);
+  }
+
+  async function fetchHint() {
+    if (hintLockRef.current) return;
+    hintLockRef.current = true;
+    setHintLoading(true);
+    setHintUsed(true);
+    try {
+      const res = await fetch('/api/session/hint', { method: 'GET' });
+      const data = await res.json();
+      if (!res.ok) {
+        console.error('Hint API error:', res.status, data);
+        setHint(data?.message ?? 'Failed to load hint.');
+        return;
+      }
+      setHint(data.hint ?? 'No hint available.');
+    } catch (e) {
+      console.error('Hint fetch error:', e);
+      setHint('Could not load hint. Try again.');
+    } finally {
+      setHintLoading(false);
+    }
   }
 
   // ── Answer button styles ───────────────────────────────────────────────────
@@ -549,33 +578,13 @@ export default function QuizInterface({ quizId }: { quizId: string }) {
   if (!question) return null;
   return (
     <div className="fixed inset-0 h-screen w-screen overflow-y-auto bg-white/30 px-4 pb-10 backdrop-blur-md">
-      {/* Pause overlay */}
-      {isPaused && (
-        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-6 bg-black/60 backdrop-blur-sm">
-          <div className="text-6xl">⏸️</div>
-          <h2 className="text-3xl font-bold text-white">Game Paused</h2>
-          <button
-            onClick={() => setIsPaused(false)}
-            className="w-full max-w-2xs rounded-2xl bg-blue-500 px-10 py-4 text-xl font-bold text-white transition hover:bg-blue-600 active:scale-95"
-          >
-            Resume
-          </button>
-          <button
-            onClick={handleBackToDashboard}
-            className="w-full max-w-2xs rounded-2xl border border-white/50 bg-white/20 px-10 py-4 text-center text-xl font-bold text-white transition hover:bg-white/30 active:scale-95"
-          >
-            Back to Dashboard
-          </button>
-        </div>
-      )}
-
-      {/* Pause button */}
+      {/* Back to Dashboard button */}
       <button
-        onClick={() => setIsPaused((p) => !p)}
+        onClick={handleBackToDashboard}
         className="absolute top-4 right-4 z-20 flex h-10 w-10 items-center justify-center rounded-sm text-lg backdrop-blur-sm transition hover:bg-white/50 active:scale-95"
-        title="Pause"
+        title="Back to Dashboard"
       >
-        ⏸
+        🏠
       </button>
 
       {/* Timer bar + counters */}
@@ -633,6 +642,31 @@ export default function QuizInterface({ quizId }: { quizId: string }) {
               alt=""
               className="max-h-30 w-full max-w-lg rounded-2xl object-contain shadow-xl"
             />
+          </div>
+        )}
+
+        {/* Hint section */}
+        {phase === 'answering' && (
+          <div className="mt-5 flex flex-col items-center gap-3">
+            {!hintUsed && timeLeft <= (question.time ?? 30) / 2 && (
+              <button
+                onClick={fetchHint}
+                className="font-body flex items-center gap-2 rounded-full border border-yellow-400/60 bg-yellow-100/70 px-4 py-1.5 text-sm font-semibold text-yellow-800 transition hover:bg-yellow-200/80 active:scale-95"
+              >
+                💡 Get a Hint
+              </button>
+            )}
+            {hintLoading && (
+              <div className="flex items-center gap-2 text-sm text-black/50">
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-yellow-500 border-t-transparent" />
+                Thinking of a hint…
+              </div>
+            )}
+            {hint && !hintLoading && (
+              <div className="font-body w-full rounded-2xl border border-yellow-300/60 bg-yellow-50/80 px-4 py-3 text-center text-sm text-yellow-900">
+                💡 {hint}
+              </div>
+            )}
           </div>
         )}
       </div>

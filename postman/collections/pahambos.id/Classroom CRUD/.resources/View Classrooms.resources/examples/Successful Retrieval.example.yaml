@@ -1,0 +1,34 @@
+$kind: http-example
+request:
+  url: localhost:3000/api/class
+  method: GET
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    x-ratelimit-remaining: "97"
+    vary: rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch
+    content-type: application/json
+    Date: Tue, 09 Jun 2026 12:36:32 GMT
+    Connection: keep-alive
+    Keep-Alive: timeout=5
+    Transfer-Encoding: chunked
+  body:
+    type: text
+    content: |-
+      {
+          "educatorClasses": [
+              {
+                  "id": "8bf40f88-bea5-403c-a2d0-86b566e19ab4",
+                  "name": "Test Classroom",
+                  "owner": {
+                      "id": "f0ec9f5a-3d7b-4623-9249-1501261b47b8",
+                      "name": "atta",
+                      "email": "test@gmail.com"
+                  },
+                  "members": []
+              }
+          ],
+          "learnerClasses": []
+      }
+order: 1000

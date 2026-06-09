@@ -1,0 +1,12 @@
+$kind: http-request
+url: localhost:3000/api/quiz/29955e49-b640-4117-8d0c-d1f267a01215
+method: GET
+headers:
+  Content-Type: application/json
+  User-Agent: insomnia/12.6.0
+settings:
+  followRedirects: true
+  disableUrlEncoding: false
+  disableCookies: false
+examples: ./.resources/Retrieve detail quiz data.resources/examples
+order: 1000

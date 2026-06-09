@@ -1,0 +1,36 @@
+$kind: http-example
+request:
+  url: localhost:3000/api/class
+  method: POST
+  body:
+    type: json
+    content: "{\r
+
+      \    \"name\": \"Test Classroom\"\r
+
+      }"
+response:
+  statusCode: 201
+  statusText: Created
+  headers:
+    x-ratelimit-remaining: "98"
+    vary: rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch
+    content-type: application/json
+    Date: Tue, 09 Jun 2026 12:36:14 GMT
+    Connection: keep-alive
+    Keep-Alive: timeout=5
+    Transfer-Encoding: chunked
+  body:
+    type: text
+    content: |-
+      {
+          "id": "8bf40f88-bea5-403c-a2d0-86b566e19ab4",
+          "name": "Test Classroom",
+          "owner": {
+              "id": "f0ec9f5a-3d7b-4623-9249-1501261b47b8",
+              "name": "atta",
+              "email": "test@gmail.com"
+          },
+          "members": []
+      }
+order: 1000

@@ -9,4 +9,4 @@ localResources:
 cloudResources:
   collections:
     ..\postman\collections\pahambos.id: f8d8cdf9-97f9-4a39-8376-4b17b5ff269c
-    ../postman/collections/pahambos.id: 44146836-7397d690-c168-4a3a-b368-fd318073f585
+    ../postman/collections/pahambos.id: 44146836-84dda29d-d97b-49a9-9deb-74d3a4da6c98

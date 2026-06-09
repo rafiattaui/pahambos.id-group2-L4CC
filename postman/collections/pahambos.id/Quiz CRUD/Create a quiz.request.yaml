@@ -1,0 +1,10 @@
+$kind: http-request
+url: localhost:3000/api/quiz/
+method: POST
+headers:
+  Content-Type: application/json
+  User-Agent: insomnia/12.6.0
+body:
+  type: formdata
+  content: []
+order: 5000

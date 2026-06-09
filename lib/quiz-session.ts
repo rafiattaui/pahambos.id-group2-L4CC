@@ -17,6 +17,7 @@ export async function resolveSession(userId: string) {
     currentQuestionIndex: parseInt(redisData.currentQuestionIndex, 10),
     questionStartTime: redisData.questionStartTime,
     totalQuestions: parseInt(redisData.totalQuestions, 10),
+    classroomQuizId: redisData.classroomQuizId,
   });
 
   if (!sessionData) {

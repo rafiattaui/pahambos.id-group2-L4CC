@@ -1,0 +1,52 @@
+[quiz]
+title=Mathematics Fundamentals
+description=Arithmetic, algebra, and number theory
+category=Mathematics
+
+[question]
+question=What is the value of pi (to 2 decimal places)?
+type=SingleSelect
+answers=3.12|3.14|3.16|3.41
+correctAnswers=1
+
+[question]
+question=What is the square root of 144?
+type=SingleSelect
+answers=11|12|13|14
+correctAnswers=1
+
+[question]
+question=Which of these numbers are prime?
+type=MultiSelect
+answers=2|9|13|17
+correctAnswers=0|2|3
+
+[question]
+question=What is 15% of 200?
+type=SingleSelect
+answers=20|25|30|35
+correctAnswers=2
+
+[question]
+question=What is the formula for the area of a circle?
+type=SingleSelect
+answers=2πr|πr²|πd|2πr²
+correctAnswers=1
+
+[question]
+question=Solve: 3x + 6 = 21. What is x?
+type=SingleSelect
+answers=3|4|5|6
+correctAnswers=2
+
+[question]
+question=What is the sum of angles in a triangle?
+type=SingleSelect
+answers=90°|180°|270°|360°
+correctAnswers=1
+
+[question]
+question=Which of these are irrational numbers?
+type=MultiSelect
+answers=√2|0.5|π|√3
+correctAnswers=0|2|3

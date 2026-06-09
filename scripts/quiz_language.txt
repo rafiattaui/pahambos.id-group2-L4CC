@@ -1,0 +1,52 @@
+[quiz]
+title=English Language Challenge
+description=Grammar, vocabulary, and language knowledge
+category=Language
+
+[question]
+question=Which of these is a synonym for "eloquent"?
+type=SingleSelect
+answers=Clumsy|Articulate|Silent|Aggressive
+correctAnswers=1
+
+[question]
+question=What is the plural of "criterion"?
+type=SingleSelect
+answers=Criterions|Criterias|Criteria|Criterium
+correctAnswers=2
+
+[question]
+question=Which sentence is grammatically correct?
+type=SingleSelect
+answers=She don't like it|Him and I went|Neither of them are ready|He and I went to the store
+correctAnswers=3
+
+[question]
+question=Which of these words are antonyms of "benevolent"?
+type=MultiSelect
+answers=Malevolent|Generous|Cruel|Wicked
+correctAnswers=0|2|3
+
+[question]
+question=What literary device is used in "The wind whispered through the trees"?
+type=SingleSelect
+answers=Metaphor|Simile|Personification|Alliteration
+correctAnswers=2
+
+[question]
+question=Which of these is a preposition?
+type=SingleSelect
+answers=Run|Quickly|Beautiful|Beneath
+correctAnswers=3
+
+[question]
+question=What does the prefix "mal-" mean?
+type=SingleSelect
+answers=Good|Bad|Many|Small
+correctAnswers=1
+
+[question]
+question=Which are examples of homophones?
+type=MultiSelect
+answers=Their / There|Big / Large|Write / Right|Flour / Flower
+correctAnswers=0|2|3

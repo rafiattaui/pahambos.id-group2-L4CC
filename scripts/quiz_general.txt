@@ -1,0 +1,52 @@
+[quiz]
+title=General Knowledge Trivia
+description=A mixed bag of trivia across all topics
+category=General
+
+[question]
+question=How many sides does a hexagon have?
+type=SingleSelect
+answers=5|6|7|8
+correctAnswers=1
+
+[question]
+question=Which sport is played at Wimbledon?
+type=SingleSelect
+answers=Cricket|Golf|Tennis|Badminton
+correctAnswers=2
+
+[question]
+question=Which of these are Olympic sports?
+type=MultiSelect
+answers=Archery|Chess|Judo|Fencing
+correctAnswers=0|2|3
+
+[question]
+question=How many hours are in a week?
+type=SingleSelect
+answers=148|158|168|178
+correctAnswers=2
+
+[question]
+question=What is the largest mammal on Earth?
+type=SingleSelect
+answers=African Elephant|Blue Whale|Giraffe|Polar Bear
+correctAnswers=1
+
+[question]
+question=Who painted the Mona Lisa?
+type=SingleSelect
+answers=Michelangelo|Raphael|Leonardo da Vinci|Caravaggio
+correctAnswers=2
+
+[question]
+question=Which of these are primary colours in light (RGB)?
+type=MultiSelect
+answers=Red|Yellow|Green|Blue
+correctAnswers=0|2|3
+
+[question]
+question=How many continents are there on Earth?
+type=SingleSelect
+answers=5|6|7|8
+correctAnswers=2

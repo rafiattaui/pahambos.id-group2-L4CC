@@ -47,10 +47,13 @@ export const POST = WithAuth(async (req, { user, params }) => {
       hintsUsed: parseInt(rawMetrics.hintsUsed || '0', 10),
     });
 
+    console.log(session);
+
     await prisma.userPerformance.create({
       data: {
         userId: user.id,
         quizId: session.quizId,
+        classroomQuizId: session.classroomQuizId,
         finalScore: metrics.totalCorrect * SCORE_PER_QUESTION,
         accuracyRate: metrics.totalCorrect / session.totalQuestions,
         timeTaken: metrics.totalResponseTime,

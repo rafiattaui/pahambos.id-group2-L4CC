@@ -12,6 +12,7 @@ export const r_PlayerSessionSchema = z.object({
 export const r_SessionSchema = z.object({
   quizId: z.string(),
   userId: z.string(),
+  classroomQuizId: z.string().optional(),
   status: z.enum(['waiting', 'active', 'finished']),
   score: z.number().default(0),
   currentQuestionIndex: z.number().default(0),
@@ -35,6 +36,7 @@ export const r_AnswersSchema = z.object({
 // metrics:{session_id} - metrics for a session
 // should be submitted to the database
 export const r_MetricsSchema = z.object({
+  classroomQuizId: z.string().optional(),
   totalCorrect: z.number().default(0),
   totalIncorrect: z.number().default(0),
   totalResponseTime: z.number().default(0),

@@ -1,7 +1,6 @@
-
 generator client {
   provider = "prisma-client"
-  output = "../generated/prisma"
+  output   = "../generated/prisma"
 }
 
 datasource db {
@@ -40,14 +39,14 @@ model User {
   sessions      Session[]
   accounts      Account[]
 
-  @@unique([email])
-  @@map("user")
-
   // Relations
   classrooms      UserClassroom[]
   ownedClassrooms Classroom[]       @relation("ClassroomOwner")
   quizzesCreated  Quiz[]
   performances    UserPerformance[]
+
+  @@unique([email])
+  @@map("user")
 }
 
 model Session {
@@ -99,15 +98,16 @@ model Verification {
 }
 
 model Classroom {
-  id      String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name    String @db.VarChar(100)
-  ownerId String @db.Uuid // Must match User.id type
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name      String   @db.VarChar(100)
+  ownerId   String   @db.Uuid // Must match User.id type
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   // Relations
-  owner   User            @relation("ClassroomOwner", fields: [ownerId], references: [id])
-  members UserClassroom[]
+  owner          User            @relation("ClassroomOwner", fields: [ownerId], references: [id])
+  members        UserClassroom[]
+  classroomQuizzes ClassroomQuiz[]
 
   @@index([ownerId])
 }
@@ -124,6 +124,18 @@ model UserClassroom {
   @@id([userId, classroomId])
 }
 
+model ClassroomQuiz {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  classroomId  String   @db.Uuid
+  quizId       String   @db.Uuid
+  assignedDate DateTime @default(now())
+  dueDate      DateTime
+
+  // Relations
+  assignedQuiz Quiz      @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  classroom    Classroom @relation(fields: [classroomId], references: [id], onDelete: Cascade)
+}
+
 model Quiz {
   id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   createdBy    String   @db.Uuid
@@ -136,39 +148,40 @@ model Quiz {
   category     Category
 
   // Relations
-  creator      User              @relation(fields: [createdBy], references: [id])
-  questions    QuizQuestion[]
-  performances UserPerformance[]
+  creator        User              @relation(fields: [createdBy], references: [id])
+  questions      QuizQuestion[]
+  performances   UserPerformance[]
+  classroomQuizzes ClassroomQuiz[]
 }
 
 model QuizQuestion {
-  id           String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  quizId       String @db.Uuid
-  order        Int
-  type         QuestionType @default(SingleSelect)
-  question     String
-  time         Int @default(30)
-  imageUrl     String?
-  imageKey     String?
-  answers      String[]
+  id             String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  quizId         String       @db.Uuid
+  order          Int
+  type           QuestionType @default(SingleSelect)
+  question       String
+  time           Int          @default(30)
+  imageUrl       String?
+  imageKey       String?
+  answers        String[]
   correctAnswers Int[]
 
   // Relations
   quiz Quiz @relation(fields: [quizId], references: [id], onDelete: Cascade)
-  
+
   @@unique([quizId, order])
 }
 
 model UserPerformance {
-  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  quizId       String   @db.Uuid
-  userId       String   @db.Uuid
-  finalScore   Int
-  accuracyRate Decimal  @db.Decimal(5, 2)
-  longestStreak Int     @default(1)
-  timeTaken    Int      // Duration in seconds
-  completedAt  DateTime @default(now())
-  hintsUsed    Int      @default(0)
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  quizId        String   @db.Uuid
+  userId        String   @db.Uuid
+  finalScore    Int
+  accuracyRate  Decimal  @db.Decimal(5, 2)
+  longestStreak Int      @default(1)
+  timeTaken     Int // Duration in seconds
+  completedAt   DateTime @default(now())
+  hintsUsed     Int      @default(0)
 
   // Relations
   quiz Quiz @relation(fields: [quizId], references: [id], onDelete: Cascade)

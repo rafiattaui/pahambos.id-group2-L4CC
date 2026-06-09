@@ -41,6 +41,8 @@ export const POST = WithAuth(async (req, { user, params }) => {
       currentStreak: parseInt(rawMetrics.currentStreak || '0', 10),
     });
 
+    console.log(session);
+
     await prisma.userPerformance.create({
       data: {
         userId: user.id,

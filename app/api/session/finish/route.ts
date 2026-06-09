@@ -51,6 +51,7 @@ export const POST = WithAuth(async (req, { user, params }) => {
       data: {
         userId: user.id,
         quizId: session.quizId,
+        classroomQuizId: session.classroomQuizId,
         finalScore: metrics.totalCorrect * SCORE_PER_QUESTION,
         accuracyRate: metrics.totalCorrect / session.totalQuestions,
         timeTaken: metrics.totalResponseTime,

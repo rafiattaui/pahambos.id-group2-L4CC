@@ -648,7 +648,7 @@ export default function QuizInterface({ quizId }: { quizId: string }) {
         {/* Hint section */}
         {phase === 'answering' && (
           <div className="mt-5 flex flex-col items-center gap-3">
-            {!hintUsed && timeLeft <= (question.time ?? 30) / 2 && (
+            {!hintUsed && (
               <button
                 onClick={fetchHint}
                 className="font-body flex items-center gap-2 rounded-full border border-yellow-400/60 bg-yellow-100/70 px-4 py-1.5 text-sm font-semibold text-yellow-800 transition hover:bg-yellow-200/80 active:scale-95"

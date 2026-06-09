@@ -11,9 +11,9 @@ import { NextResponse } from 'next/server';
 // should use /api/quiz/[id]/session
 export const POST = WithAuth(async (req, { user, params }) => {
   try {
-    const { classroomQuizId } = await params;
+    const { id } = await params;
 
-    if (!classroomQuizId) {
+    if (!id) {
       return NextResponse.json(
         { error: 'Missing classroomQuizId' },
         { status: 400 }
@@ -22,7 +22,7 @@ export const POST = WithAuth(async (req, { user, params }) => {
 
     // check if the classroom quiz exists
     const classroomQuiz = await prisma.classroomQuiz.findUnique({
-      where: { id: classroomQuizId },
+      where: { id: id },
       include: { Quiz: true, Classroom: true },
     });
 
@@ -90,7 +90,7 @@ export const POST = WithAuth(async (req, { user, params }) => {
       status: 'waiting',
       totalQuestions: questionCount,
       questionStartTime: null,
-      classroomQuizId: classroomQuizId,
+      classroomQuizId: classroomQuiz.id,
     });
 
     // flattening object into string-only records for hset safety

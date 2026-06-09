@@ -7,6 +7,8 @@ import { NextResponse } from 'next/server';
 
 // post route specifically for starting sessions tied to
 // a classroom quiz
+// otherwise for standalone quiz sessions,
+// should use /api/quiz/[id]/session
 export const POST = WithAuth(async (req, { user, params }) => {
   try {
     const { classroomQuizId } = await params;

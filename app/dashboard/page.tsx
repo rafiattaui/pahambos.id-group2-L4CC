@@ -8,7 +8,11 @@ export default async function Dashboard() {
   return (
     <div>
       <main>
-        <DashboardMain userName={session?.user?.name ?? 'User'} />
+        <DashboardMain
+          userName={session?.user?.name ?? 'User'}
+          userAvatar={session?.user?.image ?? undefined}
+          userId={session?.user?.id ?? ''}
+        />
       </main>
       <DashCarousel />
     </div>

@@ -45,7 +45,6 @@ export function MobileBottomNav() {
     { href: '/dashboard', label: 'Home', icon: House },
     { href: dashboardHref('search'), label: 'Search', icon: Search },
     { href: dashboardHref('class'), label: 'Class', icon: Users },
-    { href: dashboardHref('history'), label: 'History', icon: History },
     { href: dashboardHref('create'), label: 'Create', icon: ClipboardPlus },
   ];
 
@@ -59,7 +58,7 @@ export function MobileBottomNav() {
       className="fixed left-1/2 z-50 w-[calc(100%-1rem)] max-w-md -translate-x-1/2 rounded-2xl border border-slate-200 bg-white/90 shadow-xl backdrop-blur-md md:hidden"
       style={{ bottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}
     >
-      <ul className="grid grid-cols-5">
+      <ul className="grid grid-cols-4">
         {items.map(({ href, label, icon: Icon }) => {
           const active = isActive(href);
           return (
@@ -95,7 +94,7 @@ export default function DashNavbar({ user }: NavbarProps) {
     const q = query.trim();
     const href = q
       ? dashboardHref(`search?q=${encodeURIComponent(q)}`)
-      : dashboardHref('search');
+      : dashboardHref('search?q=');
 
     router.push(href);
   };
@@ -125,13 +124,6 @@ export default function DashNavbar({ user }: NavbarProps) {
           >
             <Users className="h-5 w-5" />
             <span className="font-body font-bold">Class</span>
-          </Link>
-          <Link
-            href={dashboardHref('history')}
-            className={`flex flex-wrap items-center gap-2 transition-colors hover:text-blue-600 ${isActive(dashboardHref('history')) ? 'text-blue-600' : 'text-slate-700'}`}
-          >
-            <History className="h-5 w-5" />
-            <span className="font-body font-bold">History</span>
           </Link>
           <Link
             href={dashboardHref('create')}
@@ -184,8 +176,10 @@ export default function DashNavbar({ user }: NavbarProps) {
                     className="flex items-center gap-2"
                     onClick={() => router.push(dashboardHref('profile'))}
                   >
-                    <span className="font-body font-bold">Profile</span>
-                    <UserCircleIcon color="#171717" />
+                    <span className="font-body font-bold text-blue-600">
+                      Profile
+                    </span>
+                    <UserCircleIcon color="#2563eb" />
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
@@ -200,10 +194,10 @@ export default function DashNavbar({ user }: NavbarProps) {
                       });
                     }}
                   >
-                    <span className="font-body text-destructive font-bold">
+                    <span className="font-body font-bold text-orange-500">
                       Logout
                     </span>
-                    <DoorOpen color="#e7000b" />
+                    <DoorOpen color="#f97316" />
                   </DropdownMenuItem>
                 </DropdownMenuGroup>
               ) : (

@@ -1,0 +1,12 @@
+workspace:
+  id: e0b8d91e-b11c-409c-8fd3-bdaa8d72630c
+localResources:
+  specs:
+    - ..\public\auth-spec.json
+    - ..\public\openapi.json
+  collections:
+    - ../postman/collections/pahambos.id
+cloudResources:
+  collections:
+    ..\postman\collections\pahambos.id: f8d8cdf9-97f9-4a39-8376-4b17b5ff269c
+    ../postman/collections/pahambos.id: 44146836-7397d690-c168-4a3a-b368-fd318073f585

@@ -11,11 +11,11 @@ const addQuizToClassroomSchema = z.object({
 
 export const GET = WithAuth(async (req, { user, params }) => {
   try {
-    const { classroomId } = await params;
+    const { id } = await params;
 
     // check if classroom exists and user is owner
     const classroom = await prisma.classroom.findUnique({
-      where: { id: classroomId },
+      where: { id },
     });
 
     if (!classroom) {
@@ -25,7 +25,7 @@ export const GET = WithAuth(async (req, { user, params }) => {
     // check if user belongs to classroom
     const isMember = await prisma.userClassroom.findFirst({
       where: {
-        classroomId,
+        classroomId: id,
         userId: user.id,
       },
     });
@@ -33,9 +33,11 @@ export const GET = WithAuth(async (req, { user, params }) => {
       throw new APIError('You do not have access to this classroom.', 403);
     }
 
+    const isEducator = classroom.ownerId === user.id;
+
     // get assigned quizzes for the classroom
     const assignments = await prisma.classroomQuiz.findMany({
-      where: { classroomId },
+      where: { classroomId: id },
       include: {
         Quiz: {
           select: {
@@ -56,26 +58,66 @@ export const GET = WithAuth(async (req, { user, params }) => {
       });
     }
 
+    // look for userPerformances tied to this classroom's quizzes to get learner completion status
+    const quizIds = assignments.map((a) => a.quizId);
+    const performances = await prisma.userPerformance.findMany({
+      where: {
+        quizId: { in: quizIds },
+        classroomQuizId: { in: assignments.map((a) => a.id) },
+      },
+      include: {
+        user: {
+          select: {
+            name: true,
+            email: true,
+          },
+        },
+      },
+    });
+
+    const userClassrooms = await prisma.userClassroom.findMany({
+      where: {
+        userId: user.id,
+        classroomId: id,
+      },
+    });
+
     return NextResponse.json({
       success: true,
-      data: assignments.map((a) => ({
-        id: a.id,
-        quiz: a.Quiz,
-        dueDate: a.dueDate,
-      })),
+      data: assignments.map((a) => {
+        const completions = performances.filter(
+          (p) => p.classroomQuizId === a.id
+        );
+
+        return {
+          id: a.id,
+          quiz: a.Quiz,
+          dueDate: a.dueDate,
+          isOverdue: new Date() > a.dueDate,
+          isAssigner: isEducator,
+          ...(isEducator && {
+            numLearnersCompleted: completions.length,
+            learnersCompleted: completions.map((p) => p.user),
+          }),
+        };
+      }),
     });
   } catch (error) {
     return handleError(error);
   }
 });
 
+// assign a quiz to the classroom (educator only)
+// expects { quizId: string, dueDate: string } in the request body
+// expects classroomId as a URL parameter
+// dueDate should be an ISO string that can be parsed into a Date object
 export const POST = WithAuth(async (req, { user, params }) => {
   try {
-    const { classroomId } = await params;
+    const { id } = await params;
 
     // check if classroom exists and user is owner
     const classroom = await prisma.classroom.findUnique({
-      where: { id: classroomId },
+      where: { id },
     });
 
     if (!classroom) {
@@ -102,7 +144,7 @@ export const POST = WithAuth(async (req, { user, params }) => {
     // create the classroom quiz assignment
     const classroomQuiz = await prisma.classroomQuiz.create({
       data: {
-        classroomId,
+        classroomId: id,
         quizId,
         dueDate,
       },

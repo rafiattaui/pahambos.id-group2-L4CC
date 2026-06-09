@@ -1,0 +1,22 @@
+$kind: http-example
+name: No previous performances found.
+request:
+  url: localhost:3000/api/performance/ae4d32bb-f39c-4d49-b73c-dff3a8e018de
+  method: GET
+  headers:
+    User-Agent: insomnia/12.6.0
+response:
+  statusCode: 404
+  statusText: Not Found
+  headers:
+    x-ratelimit-remaining: "98"
+    vary: rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch
+    content-type: text/plain;charset=UTF-8
+    Date: Mon, 08 Jun 2026 13:17:53 GMT
+    Connection: keep-alive
+    Keep-Alive: timeout=5
+    Transfer-Encoding: chunked
+  body:
+    type: text
+    content: '{"success":false,"error":"Performance not found"}'
+order: 3000

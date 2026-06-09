@@ -45,7 +45,6 @@ export function MobileBottomNav() {
     { href: '/dashboard', label: 'Home', icon: House },
     { href: dashboardHref('search'), label: 'Search', icon: Search },
     { href: dashboardHref('class'), label: 'Class', icon: Users },
-    { href: dashboardHref('history'), label: 'History', icon: History },
     { href: dashboardHref('create'), label: 'Create', icon: ClipboardPlus },
   ];
 
@@ -125,13 +124,6 @@ export default function DashNavbar({ user }: NavbarProps) {
           >
             <Users className="h-5 w-5" />
             <span className="font-body font-bold">Class</span>
-          </Link>
-          <Link
-            href={dashboardHref('history')}
-            className={`flex flex-wrap items-center gap-2 transition-colors hover:text-blue-600 ${isActive(dashboardHref('history')) ? 'text-blue-600' : 'text-slate-700'}`}
-          >
-            <History className="h-5 w-5" />
-            <span className="font-body font-bold">History</span>
           </Link>
           <Link
             href={dashboardHref('create')}

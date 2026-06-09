@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Trophy, ChartNoAxesCombined, Flame, NotebookPen } from 'lucide-react';
+import { Skeleton } from '../ui/skeleton';
 
 type PerformanceSummary = {
   totalQuizzes: number;
@@ -21,21 +22,32 @@ type DashboardMainProps = {
   performance?: PerformanceSummary;
 };
 
-export default function DashboardMain({
-  userId,
-  userName,
-  userAvatar,
-}: DashboardMainProps) {
-  const router = useRouter();
+export function usePerformance(userId: string) {
   const [performance, setPerformance] = useState<PerformanceSummary>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetch(`/api/performance/${userId}`)
       .then((res) => res.json())
       .then((json) => {
         if (json.success) setPerformance(json.data);
-      });
-  }, []);
+        else setError(json.error);
+      })
+      .catch(() => setError('Failed to fetch performance'))
+      .finally(() => setLoading(false));
+  }, [userId]);
+
+  return { performance, loading, error };
+}
+
+export default function DashboardMain({
+  userId,
+  userName,
+  userAvatar,
+}: DashboardMainProps) {
+  const router = useRouter();
+  const { performance, loading } = usePerformance(userId);
 
   return (
     <section className="space-y-6">
@@ -55,6 +67,172 @@ export default function DashboardMain({
           <div className="pointer-events-none absolute -top-10 -right-10 h-48 w-48 rounded-full bg-white/10" />
           <div className="pointer-events-none absolute right-16 -bottom-8 h-32 w-32 rounded-full bg-white/10" />
           <div className="pointer-events-none absolute right-40 bottom-10 h-16 w-16 rounded-full bg-orange-400/30" />
+
+          {/* Notebook + Pen — bottom right */}
+          <div className="pointer-events-none absolute top-30 left-20 opacity-20">
+            <svg
+              viewBox="0 0 160 180"
+              className="w-36"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              transform="rotate(-10 80 90)"
+            >
+              {/* Clipboard body */}
+              <rect
+                x="10"
+                y="20"
+                width="100"
+                height="130"
+                rx="8"
+                stroke="white"
+                strokeWidth="3.5"
+              />
+              {/* Clipboard top clip */}
+              <rect
+                x="38"
+                y="12"
+                width="44"
+                height="18"
+                rx="6"
+                stroke="white"
+                strokeWidth="3"
+              />
+              <circle cx="60" cy="21" r="4" stroke="white" strokeWidth="2.5" />
+              {/* Check rows */}
+              <rect
+                x="22"
+                y="50"
+                width="10"
+                height="10"
+                rx="2"
+                stroke="white"
+                strokeWidth="2.5"
+              />
+              <path
+                d="M24 55 L27 58 L31 52"
+                stroke="white"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <line
+                x1="40"
+                y1="55"
+                x2="96"
+                y2="55"
+                stroke="white"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+              />
+
+              <rect
+                x="22"
+                y="72"
+                width="10"
+                height="10"
+                rx="2"
+                stroke="white"
+                strokeWidth="2.5"
+              />
+              <path
+                d="M24 77 L27 80 L31 74"
+                stroke="white"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <line
+                x1="40"
+                y1="77"
+                x2="96"
+                y2="77"
+                stroke="white"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+              />
+
+              <rect
+                x="22"
+                y="94"
+                width="10"
+                height="10"
+                rx="2"
+                stroke="white"
+                strokeWidth="2.5"
+              />
+              <line
+                x1="40"
+                y1="99"
+                x2="96"
+                y2="99"
+                stroke="white"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+              />
+
+              <line
+                x1="22"
+                y1="121"
+                x2="80"
+                y2="121"
+                stroke="white"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+              />
+
+              {/* Pen — tip bottom-left, eraser top-right, writing angle */}
+              <g transform="rotate(35 80 120)">
+                {/* Pen body */}
+                <rect
+                  x="68"
+                  y="60"
+                  width="16"
+                  height="75"
+                  rx="3"
+                  stroke="white"
+                  strokeWidth="3"
+                />
+                {/* Eraser top */}
+                <rect
+                  x="68"
+                  y="60"
+                  width="16"
+                  height="12"
+                  rx="3"
+                  stroke="white"
+                  strokeWidth="2.5"
+                />
+                {/* Tip */}
+                <path
+                  d="M68 135 L84 135 L76 155 Z"
+                  stroke="white"
+                  strokeWidth="2.5"
+                  strokeLinejoin="round"
+                />
+                {/* Graphite point */}
+                <line
+                  x1="76"
+                  y1="150"
+                  x2="76"
+                  y2="155"
+                  stroke="white"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
+                {/* Clip on pen */}
+                <line
+                  x1="84"
+                  y1="65"
+                  x2="84"
+                  y2="110"
+                  stroke="white"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  opacity="0.7"
+                />
+              </g>
+            </svg>
+          </div>
 
           {/* Content */}
           <div className="relative flex h-full flex-col justify-between">
@@ -86,6 +264,121 @@ export default function DashboardMain({
               backgroundSize: '24px 24px',
             }}
           />
+
+          {/* Trophy — bottom left */}
+          <div className="pointer-events-none absolute top-2 -left-2 opacity-20">
+            <svg
+              viewBox="0 0 160 180"
+              className="w-36"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              {/* Trophy cup */}
+              <path
+                d="M50 20 L110 20 L104 70 C102 90 80 100 80 100 C80 100 58 90 56 70 Z"
+                stroke="white"
+                strokeWidth="3.5"
+                strokeLinejoin="round"
+              />
+              {/* Handles */}
+              <path
+                d="M50 25 Q28 25 28 50 Q28 70 50 72"
+                stroke="white"
+                strokeWidth="3"
+                strokeLinecap="round"
+              />
+              <path
+                d="M110 25 Q132 25 132 50 Q132 70 110 72"
+                stroke="white"
+                strokeWidth="3"
+                strokeLinecap="round"
+              />
+              {/* Stem */}
+              <line
+                x1="80"
+                y1="100"
+                x2="80"
+                y2="128"
+                stroke="white"
+                strokeWidth="3.5"
+                strokeLinecap="round"
+              />
+              {/* Base plate */}
+              <rect
+                x="56"
+                y="128"
+                width="48"
+                height="10"
+                rx="4"
+                stroke="white"
+                strokeWidth="3"
+              />
+              <rect
+                x="48"
+                y="138"
+                width="64"
+                height="10"
+                rx="4"
+                stroke="white"
+                strokeWidth="3"
+              />
+              {/* Star inside cup */}
+              <path
+                d="M80 38 L83 48 L93 48 L85 54 L88 64 L80 58 L72 64 L75 54 L67 48 L77 48 Z"
+                stroke="white"
+                strokeWidth="2"
+              />
+            </svg>
+          </div>
+
+          {/* Stars burst — top right */}
+          <div className="pointer-events-none absolute right-2 bottom-2 opacity-20">
+            <svg
+              viewBox="0 0 140 140"
+              className="w-32"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              {/* Big star */}
+              <path
+                d="M70 15 L76 50 L110 50 L83 70 L93 105 L70 85 L47 105 L57 70 L30 50 L64 50 Z"
+                stroke="white"
+                strokeWidth="3"
+                strokeLinejoin="round"
+              />
+              {/* Small star top-right */}
+              <path
+                d="M115 18 L117 25 L124 25 L119 29 L121 36 L115 32 L109 36 L111 29 L106 25 L113 25 Z"
+                stroke="white"
+                strokeWidth="2"
+              />
+              {/* Tiny star bottom-right */}
+              <path
+                d="M125 75 L126 79 L130 79 L127 81 L128 85 L125 83 L122 85 L123 81 L120 79 L124 79 Z"
+                stroke="white"
+                strokeWidth="1.8"
+              />
+              {/* Sparkle lines */}
+              <line
+                x1="105"
+                y1="55"
+                x2="112"
+                y2="55"
+                stroke="white"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
+              <line
+                x1="108"
+                y1="48"
+                x2="108"
+                y2="62"
+                stroke="white"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
+            </svg>
+          </div>
           <div className="flex flex-col items-center justify-center">
             <h2 className="font-body text-2xl font-bold text-white drop-shadow-sm">
               Performance Summary
@@ -94,36 +387,57 @@ export default function DashboardMain({
               <AvatarImage src={userAvatar} alt={`${userName}'s avatar`} />
               <AvatarFallback>{userName.charAt(0)}</AvatarFallback>
             </Avatar>
-            <div className="mt-4 flex w-full flex-wrap justify-center gap-3">
-              {[
-                {
-                  label: 'Final Score',
-                  value: performance?.finalScore ?? '—',
-                  icon: <Trophy className="h-5 w-5" />,
-                },
-                {
-                  label: 'Accuracy Rate',
-                  value: performance?.accuracyRate ?? '—',
-                  icon: <ChartNoAxesCombined className="h-5 w-5" />,
-                },
-                {
-                  label: 'Longest Streak',
-                  value: performance?.longestStreak ?? '—',
-                  icon: <Flame className="h-5 w-5" />,
-                },
-              ].map((stat) => (
-                <div
-                  key={stat.label}
-                  className="w-[calc(50%-100px)] rounded-xl bg-white/20 px-3 py-2 backdrop-blur-sm"
-                >
-                  <p className="font-body text-xs text-white/70">
-                    {stat.icon} {stat.label}
-                  </p>
-                  <p className="font-heading text-xl font-black text-white">
-                    {stat.value}
-                  </p>
+            <div>
+              {loading ? (
+                <div className="mt-4 grid grid-cols-2 gap-3">
+                  {[0, 1, 2, 3].map((i) => (
+                    <div
+                      key={i}
+                      className="rounded-xl bg-white/20 px-3 py-2 backdrop-blur-sm"
+                    >
+                      <Skeleton className="mb-2 h-3 w-20 bg-white/30" />
+                      <Skeleton className="h-6 w-12 bg-white/40" />
+                    </div>
+                  ))}
                 </div>
-              ))}
+              ) : (
+                <div className="mt-4 grid grid-cols-2 justify-center gap-3">
+                  {[
+                    {
+                      label: 'Final Score',
+                      value: performance?.finalScore ?? '—',
+                      icon: <Trophy className="h-5 w-5" />,
+                    },
+                    {
+                      label: 'Accuracy Rate',
+                      value: performance?.accuracyRate ?? '—',
+                      icon: <ChartNoAxesCombined className="h-5 w-5" />,
+                    },
+                    {
+                      label: 'Longest Streak',
+                      value: performance?.longestStreak ?? '—',
+                      icon: <Flame className="h-5 w-5" />,
+                    },
+                    {
+                      label: 'Quizzes Done',
+                      value: performance?.totalQuizzes ?? '—',
+                      icon: <NotebookPen className="h-5 w-5" />,
+                    },
+                  ].map((stat) => (
+                    <div
+                      key={stat.label}
+                      className="rounded-xl bg-white/20 px-3 py-2 backdrop-blur-sm"
+                    >
+                      <p className="font-body text-xs text-white/70">
+                        {stat.icon} {stat.label}
+                      </p>
+                      <p className="font-heading text-xl font-black text-white">
+                        {stat.value}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             <Button className="font-body mt-4 h-11 w-full max-w-xs bg-white font-bold text-blue-600 transition-all hover:scale-105 hover:bg-orange-50">

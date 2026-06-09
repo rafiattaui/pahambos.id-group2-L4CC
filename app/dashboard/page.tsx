@@ -11,6 +11,7 @@ export default async function Dashboard() {
         <DashboardMain
           userName={session?.user?.name ?? 'User'}
           userAvatar={session?.user?.image ?? undefined}
+          userId={session?.user?.id ?? ''}
         />
       </main>
       <DashCarousel />

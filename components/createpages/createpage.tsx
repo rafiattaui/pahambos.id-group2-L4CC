@@ -20,6 +20,7 @@ import Image from 'next/image';
 type CategoryTextColor = {
   category: string;
   textColor: string;
+  bgColor: string;
 };
 
 async function getCurrentUserId() {
@@ -51,13 +52,37 @@ function CreatePageItem({
   const router = useRouter();
 
   const categoriesText: CategoryTextColor[] = [
-    { category: 'Mathematics', textColor: 'text-blue-500' },
-    { category: 'Science', textColor: 'text-green-500' },
-    { category: 'History', textColor: 'text-yellow-500' },
-    { category: 'Geography', textColor: 'text-purple-500' },
-    { category: 'Literature', textColor: 'text-pink-500' },
-    { category: 'Technology', textColor: 'text-cyan-500' },
-    { category: 'General', textColor: 'text-gray-500' },
+    {
+      category: 'Mathematics',
+      textColor: 'text-blue-500',
+      bgColor: 'bg-blue-100',
+    },
+    {
+      category: 'Science',
+      textColor: 'text-green-500',
+      bgColor: 'bg-green-100',
+    },
+    {
+      category: 'History',
+      textColor: 'text-yellow-500',
+      bgColor: 'bg-yellow-100',
+    },
+    {
+      category: 'Geography',
+      textColor: 'text-purple-500',
+      bgColor: 'bg-purple-100',
+    },
+    {
+      category: 'Literature',
+      textColor: 'text-pink-500',
+      bgColor: 'bg-pink-100',
+    },
+    {
+      category: 'Technology',
+      textColor: 'text-cyan-500',
+      bgColor: 'bg-cyan-100',
+    },
+    { category: 'General', textColor: 'text-gray-500', bgColor: 'bg-gray-100' },
   ];
 
   return (
@@ -76,7 +101,7 @@ function CreatePageItem({
             variant="outline"
             onClick={() => onDeleteClick(quiz)}
             aria-label="Delete Quiz"
-            className="hover:bg-white hover:text-red-500"
+            className="hover:bg-white hover:text-orange-500"
           >
             <Trash2 className="h-4 w-4" />{' '}
           </Button>
@@ -92,13 +117,13 @@ function CreatePageItem({
           <div className="absolute inset-x-1 bottom-3 flex items-center justify-between sm:inset-x-4">
             <div className="rounded-md bg-white p-1 sm:p-1.5">
               <span
-                className={`font-body text-xs sm:text-sm ${categoriesText.find((c) => c.category === quiz.category)?.textColor || 'text-gray-500'}`}
+                className={`font-body text-xs sm:text-sm ${categoriesText.find((c) => c.category === quiz.category)?.textColor || 'text-gray-500'} ${categoriesText.find((c) => c.category === quiz.category)?.bgColor || 'bg-gray-100'} rounded-md p-1 font-bold`}
               >
                 {quiz.category}
               </span>
             </div>
             <div className="rounded-md bg-white p-1 sm:p-1.5">
-              <span className="font-body text-xs sm:text-sm">
+              <span className="font-body text-xs font-bold text-slate-700 sm:text-sm">
                 {quiz.numQuestions} Qs
               </span>
             </div>
@@ -160,15 +185,15 @@ function DeleteConfirmDialog({
       <div className="flex w-full max-w-sm flex-col gap-5 rounded-2xl bg-white p-6 shadow-2xl ring-1 ring-black/5">
         {/* Icon + heading */}
         <div className="flex flex-col items-center gap-3 text-center">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
-            <Trash2 className="h-5 w-5 text-red-500" />
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-orange-100">
+            <Trash2 className="h-5 w-5 text-orange-500" />
           </div>
           <div>
-            <h3 className="font-heading text-base font-semibold text-gray-900">
+            <h3 className="font-body text-base font-bold text-slate-800">
               Delete quiz?
             </h3>
-            <p className="mt-1 text-sm text-gray-500">
-              <span className="font-medium text-gray-700">
+            <p className="font-body mt-1 text-sm text-gray-400">
+              <span className="font-body font-semibold text-gray-700">
                 &ldquo;{quiz.title}&rdquo;
               </span>{' '}
               will be permanently deleted. This cannot be undone.
@@ -181,14 +206,14 @@ function DeleteConfirmDialog({
           <button
             onClick={onCancel}
             disabled={deleting}
-            className="flex-1 rounded-xl border border-gray-200 bg-white py-2.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50 disabled:opacity-50"
+            className="font-body flex-1 rounded-xl border border-gray-200 bg-white py-2.5 text-sm font-bold text-slate-700 transition-colors hover:bg-gray-50 disabled:opacity-50"
           >
             Cancel
           </button>
           <button
             onClick={onConfirm}
             disabled={deleting}
-            className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-red-500 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-red-600 active:scale-[0.98] disabled:opacity-60"
+            className="font-body flex flex-1 items-center justify-center gap-2 rounded-xl bg-orange-500 py-2.5 text-sm font-bold font-semibold text-white shadow-sm transition-all hover:bg-orange-600 active:scale-[0.98] disabled:opacity-60"
           >
             {deleting ? (
               <>
@@ -265,7 +290,7 @@ export default function CreatePage() {
 
   return (
     <>
-      <div className="mt-6 rounded-2xl bg-white p-4">
+      <div className="mt-6 rounded-2xl bg-linear-to-b from-white to-orange-50 p-4">
         <div className="m-4 flex flex-col items-center sm:flex-row sm:justify-between">
           <h1 className="font-body text-5xl font-bold">
             <span className="text-black/90 text-shadow-lg text-shadow-slate-300">
@@ -280,7 +305,7 @@ export default function CreatePage() {
           </Button>
         </div>
 
-        <div className="rounded-2x mt-4 grid h-full w-full grid-cols-1 bg-white sm:grid-cols-3 md:grid-cols-4">
+        <div className="rounded-2x mt-4 grid h-full w-full grid-cols-1 sm:grid-cols-3 md:grid-cols-4">
           {status === 'loading' &&
             Array.from({ length: SKELETON_COUNT }, (_, i) => (
               <div key={i} className="m-4">

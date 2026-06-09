@@ -130,7 +130,7 @@ export default function Navbar(props: { sections: string[] }) {
   const router = useRouter();
   const isAuthenticated = !!session;
   const isLoggedIn = !!session?.user;
-  const avatarSrc = session?.user?.image || '/not_logged_in_avatar.jpg';
+  const avatarSrc = session?.user?.image || '/avatar_placeholder.jpg';
 
   const handleClick = () => {
     setIsClicked(!isClicked);
@@ -180,11 +180,15 @@ export default function Navbar(props: { sections: string[] }) {
           <>
             <Button
               onClick={() => router.push('/register')}
-              className="bg-blue-600 text-white hover:bg-blue-700"
+              className="font-body bg-blue-600 font-bold text-white hover:bg-blue-700"
             >
               Register
             </Button>
-            <Button variant="ghost" onClick={() => router.push('/login')}>
+            <Button
+              variant="outline"
+              className="font-body font-bold"
+              onClick={() => router.push('/login')}
+            >
               Log In
             </Button>
           </>
@@ -197,11 +201,11 @@ export default function Navbar(props: { sections: string[] }) {
             <Button
               variant="ghost"
               size="icon"
-              className="mx-auto h-full w-full rounded-full focus-visible:border-0 focus-visible:ring-0"
+              className="mx-auto h-10 w-10 rounded-full focus-visible:border-0 focus-visible:ring-0"
             >
               <Avatar className="mr-4 h-10 w-10 cursor-pointer rounded-full hover:brightness-75">
                 <AvatarImage
-                  className={`${isLoggedIn ? '' : 'grayscale'}`}
+                  className={`${isLoggedIn ? 'filter-none' : 'grayscale'}`}
                   src={avatarSrc}
                 />
                 <AvatarFallback>

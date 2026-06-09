@@ -25,6 +25,7 @@ import { Button } from '../ui/button';
 import { Skeleton } from '../ui/skeleton';
 import { dashboardHref } from '@/components/dashboardComp/dashboardHref';
 import Link from 'next/link';
+import usePathname from 'next/navigation';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -53,7 +54,7 @@ function getFeatured(quizzes: Quiz[]): Quiz[] {
 
 async function fetchQuizzesByCategory(category: string): Promise<Quiz[]> {
   const res = await fetch(
-    `/api/quiz?tags=${encodeURIComponent(category)}&limit=12`,
+    `/api/quiz?tags=${encodeURIComponent(category)}&limit=6`,
     { credentials: 'include' }
   );
   if (!res.ok) throw new Error(`Failed to fetch ${category} quizzes`);
@@ -62,7 +63,7 @@ async function fetchQuizzesByCategory(category: string): Promise<Quiz[]> {
 }
 
 async function fetchAllQuizzes(): Promise<Quiz[]> {
-  const res = await fetch('/api/quiz?limit=12', { credentials: 'include' });
+  const res = await fetch('/api/quiz?limit=6', { credentials: 'include' });
   if (!res.ok) throw new Error('Failed to fetch quizzes');
   const data = await res.json();
   return (data.data ?? []) as Quiz[];
@@ -108,7 +109,7 @@ function CarouselSection({
         </span>
         {category && (
           <Link
-            href={dashboardHref(`search?q=${encodeURIComponent(category)}`)}
+            href={dashboardHref(`search?tags=${encodeURIComponent(category)}`)}
             className="ml-2"
           >
             <span className="font-body flex cursor-pointer flex-wrap text-blue-600 hover:underline active:text-blue-800">
@@ -137,7 +138,7 @@ function CarouselSection({
           )}
 
           {status === 'success' && quizzes.length > 0 && (
-            <Carousel opts={{ loop: true }}>
+            <Carousel opts={{ loop: true, align: 'center' }}>
               <CarouselContent>
                 {quizzes.map((quiz) => (
                   <CarouselItem
@@ -148,7 +149,6 @@ function CarouselSection({
                       type="button"
                       onClick={() => onSelect(quiz)}
                       className="w-full text-left"
-                      aria-label={`Open quiz ${quiz.title}`}
                       title={`Open quiz ${quiz.title}`}
                     >
                       <DashCarItem quiz={quiz} />

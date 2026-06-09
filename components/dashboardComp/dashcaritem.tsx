@@ -16,7 +16,7 @@ export default function DashCarItem({ quiz }: { quiz: Quiz }) {
       <div className="pointer-events-none absolute inset-0 bg-black/33 opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
 
       <div className="pointer-events-none absolute top-4 left-4 z-10 text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-        <h3 className="font-heading text-lg">{quiz.title}</h3>
+        <h3 className="font-body text-lg font-bold">{quiz.title}</h3>
         <p className="font-body text-sm text-white/80">
           Category: {quiz.category}
         </p>

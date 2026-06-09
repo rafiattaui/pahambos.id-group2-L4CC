@@ -15,6 +15,7 @@ import Image from 'next/image';
 import { CategoryTextColor } from './dashcarousel';
 import { Skeleton } from '../ui/skeleton';
 import { ArrowRight, X } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 export type Quiz = {
   id: string;
@@ -59,6 +60,7 @@ export function QuizSkeleton() {
 }
 
 export default function GridItems({ quiz }: { quiz: Quiz }) {
+  const router = useRouter();
   const [selectedQuiz, setSelectedQuiz] = useState<Quiz | null>(null);
 
   const categoriesText: CategoryTextColor[] = [
@@ -198,7 +200,12 @@ export default function GridItems({ quiz }: { quiz: Quiz }) {
               </CardDescription>
             </CardContent>
             <CardFooter>
-              <Button className="font-body w-full bg-blue-600 font-bold hover:bg-blue-700">
+              <Button
+                className="font-body w-full bg-blue-600 font-bold hover:bg-blue-700 active:translate-y-1"
+                onClick={() => {
+                  router.push(`/play/${selectedQuiz.id}`);
+                }}
+              >
                 Start Quiz <ArrowRight className="ml-1 h-4 w-4" />
               </Button>
             </CardFooter>

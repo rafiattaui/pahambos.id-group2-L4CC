@@ -24,6 +24,7 @@ import {
 import { Button } from '../ui/button';
 import { Skeleton } from '../ui/skeleton';
 import { dashboardHref } from '@/components/dashboardComp/dashboardHref';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -172,6 +173,7 @@ const CATEGORIES = ['Mathematics', 'Technology', 'Science'] as const;
 
 export default function DashCarousel() {
   const [selectedQuiz, setSelectedQuiz] = useState<Quiz | null>(null);
+  const router = useRouter();
 
   // One status + data pair per section
   const [featured, setFeatured] = useState<Quiz[]>([]);
@@ -349,7 +351,12 @@ export default function DashCarousel() {
               </CardDescription>
             </CardContent>
             <CardFooter>
-              <Button className="font-body w-full bg-blue-600 font-bold hover:bg-blue-700">
+              <Button
+                className="font-body w-full bg-blue-600 font-bold hover:bg-blue-700 active:translate-y-1"
+                onClick={() => {
+                  router.push(`play/${selectedQuiz.id}`);
+                }}
+              >
                 Start Quiz <ArrowRight className="ml-1 h-4 w-4" />
               </Button>
             </CardFooter>

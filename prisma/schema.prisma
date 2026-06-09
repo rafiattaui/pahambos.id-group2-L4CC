@@ -129,30 +129,33 @@ model QuizQuestion {
 }
 
 model UserPerformance {
-  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  quizId        String   @db.Uuid
-  userId        String   @db.Uuid
-  finalScore    Int
-  accuracyRate  Decimal  @db.Decimal(5, 2)
-  timeTaken     Int
-  completedAt   DateTime @default(now())
-  longestStreak Int      @default(1)
-  hintsUsed     Int      @default(0)
-  quiz          Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id              String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  quizId          String         @db.Uuid
+  userId          String         @db.Uuid
+  finalScore      Int
+  accuracyRate    Decimal        @db.Decimal(5, 2)
+  timeTaken       Int
+  completedAt     DateTime       @default(now())
+  longestStreak   Int            @default(1)
+  hintsUsed       Int            @default(0)
+  classroomQuizId String?        @db.Uuid
+  ClassroomQuiz   ClassroomQuiz? @relation(fields: [classroomQuizId], references: [id])
+  quiz            Quiz           @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([quizId])
 }
 
 model ClassroomQuiz {
-  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  classroomId  String    @db.Uuid
-  quizId       String    @db.Uuid
-  assignedDate DateTime  @default(now())
-  dueDate      DateTime
-  Classroom    Classroom @relation(fields: [classroomId], references: [id], onDelete: Cascade)
-  Quiz         Quiz      @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  id              String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  classroomId     String            @db.Uuid
+  quizId          String            @db.Uuid
+  assignedDate    DateTime          @default(now())
+  dueDate         DateTime
+  Classroom       Classroom         @relation(fields: [classroomId], references: [id], onDelete: Cascade)
+  Quiz            Quiz              @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  UserPerformance UserPerformance[]
 }
 
 enum Role {

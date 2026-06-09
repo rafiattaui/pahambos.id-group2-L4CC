@@ -7,6 +7,11 @@ import { GetQuestionWithCache } from '@/lib/read-with-cache';
 import { z } from 'zod';
 import { r_MetricsSchema, r_AnswersSchema } from '@/lib/schemas/sessionschemas';
 
+const hintRateLimitHashKey = (userId: string) => `hint-rl:user:${userId}`;
+
+const hintRateLimitField = (quizId: string, questionIndex: number) =>
+  `${quizId}:q:${questionIndex}`;
+
 export const SCORE_PER_QUESTION = 250;
 
 const SubmitAnswerSchema = z.object({
@@ -163,10 +168,15 @@ export const POST = WithAuth(async (req, { user }) => {
       questionData.correctAnswers.every((a) => answer.includes(a)) &&
       answer.every((a) => questionData.correctAnswers.includes(a));
 
-    const hintKey = `hint:user:${user.id}:quiz:${session.quizId}:q:${session.currentQuestionIndex}`;
-    const usedHint = !!(await redis.exists(hintKey));
+    const usedHint =
+      (await redis.hget(
+        hintRateLimitHashKey(user.id),
+        hintRateLimitField(session.quizId, session.currentQuestionIndex)
+      )) || '0';
 
-    const points = answeredCorrectly ? (usedHint ? 100 : 250) : 0;
+    console.log('answeredCorrectly:', answeredCorrectly, 'usedHint:', usedHint);
+
+    const points = answeredCorrectly ? (parseInt(usedHint) > 0 ? 100 : 250) : 0;
 
     const metrics = r_MetricsSchema.parse({
       totalResponseTime: parseInt(rawMetrics.totalResponseTime || '0', 10),

@@ -6,6 +6,11 @@ import redis from '@/lib/redis';
 import { r_MetricsSchema } from '@/lib/schemas/sessionschemas';
 import { prisma } from '@/lib/prisma';
 import { SCORE_PER_QUESTION } from '../question/route';
+import { model } from '@/lib/groq';
+import { generateText, Output } from 'ai';
+import { type GroqLanguageModelOptions } from '@ai-sdk/groq';
+import { z } from 'zod';
+import { generateFeedback } from '@/lib/session/ai';
 
 export const POST = WithAuth(async (req, { user, params }) => {
   try {
@@ -58,12 +63,21 @@ export const POST = WithAuth(async (req, { user, params }) => {
     pipe.del(`session:${session.id}`);
     pipe.del(`metrics:${session.id}`);
     pipe.del(`player_session:${user.id}`);
-    pipe.del(`session:${session.id}:answers`);
+    pipe.del(`hint-rl:user:${user.id}`); // clear all hint rate limit keys for this quiz
+    // pipe.del(`session:${session.id}:answers`); don't delete this yet
+    // we need to generate feedback from ai so we need the answers for that.
+    await pipe.exec();
+
+    // ai feedback logic
+    const feedback = await generateFeedback(session, session.id);
+
+    pipe.del(`session:${session.id}:answers`); // now we can delete the answers after generating feedback
     await pipe.exec();
 
     return NextResponse.json({
       success: true,
       message: 'Session finalized and performance recorded.',
+      data: { feedback },
     });
   } catch (error) {
     return handleError(error);

@@ -5,6 +5,7 @@ import { NextResponse } from 'next/server';
 import { WithAuth } from '@/lib/api/auth-protected';
 import { uploadImage, deleteImage } from '@/lib/cloudinary';
 import { CreateQuestionSchema } from '@/lib/schemas/quizschemas';
+import { invalidateQuestionCache } from '@/lib/read-with-cache';
 
 const PLACEHOLDER_IMAGE_URL =
   'https://res.cloudinary.com/dbj2tvfzg/image/upload/v1778493470/landscape-placeholder_vrw20c.svg';
@@ -92,6 +93,8 @@ export const POST = WithAuth(async (req, { user }) => {
 
       return created;
     });
+
+    await invalidateQuestionCache(quizId);
 
     return NextResponse.json(question, { status: 200 });
   } catch (error) {

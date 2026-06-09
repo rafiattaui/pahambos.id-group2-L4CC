@@ -25,11 +25,17 @@ const AI_TIMEOUT_MS = 10_000;
 const hintCacheKey = (quizId: string, questionIndex: number) =>
   `hint:quiz:${quizId}:q:${questionIndex}`;
 
-const hintRateLimitKey = (
-  userId: string,
-  quizId: string,
-  questionIndex: number
-) => `hint-rl:user:${userId}:quiz:${quizId}:q:${questionIndex}`;
+/**
+ * Single Hash per user that stores all hint rate limit counters.
+ * Field: `${quizId}:q:${questionIndex}` → count
+ *
+ * Clearing all hints for a user is now a single DEL:
+ *   redis.del(hintRateLimitHashKey(userId))
+ */
+const hintRateLimitHashKey = (userId: string) => `hint-rl:user:${userId}`;
+
+const hintRateLimitField = (quizId: string, questionIndex: number) =>
+  `${quizId}:q:${questionIndex}`;
 
 // --- Route handler -------------------------------------------------------
 
@@ -66,16 +72,19 @@ export const GET = WithAuth(async (_req, { user }) => {
     }
 
     // 3. Enforce per-question hint rate limit.
-    const rlKey = hintRateLimitKey(
-      user.id,
+    //    hincrby atomically increments the field in the hash.
+    const hashKey = hintRateLimitHashKey(user.id);
+    const field = hintRateLimitField(
       session.quizId,
       session.currentQuestionIndex
     );
-    const hintsUsed = await redis.incr(rlKey);
+
+    const hintsUsed = await redis.hincrby(hashKey, field, 1);
 
     if (hintsUsed === 1) {
-      // First request for this question — set expiry so the counter auto-clears.
-      await redis.expire(rlKey, HINT_CACHE_TTL_S);
+      // First hint ever for this user — set TTL on the hash.
+      // Subsequent questions extend it lazily via EXPIRE only when the key is fresh.
+      await redis.expire(hashKey, HINT_CACHE_TTL_S);
     }
 
     if (hintsUsed > MAX_HINTS_PER_QUESTION) {
@@ -100,9 +109,8 @@ export const GET = WithAuth(async (_req, { user }) => {
     }
 
     // 5. Build a prompt that is helpful but does NOT leak answer indexes.
-    //    We describe the question and answer *labels* only — never the correct-answer set.
     const answerLabels = question.answers
-      .map((a, i) => `${String.fromCharCode(65 + i)}. ${a}`) // "A. ...", "B. ..."
+      .map((a, i) => `${String.fromCharCode(65 + i)}. ${a}`)
       .join('\n');
 
     const isMultiSelect = question.type === 'MultiSelect';
@@ -146,7 +154,7 @@ Write a single, focused hint (2–3 sentences) that helps the user reason toward
 
     // 7. Cache the generated hint so identical questions reuse it.
     await redis.set(cacheKey, hint, 'EX', HINT_CACHE_TTL_S);
-    await redis.hset(`session:${session.id}`, 'hintsUsed', hintsUsed); // update hints used in session metrics
+    await redis.hset(`session:${session.id}`, 'hintsUsed', hintsUsed);
 
     return NextResponse.json({ success: true, hint }, { status: 200 });
   } catch (error) {

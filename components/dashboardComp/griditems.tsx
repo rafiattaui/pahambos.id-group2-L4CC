@@ -424,6 +424,7 @@ export function QuizSkeleton() {
 export default function GridItems({ quiz }: { quiz: Quiz }) {
   const router = useRouter();
   const [selectedQuiz, setSelectedQuiz] = useState<Quiz | null>(null);
+  const [isCopied, setIsCopied] = useState(false);
 
   const categoriesText: CategoryTextColor[] = [
     {

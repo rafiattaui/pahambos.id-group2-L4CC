@@ -53,7 +53,7 @@ export default function DashboardMain({
   return (
     <section className="space-y-6">
       <div className="grid gap-4 md:grid-cols-3">
-        <div className="relative col-span-1 h-99 overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 via-blue-400 to-blue-200 p-6">
+        <div className="relative col-span-2 h-99 overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 via-blue-400 to-blue-200 p-6 md:col-span-1">
           {/* Dot pattern overlay */}
           <div
             className="pointer-events-none absolute inset-0 opacity-10"
@@ -256,7 +256,7 @@ export default function DashboardMain({
           </div>
         </div>
 
-        <div className="relative col-span-2 h-99 overflow-hidden rounded-2xl bg-gradient-to-tr from-blue-200 via-blue-400 to-blue-600 p-6">
+        <div className="relative col-span-2 h-108 overflow-hidden rounded-2xl bg-gradient-to-tr from-blue-200 via-blue-400 to-blue-600 p-6 sm:h-99">
           <div
             className="pointer-events-none absolute inset-0 opacity-10"
             style={{

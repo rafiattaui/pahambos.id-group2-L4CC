@@ -173,12 +173,12 @@ function CarouselSection({
           )}
 
           {status === 'success' && quizzes.length > 0 && (
-            <Carousel opts={{ loop: true, align: 'center' }}>
+            <Carousel opts={{ align: 'center' }}>
               <CarouselContent>
                 {quizzes.map((quiz) => (
                   <CarouselItem
                     key={quiz.id}
-                    className="aspect-[3/2] basis-1/2 p-4 md:basis-1/3 lg:basis-1/4"
+                    className="aspect-[3/2] basis-1/1 p-4 md:basis-1/3 lg:basis-1/4"
                   >
                     <button
                       type="button"

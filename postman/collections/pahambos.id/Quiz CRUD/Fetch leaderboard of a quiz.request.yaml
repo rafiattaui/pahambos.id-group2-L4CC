@@ -1,0 +1,5 @@
+$kind: http-request
+url: localhost:3000/api/leaderboard/29955e49-b640-4117-8d0c-d1f267a01215
+method: GET
+examples: .resources/Fetch leaderboard of a quiz.resources/examples
+order: 3238462716118677

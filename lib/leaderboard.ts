@@ -33,6 +33,12 @@ export async function getLeaderboard(quizId: string) {
     'WITHSCORES'
   );
 
+  // this does not seem like a good idea but it is better than doing a full table scan every time.
+  if (members.length === 0) {
+    await rebuildLeaderboard(quizId);
+    return getLeaderboard(quizId);
+  }
+
   const leaderboard = [];
   for (let i = 0; i < members.length; i += 2) {
     leaderboard.push({

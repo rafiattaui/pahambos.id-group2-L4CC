@@ -11,6 +11,7 @@ import { generateText, Output } from 'ai';
 import { type GroqLanguageModelOptions } from '@ai-sdk/groq';
 import { z } from 'zod';
 import { generateFeedback } from '@/lib/session/ai';
+import { rebuildLeaderboard } from '@/lib/leaderboard';
 
 export const POST = WithAuth(async (req, { user, params }) => {
   try {
@@ -54,7 +55,7 @@ export const POST = WithAuth(async (req, { user, params }) => {
         userId: user.id,
         quizId: session.quizId,
         classroomQuizId: session.classroomQuizId,
-        finalScore: metrics.totalCorrect * SCORE_PER_QUESTION,
+        finalScore: session.score,
         accuracyRate: metrics.totalCorrect / session.totalQuestions,
         timeTaken: metrics.totalResponseTime,
         completedAt: new Date(),
@@ -62,6 +63,12 @@ export const POST = WithAuth(async (req, { user, params }) => {
         longestStreak: metrics.longestStreak,
       },
     });
+
+    // right now, leaderboards are being rebuilt
+    // for every session submission which is not efficient,
+    // but because we take into account hintsUsed and timeTaken as tiebreakers,
+    // we need to recalculate the entire leaderboard every time to ensure correct rankings.
+    await rebuildLeaderboard(session.quizId);
 
     const pipe = redis.pipeline();
     pipe.del(`session:${session.id}`);

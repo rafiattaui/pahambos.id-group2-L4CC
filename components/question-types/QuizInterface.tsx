@@ -270,40 +270,40 @@ export default function QuizInterface({ quizId }: { quizId: string }) {
     router.push('/dashboard');
   }
 
-  async function fetchLeaderboard() {
-    setLeaderboardLoading(true);
-    try {
-      const res = await fetch(`/api/performance/${quizId}`);
-      const data = await res.json();
-      if (!res.ok)
-        throw new Error(data.message ?? 'Failed to fetch leaderboard');
+  // async function fetchLeaderboard() {
+  //   setLeaderboardLoading(true);
+  //   try {
+  //     const res = await fetch(`/api/performance/${quizId}`);
+  //     const data = await res.json();
+  //     if (!res.ok)
+  //       throw new Error(data.message ?? 'Failed to fetch leaderboard');
 
-      // Expect data to be an array of performance entries; sort by score desc, take top 5
-      const entries: any[] = Array.isArray(data)
-        ? data
-        : (data.performances ?? data.data ?? []);
-      const sorted = [...entries]
-        .sort(
-          (a, b) =>
-            (b.score ?? b.totalPoints ?? 0) - (a.score ?? a.totalPoints ?? 0)
-        )
-        .slice(0, 5)
-        .map((entry, idx) => ({
-          rank: idx + 1,
-          name: entry.userName ?? entry.name ?? entry.user?.name ?? 'Anonymous',
-          score: entry.score ?? entry.totalPoints ?? 0,
-          correct: entry.correctAnswers ?? entry.correct ?? 0,
-          total: entry.totalQuestions ?? entry.total ?? totalQuestions,
-          isCurrentUser: entry.isCurrentUser ?? false,
-        }));
-      setLeaderboard(sorted);
-    } catch (e: any) {
-      console.error('Leaderboard fetch error:', e);
-      setLeaderboard([]);
-    } finally {
-      setLeaderboardLoading(false);
-    }
-  }
+  //     // Expect data to be an array of performance entries; sort by score desc, take top 5
+  //     const entries: any[] = Array.isArray(data)
+  //       ? data
+  //       : (data.performances ?? data.data ?? []);
+  //     const sorted = [...entries]
+  //       .sort(
+  //         (a, b) =>
+  //           (b.score ?? b.totalPoints ?? 0) - (a.score ?? a.totalPoints ?? 0)
+  //       )
+  //       .slice(0, 5)
+  //       .map((entry, idx) => ({
+  //         rank: idx + 1,
+  //         name: entry.userName ?? entry.name ?? entry.user?.name ?? 'Anonymous',
+  //         score: entry.score ?? entry.totalPoints ?? 0,
+  //         correct: entry.correctAnswers ?? entry.correct ?? 0,
+  //         total: entry.totalQuestions ?? entry.total ?? totalQuestions,
+  //         isCurrentUser: entry.isCurrentUser ?? false,
+  //       }));
+  //     setLeaderboard(sorted);
+  //   } catch (e: any) {
+  //     console.error('Leaderboard fetch error:', e);
+  //     setLeaderboard([]);
+  //   } finally {
+  //     setLeaderboardLoading(false);
+  //   }
+  // }
 
   // Session creation
   useEffect(() => {
@@ -713,7 +713,7 @@ export default function QuizInterface({ quizId }: { quizId: string }) {
             <button
               onClick={() => {
                 setPhase('leaderboard');
-                fetchLeaderboard();
+                // fetchLeaderboard();
               }}
               className="font-body mx-auto mt-5 mb-10 block w-full max-w-xl rounded-2xl bg-blue-500 py-4 text-center text-xl font-bold text-white transition hover:bg-blue-400 active:scale-95"
               style={{ boxShadow: '0 4px 24px rgba(59,130,246,0.4)' }}

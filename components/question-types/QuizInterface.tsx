@@ -340,7 +340,7 @@ export default function QuizInterface({ quizId }: { quizId: string }) {
 
     finishMusicRef.current = new Audio('/audio/finishmusic.mp3');
     finishMusicRef.current.loop = true;
-    finishMusicRef.current.volume = 0.2;
+    finishMusicRef.current.volume = 0.5;
 
     return () => {
       bgMusicRef.current?.pause();

@@ -48,6 +48,7 @@ export default function DashboardMain({
 }: DashboardMainProps) {
   const router = useRouter();
   const { performance, loading } = usePerformance(userId);
+  const userAvatarImage = userAvatar ?? '/avatar_placeholder.jpg';
 
   return (
     <section className="space-y-6">
@@ -508,7 +509,7 @@ export default function DashboardMain({
               Performance Summary
             </h2>
             <Avatar className="mt-2 h-15 w-15">
-              <AvatarImage src={userAvatar} alt={`${userName}'s avatar`} />
+              <AvatarImage src={userAvatarImage} alt={`${userName}'s avatar`} />
               <AvatarFallback>{userName.charAt(0)}</AvatarFallback>
             </Avatar>
             <div>

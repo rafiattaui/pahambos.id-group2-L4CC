@@ -35,10 +35,10 @@ async function getCreatorQuizzes(userId: string): Promise<Quiz[]> {
     credentials: 'include',
   });
 
-  if (!response.ok) {
-    throw new Error(`Error fetching quizzes: ${response.statusText}`);
-  }
   const data = await response.json();
+
+  if (!data.success) return [];
+
   return data.quizzes as Quiz[];
 }
 
@@ -298,7 +298,7 @@ export default function CreatePage() {
             </span>
           </h1>
           <Button
-            className="font-body mt-4 bg-blue-500 font-bold transition-transform hover:bg-blue-600 active:translate-y-0.5 sm:mt-0"
+            className="font-body mt-4 bg-blue-600 font-bold transition-transform hover:bg-blue-700 active:translate-y-0.5 sm:mt-0"
             onClick={() => router.push('/create-quiz')}
           >
             Create Quiz <Plus className="h-4 w-4" />
@@ -321,12 +321,12 @@ export default function CreatePage() {
 
           {status === 'success' && quizzes.length === 0 && (
             <div className="col-span-full flex flex-col items-center gap-2 py-16 text-center">
-              <p className="text-base font-medium text-gray-500">
+              <p className="font-body font-medium text-slate-700">
                 No quizzes yet — your creations will appear here.
               </p>
-              <p className="text-sm text-gray-400">
-                Hit the <span className="font-medium text-blue-500">+</span>{' '}
-                above to make your first one.
+              <p className="font-body text-sm text-slate-400">
+                Hit the <span className="font-body text-blue-500">+</span> above
+                to make your first one.
               </p>
             </div>
           )}

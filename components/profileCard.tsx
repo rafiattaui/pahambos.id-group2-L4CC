@@ -458,7 +458,9 @@ export default function AccountCard({ user }: { user: User }) {
   const [email, setEmail] = useState(user.email);
   const [editingUsername, setEditingUsername] = useState(false);
   const [draftUsername, setDraftUsername] = useState('');
-  const [avatarSrc, setAvatarSrc] = useState<string | null>(user.image ?? null);
+  const [avatarSrc, setAvatarSrc] = useState<string | null>(
+    user.image ?? '/avatar_placeholder.jpg'
+  );
   const [rawAvatarUrl, setRawAvatarUrl] = useState<string | null>(null);
   const [avatarUploading, setAvatarUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -509,7 +511,7 @@ export default function AccountCard({ user }: { user: User }) {
       }
     } catch (err) {
       console.error(err);
-      setAvatarSrc(user.image ?? null);
+      setAvatarSrc(user.image ?? '/avatar_placeholder.jpg');
       toast.error('An error occurred while uploading your avatar.');
     } finally {
       setAvatarUploading(false);

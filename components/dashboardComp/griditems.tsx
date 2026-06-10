@@ -167,7 +167,7 @@ export default function GridItems({ quiz }: { quiz: Quiz }) {
                   className="object-cover"
                 />
               </div>
-              <CardTitle className="font-body font-bold wrap-anywhere">
+              <CardTitle className="font-body mt-4 font-bold wrap-anywhere">
                 {selectedQuiz.title}
               </CardTitle>
               <CardDescription className="font-body flex flex-col">

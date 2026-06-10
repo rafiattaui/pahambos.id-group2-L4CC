@@ -451,7 +451,7 @@ function ImageUploader({
             <button
               type="button"
               onClick={handleRemove}
-              className="font-body flex h-7 items-center gap-1 rounded-md bg-black/50 px-2 text-xs font-medium text-white backdrop-blur-sm transition-colors hover:bg-red-500/80"
+              className="font-body flex h-7 items-center gap-1 rounded-md bg-black/50 px-2 text-xs font-medium text-white backdrop-blur-sm transition-colors hover:bg-orange-500/80"
             >
               <X className="h-3 w-3" /> Remove
             </button>
@@ -505,7 +505,7 @@ function QuestionEditor({
         type="button"
         variant="ghost"
         size="icon"
-        className="absolute top-2 right-2 max-w-8 text-red-500"
+        className="absolute top-2 right-2 max-w-8 text-orange-500"
         onClick={onRemove}
       >
         <Trash2 className="h-4 w-4" />
@@ -599,12 +599,12 @@ function QuestionEditor({
           onChange={(e) => onChange({ question: e.target.value })}
           className={
             validationErrors?.question
-              ? 'font-body border-red-400'
+              ? 'font-body border-orange-400'
               : 'font-body'
           }
         />
         {validationErrors?.question && (
-          <p className="font-body mt-1 text-xs text-red-500">
+          <p className="font-body mt-1 text-xs text-orange-500">
             {validationErrors.question}
           </p>
         )}
@@ -628,7 +628,7 @@ function QuestionEditor({
               />
             ))}
             {validationErrors?.answer && (
-              <p className="font-body mt-1 text-xs text-red-500">
+              <p className="font-body mt-1 text-xs text-orange-500">
                 {validationErrors.answer}
               </p>
             )}
@@ -650,7 +650,7 @@ function QuestionEditor({
               <SelectTrigger
                 className={
                   validationErrors?.correctAnswers
-                    ? 'font-body border-red-400'
+                    ? 'font-body border-orange-400'
                     : 'font-body'
                 }
               >
@@ -665,7 +665,7 @@ function QuestionEditor({
               </SelectContent>
             </Select>
             {validationErrors?.correctAnswers && (
-              <p className="font-body mt-1 text-xs text-red-500">
+              <p className="font-body mt-1 text-xs text-orange-500">
                 {validationErrors.correctAnswers}
               </p>
             )}
@@ -691,7 +691,7 @@ function QuestionEditor({
               />
             ))}
             {validationErrors?.answer && (
-              <p className="font-body mt-1 text-xs text-red-500">
+              <p className="font-body mt-1 text-xs text-orange-500">
                 {validationErrors.answer}
               </p>
             )}
@@ -728,7 +728,7 @@ function QuestionEditor({
               })}
             </div>
             {validationErrors?.correctAnswers && (
-              <p className="font-body mt-1 text-xs text-red-500">
+              <p className="font-body mt-1 text-xs text-orange-500">
                 {validationErrors.correctAnswers}
               </p>
             )}
@@ -859,7 +859,7 @@ export default function CreateQuizForm({
     setQuestions((prev) => [
       ...prev,
       {
-        order: prev.length + 1,
+        order: prev.length,
         type: newType,
         time: 30,
         question: '',
@@ -880,7 +880,7 @@ export default function CreateQuizForm({
       (prev) =>
         prev
           .filter((q) => q.order !== order)
-          .map((q, i) => ({ ...q, order: i + 1 })) // re-number after removal
+          .map((q, i) => ({ ...q, order: i })) // re-number after removal
     );
   };
 
@@ -1263,12 +1263,12 @@ export default function CreateQuizForm({
                 onChange={(e) => setTitle(e.target.value)}
                 className={
                   validationErrors.title
-                    ? 'font-body border-red-400'
+                    ? 'font-body border-orange-400'
                     : 'font-body focus:border-blue-500 focus:ring-2 focus:ring-blue-500'
                 }
               />
               {validationErrors.title && (
-                <p className="font-body mt-1 text-xs text-red-500">
+                <p className="font-body mt-1 text-xs text-orange-500">
                   {validationErrors.title}
                 </p>
               )}
@@ -1289,7 +1289,7 @@ export default function CreateQuizForm({
                 onChange={(e) => setDescription(e.target.value)}
                 className={
                   validationErrors.description
-                    ? 'font-body border-red-400'
+                    ? 'font-body border-orange-400'
                     : 'font-body'
                 }
               />
@@ -1303,7 +1303,7 @@ export default function CreateQuizForm({
                 <SelectTrigger
                   className={
                     validationErrors.category
-                      ? 'font-body border-red-400'
+                      ? 'font-body border-orange-400'
                       : 'font-body'
                   }
                 >
@@ -1320,7 +1320,7 @@ export default function CreateQuizForm({
                 </SelectContent>
               </Select>
               {validationErrors.category && (
-                <p className="font-body mt-1 text-xs text-red-500">
+                <p className="font-body mt-1 text-xs text-orange-500">
                   {validationErrors.category}
                 </p>
               )}
@@ -1339,7 +1339,7 @@ export default function CreateQuizForm({
 
               <FieldGroup>
                 {validationErrors.questionsError && (
-                  <p className="font-body mt-1 text-xs text-red-500">
+                  <p className="font-body mt-1 text-xs text-orange-500">
                     {validationErrors.questionsError}
                   </p>
                 )}

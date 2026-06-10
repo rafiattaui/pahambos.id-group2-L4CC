@@ -159,14 +159,15 @@ export default function GridItems({ quiz }: { quiz: Quiz }) {
                   <X size={10} color="#000000" />
                 </Button>
               </CardAction>
-              <Image
-                src={selectedQuiz.imageUrl || '/placeholderquiz.png'}
-                alt={selectedQuiz.title}
-                width={400}
-                height={200}
-                className="mt-4 mb-4 items-center justify-center rounded-2xl"
-              />
-              <CardTitle className="font-body font-bold">
+              <div className="relative h-48 w-full overflow-hidden rounded-2xl">
+                <Image
+                  src={selectedQuiz.imageUrl || '/placeholderquiz.png'}
+                  alt={selectedQuiz.title}
+                  fill
+                  className="object-cover"
+                />
+              </div>
+              <CardTitle className="font-body font-bold wrap-anywhere">
                 {selectedQuiz.title}
               </CardTitle>
               <CardDescription className="font-body flex flex-col">

@@ -338,7 +338,7 @@ export default function QuizInterface({ quizId }: { quizId: string }) {
   useEffect(() => {
     const audio = bgMusicRef.current;
     if (!audio || phase == 'splash') return;
-    if (phase === 'results' || phase === 'error') {
+    if (phase === 'results' || phase === 'leaderboard' || phase === 'error') {
       audio.pause();
     } else {
       audio.play().catch((err) => console.log('Playback blocked:', err));
@@ -346,7 +346,7 @@ export default function QuizInterface({ quizId }: { quizId: string }) {
   }, [phase]);
 
   useEffect(() => {
-    if (phase === 'results') {
+    if (phase === 'results' || phase === 'leaderboard') {
       bgMusicRef.current?.pause();
       finishMusicRef.current?.play().catch(() => {});
     }

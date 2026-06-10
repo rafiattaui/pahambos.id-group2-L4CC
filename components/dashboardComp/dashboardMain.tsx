@@ -529,12 +529,12 @@ export default function DashboardMain({
                 <div className="mt-4 grid grid-cols-2 justify-center gap-3">
                   {[
                     {
-                      label: 'Final Score',
+                      label: 'Highest Score',
                       value: performance?.finalScore ?? '—',
                       icon: <Trophy className="h-5 w-5" />,
                     },
                     {
-                      label: 'Accuracy Rate',
+                      label: 'Average Accuracy',
                       value: performance?.accuracyRate ?? '—',
                       icon: <ChartNoAxesCombined className="h-5 w-5" />,
                     },
@@ -544,7 +544,7 @@ export default function DashboardMain({
                       icon: <Flame className="h-5 w-5" />,
                     },
                     {
-                      label: 'Quizzes Done',
+                      label: 'Quiz Attempts',
                       value: performance?.totalQuizzes ?? '—',
                       icon: <NotebookPen className="h-5 w-5" />,
                     },

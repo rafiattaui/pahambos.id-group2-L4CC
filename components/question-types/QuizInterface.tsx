@@ -1042,7 +1042,7 @@ export default function QuizInterface({ quizId }: { quizId: string }) {
                 </button>
               )}
               {hintLoading && (
-                <div className="flex items-center gap-2 text-sm text-black/40">
+                <div className="font-body flex items-center gap-2 text-sm text-black/40">
                   <div className="h-4 w-4 animate-spin rounded-full border-2 border-yellow-500 border-t-transparent" />
                   Thinking of a hint…
                 </div>

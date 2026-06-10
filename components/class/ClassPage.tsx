@@ -308,7 +308,7 @@ function SectionHeader({
 
 function SectionSkeleton({ count = 2 }: { count?: number }) {
   return (
-    <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
       {Array.from({ length: count }).map((_, i) => (
         <div
           key={i}
@@ -1461,7 +1461,7 @@ export default function ClassroomPage() {
             <button
               onClick={handleJoin}
               disabled={!joinId.trim() || joining || joinStatus === 'success'}
-              className="mt-1 flex w-full items-center justify-center gap-1.5 rounded-xl bg-orange-600 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-700 active:scale-[0.98] disabled:opacity-40"
+              className="mt-1 flex w-full items-center justify-center gap-1.5 rounded-xl bg-orange-600 py-2.5 text-sm font-semibold text-white transition hover:bg-orange-700 active:scale-[0.98] disabled:opacity-40"
             >
               {joining && <Spinner />} Join Class
             </button>

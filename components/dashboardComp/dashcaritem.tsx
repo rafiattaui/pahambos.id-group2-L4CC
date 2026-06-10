@@ -5,31 +5,30 @@ import Image from 'next/image';
 
 export default function DashCarItem({ quiz }: { quiz: Quiz }) {
   return (
-    <div className="group relative h-36 w-full overflow-hidden rounded-2xl md:h-40">
-      <Image
-        className="h-full w-full rounded-2xl object-cover"
-        src={quiz.imageUrl || '/placeholder.png'}
-        alt={quiz.title}
-        width={400}
-        height={200}
-      ></Image>
-      <div className="pointer-events-none absolute inset-0 bg-black/33 opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
-
-      <div className="pointer-events-none absolute top-4 left-4 z-10 text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-        <h3 className="font-body text-lg font-bold">{quiz.title}</h3>
-        <p className="font-body text-sm text-white/80">
-          Category: {quiz.category}
-        </p>
-      </div>
-      <div className="pointer-events-none absolute bottom-4 left-4 z-10 text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-        <p className="font-body text-sm text-white/80">
-          Created by {quiz.creatorName || 'Anonymous'}
-        </p>
+    <div className="group relative w-full cursor-pointer overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-md">
+      {/* Fixed height image area — always consistent */}
+      <div className="relative h-40 w-full overflow-hidden bg-blue-50">
+        <Image
+          src={quiz.imageUrl || '/placeholderquiz.png'}
+          alt={quiz.title}
+          fill
+          className="object-cover transition-transform duration-300 group-hover:scale-105"
+        />
+        {/* Question count — top right */}
+        <div className="absolute bottom-2 left-2">
+          <span className="font-body rounded-full bg-black/50 px-2 py-0.5 text-xs font-semibold text-white backdrop-blur-sm">
+            {quiz.numQuestions} Qs
+          </span>
+        </div>
       </div>
 
-      <div className="pointer-events-none absolute right-4 bottom-4 z-10 text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-        <p className="font-body text-sm text-white/80">
-          {quiz.numQuestions} Questions
+      {/* Card text content */}
+      <div className="p-3">
+        <p className="font-body line-clamp-1 text-sm font-bold text-slate-800">
+          {quiz.title}
+        </p>
+        <p className="font-body mt-0.5 text-xs text-slate-400">
+          by {quiz.creatorName || 'Anonymous'}
         </p>
       </div>
     </div>

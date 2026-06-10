@@ -536,6 +536,7 @@ const CATEGORIES = ['Mathematics', 'Technology', 'Science'] as const;
 export default function DashCarousel() {
   const [selectedQuiz, setSelectedQuiz] = useState<Quiz | null>(null);
   const router = useRouter();
+  const [isCopied, setIsCopied] = useState(false);
 
   // One status + data pair per section
   const [featured, setFeatured] = useState<Quiz[]>([]);

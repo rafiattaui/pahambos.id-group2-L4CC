@@ -1256,7 +1256,7 @@ export default function ClassroomPage() {
                   }
                 />
                 {loadingOwned ? (
-                  <SectionSkeleton count={2} />
+                  <SectionSkeleton count={4} />
                 ) : ownedClasses.length === 0 ? (
                   <div className="font-body flex flex-col items-center gap-2 rounded-2xl border border-dashed border-slate-200 py-12 text-center">
                     <p className="text-sm font-medium text-slate-500">
@@ -1319,7 +1319,7 @@ export default function ClassroomPage() {
                   }
                 />
                 {loadingJoined ? (
-                  <SectionSkeleton count={2} />
+                  <SectionSkeleton count={4} />
                 ) : joinedClasses.length === 0 ? (
                   <div className="font-body flex flex-col items-center gap-2 rounded-2xl border border-dashed border-slate-200 py-12 text-center">
                     <p className="text-sm font-medium text-slate-500">

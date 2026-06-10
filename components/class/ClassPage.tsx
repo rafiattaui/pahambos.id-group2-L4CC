@@ -286,6 +286,27 @@ function SectionHeader({
   );
 }
 
+// ─── Section skeleton ─────────────────────────────────────────────────────────
+
+function SectionSkeleton({ count = 2 }: { count?: number }) {
+  return (
+    <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+      {Array.from({ length: count }).map((_, i) => (
+        <div
+          key={i}
+          className="flex animate-pulse flex-col overflow-hidden rounded-2xl bg-white shadow-md ring-1 ring-black/5"
+        >
+          <div className="h-28 w-full bg-slate-200" />
+          <div className="flex flex-col gap-2 p-4">
+            <div className="h-3.5 w-3/4 rounded-full bg-slate-200" />
+            <div className="h-3 w-1/2 rounded-full bg-slate-100" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // ─── Class ID display with copy button ───────────────────────────────────────
 
 function ClassIdDisplay({ id }: { id: string }) {
@@ -669,7 +690,8 @@ function LearnerClassOverlay({
 // ─── Root ─────────────────────────────────────────────────────────────────────
 
 export default function ClassroomPage() {
-  const [loading, setLoading] = useState(true);
+  const [loadingOwned, setLoadingOwned] = useState(true);
+  const [loadingJoined, setLoadingJoined] = useState(true);
   const [fetchError, setFetchError] = useState('');
 
   const [ownedClasses, setOwnedClasses] = useState<Classroom[]>([]);
@@ -701,19 +723,29 @@ export default function ClassroomPage() {
   const [joinError, setJoinError] = useState('');
 
   useEffect(() => {
-    (async () => {
-      const { data, error } = await apiFetch<{
-        educatorClasses: Classroom[];
-        learnerClasses: Classroom[];
-      }>('/api/class');
-      setLoading(false);
-      if (error || !data) {
-        setFetchError(error ?? 'Failed to load classrooms.');
-        return;
+    // Fetch owned (educator) classes
+    apiFetch<{ educatorClasses: Classroom[] }>('/api/class?type=educator').then(
+      ({ data, error }) => {
+        setLoadingOwned(false);
+        if (error || !data) {
+          setFetchError(error ?? 'Failed to load classrooms.');
+          return;
+        }
+        setOwnedClasses(data.educatorClasses);
       }
-      setOwnedClasses(data.educatorClasses);
-      setJoinedClasses(data.learnerClasses);
-    })();
+    );
+
+    // Fetch joined (learner) classes independently
+    apiFetch<{ learnerClasses: Classroom[] }>('/api/class?type=learner').then(
+      ({ data, error }) => {
+        setLoadingJoined(false);
+        if (error || !data) {
+          setFetchError(error ?? 'Failed to load classrooms.');
+          return;
+        }
+        setJoinedClasses(data.learnerClasses);
+      }
+    );
   }, []);
 
   // Sync the open educator overlay when ownedClasses updates — no setState in useEffect
@@ -783,12 +815,7 @@ export default function ClassroomPage() {
     <div className="flex w-full items-start justify-center p-6">
       <div className="w-full max-w-7xl overflow-hidden rounded-2xl bg-white shadow-xl ring-1 ring-black/5">
         <div className="p-8">
-          {loading ? (
-            <div className="flex items-center justify-center gap-2 py-20 text-slate-500">
-              <Spinner className="h-5 w-5" />
-              <span className="text-sm">Loading classrooms…</span>
-            </div>
-          ) : fetchError ? (
+          {fetchError ? (
             <div className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-600 ring-1 ring-red-100">
               {fetchError}
             </div>
@@ -798,7 +825,7 @@ export default function ClassroomPage() {
               <section>
                 <SectionHeader
                   label="My Classes"
-                  count={ownedClasses.length}
+                  count={loadingOwned ? 0 : ownedClasses.length}
                   action={
                     <button
                       onClick={() => {
@@ -824,7 +851,9 @@ export default function ClassroomPage() {
                     </button>
                   }
                 />
-                {ownedClasses.length === 0 ? (
+                {loadingOwned ? (
+                  <SectionSkeleton count={2} />
+                ) : ownedClasses.length === 0 ? (
                   <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-slate-200 py-12 text-center">
                     <p className="text-sm font-medium text-slate-500">
                       No classes yet
@@ -858,7 +887,7 @@ export default function ClassroomPage() {
               <section>
                 <SectionHeader
                   label="Joined Classes"
-                  count={joinedClasses.length}
+                  count={loadingJoined ? 0 : joinedClasses.length}
                   action={
                     <button
                       onClick={() => {
@@ -885,7 +914,9 @@ export default function ClassroomPage() {
                     </button>
                   }
                 />
-                {joinedClasses.length === 0 ? (
+                {loadingJoined ? (
+                  <SectionSkeleton count={2} />
+                ) : joinedClasses.length === 0 ? (
                   <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-slate-200 py-12 text-center">
                     <p className="text-sm font-medium text-slate-500">
                       No joined classes yet

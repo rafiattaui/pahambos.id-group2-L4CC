@@ -14,7 +14,7 @@ import {
 import Image from 'next/image';
 import { CategoryTextColor } from './dashcarousel';
 import { Skeleton } from '../ui/skeleton';
-import { ArrowRight, X } from 'lucide-react';
+import { ArrowRight, X, Copy } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 export type Quiz = {
@@ -62,6 +62,7 @@ export function QuizSkeleton() {
 export default function GridItems({ quiz }: { quiz: Quiz }) {
   const router = useRouter();
   const [selectedQuiz, setSelectedQuiz] = useState<Quiz | null>(null);
+  const [isCopied, setIsCopied] = useState(false);
 
   const categoriesText: CategoryTextColor[] = [
     {
@@ -189,6 +190,24 @@ export default function GridItems({ quiz }: { quiz: Quiz }) {
                     {selectedQuiz.numQuestions} Questions
                   </span>
                 </div>
+
+                <Button
+                  className="font-body mt-3 w-max bg-blue-50 font-bold text-blue-600 hover:bg-blue-100 active:translate-y-1"
+                  onClick={() => {
+                    navigator.clipboard.writeText(selectedQuiz.id);
+                    setIsCopied(true);
+                    setTimeout(() => setIsCopied(false), 2000);
+                  }}
+                >
+                  {isCopied ? (
+                    <span className="text-blue-600">Copied!</span>
+                  ) : (
+                    <span className="flex flex-wrap gap-2">
+                      {' '}
+                      <Copy className="ml-1 h-4 w-4" /> Copy Quiz ID
+                    </span>
+                  )}
+                </Button>
               </CardDescription>
             </CardHeader>
             <CardContent>

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -16,6 +16,24 @@ interface Classroom {
   name: string;
   owner: ClassUser;
   members: ClassUser[];
+}
+
+interface Quiz {
+  id: string;
+  title: string;
+  description?: string | null;
+}
+
+interface Assignment {
+  id: string;
+  quiz: Quiz;
+  dueDate: string;
+  isOverdue: boolean;
+  isAssigner: boolean;
+  userHasCompleted: boolean;
+  // educator-only fields
+  numLearnersCompleted?: number;
+  learnersCompleted?: { name: string; email: string }[];
 }
 
 // ─── API helper ───────────────────────────────────────────────────────────────
@@ -180,7 +198,7 @@ function Overlay({
   children: React.ReactNode;
 }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="font-body fixed inset-0 z-50 flex items-center justify-center p-4">
       <div
         className="absolute inset-0 bg-black/40 backdrop-blur-sm"
         onClick={onClose}
@@ -221,7 +239,7 @@ function OverlayHeader({
           />
         </svg>
       </button>
-      <h2 className="mt-0.5 text-xl font-bold text-white">{title}</h2>
+      <h2 className="font-body mt-0.5 text-xl font-bold text-white">{title}</h2>
     </div>
   );
 }
@@ -252,7 +270,7 @@ function ClassCard({
           {cls.members.length === 1 ? 'learner' : 'learners'}
         </span>
       </div>
-      <div className="flex flex-col gap-1 p-4">
+      <div className="font-body flex flex-col gap-1 p-4">
         <p className="truncate text-sm font-bold text-slate-800 transition group-hover:text-blue-700">
           {cls.name}
         </p>
@@ -274,7 +292,7 @@ function SectionHeader({
   action?: React.ReactNode;
 }) {
   return (
-    <div className="mb-3 flex items-center justify-between">
+    <div className="font-body mb-3 flex items-center justify-between">
       <div className="flex items-center gap-2">
         <h2 className="text-base font-bold text-slate-800">{label}</h2>
         <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-500">
@@ -578,7 +596,7 @@ function EducatorClassOverlay({
                   </div>
                   <button
                     onClick={() => handleRemoveMember(m.id)}
-                    disabled={removingId === m.id}
+                    disabled={removingId === m.id || removingId !== null}
                     className="shrink-0 rounded-lg p-1.5 text-slate-400 transition hover:bg-red-50 hover:text-red-500 disabled:opacity-40"
                     title="Remove learner"
                   >
@@ -605,6 +623,9 @@ function EducatorClassOverlay({
             </ul>
           )}
         </div>
+
+        {/* Quiz assignments */}
+        <EducatorQuizPanel classroomId={cls.id} />
       </div>
     </Overlay>
   );
@@ -682,8 +703,391 @@ function LearnerClassOverlay({
             </ul>
           )}
         </div>
+
+        {/* Quiz assignments */}
+        <LearnerQuizPanel classroomId={cls.id} />
       </div>
     </Overlay>
+  );
+}
+
+// ─── useQuizAssignments hook ──────────────────────────────────────────────────
+
+function useQuizAssignments(classroomId: string) {
+  const [assignments, setAssignments] = useState<Assignment[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError('');
+    const { data, error } = await apiFetch<{ data: Assignment[] }>(
+      `/api/class/assignment/${classroomId}`
+    );
+    setLoading(false);
+    if (error || !data) {
+      setError(error ?? 'Failed to load assignments.');
+      return;
+    }
+    setAssignments(data.data);
+  }, [classroomId]);
+
+  const loadedRef = useRef(load);
+  useEffect(() => {
+    loadedRef.current = load;
+  }, [load]);
+
+  useEffect(() => {
+    loadedRef.current();
+  }, [classroomId]);
+
+  async function assign(
+    quizId: string,
+    dueDate: string
+  ): Promise<string | null> {
+    const { error } = await apiFetch(`/api/class/assignment/${classroomId}`, {
+      method: 'POST',
+      body: JSON.stringify({ quizId, dueDate }),
+    });
+    if (error) return error;
+    await load();
+    return null;
+  }
+
+  async function remove(assignmentId: string): Promise<string | null> {
+    const { error } = await apiFetch(`/api/class/assignment/${assignmentId}`, {
+      method: 'DELETE',
+    });
+    if (error) return error;
+    setAssignments((p) => p.filter((a) => a.id !== assignmentId));
+    return null;
+  }
+
+  return { assignments, loading, error, assign, remove, reload: load };
+}
+
+// ─── Assign Quiz Modal ────────────────────────────────────────────────────────
+
+function AssignQuizModal({
+  onClose,
+  onAssign,
+}: {
+  onClose: () => void;
+  onAssign: (quizId: string, dueDate: string) => Promise<string | null>;
+}) {
+  const [quizId, setQuizId] = useState('');
+  const [dueDate, setDueDate] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [assignError, setAssignError] = useState('');
+
+  // min date = today (local)
+  const today = new Date().toISOString().split('T')[0];
+
+  async function handleSubmit() {
+    if (!quizId.trim() || !dueDate) return;
+    setSubmitting(true);
+    setAssignError('');
+    const err = await onAssign(quizId.trim(), new Date(dueDate).toISOString());
+    setSubmitting(false);
+    if (err) {
+      setAssignError(err);
+      return;
+    }
+    onClose();
+  }
+
+  return (
+    <Overlay onClose={onClose}>
+      <OverlayHeader
+        title="Assign Quiz"
+        gradient="from-blue-500 to-blue-600"
+        onClose={onClose}
+      />
+      <div className="flex flex-col gap-3 p-5">
+        <LabeledInput
+          label="Quiz ID"
+          placeholder="Paste the quiz ID"
+          value={quizId}
+          onChange={setQuizId}
+          disabled={submitting}
+        />
+        <div className="flex flex-col gap-1.5">
+          <label className="text-xs font-semibold text-slate-500">
+            Due Date
+          </label>
+          <input
+            type="date"
+            min={today}
+            value={dueDate}
+            disabled={submitting}
+            onChange={(e) => setDueDate(e.target.value)}
+            className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-800 transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-200 focus:outline-none disabled:opacity-50"
+          />
+        </div>
+        {assignError && (
+          <ErrorBanner
+            message={assignError}
+            onDismiss={() => setAssignError('')}
+          />
+        )}
+        <button
+          onClick={handleSubmit}
+          disabled={!quizId.trim() || !dueDate || submitting}
+          className="mt-1 flex w-full items-center justify-center gap-1.5 rounded-xl bg-blue-600 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700 active:scale-[0.98] disabled:opacity-40"
+        >
+          {submitting && <Spinner />} Assign Quiz
+        </button>
+      </div>
+    </Overlay>
+  );
+}
+
+// ─── Educator Quiz Assignments Panel ─────────────────────────────────────────
+
+function EducatorQuizPanel({ classroomId }: { classroomId: string }) {
+  const { assignments, loading, error, assign, remove } =
+    useQuizAssignments(classroomId);
+  const [showAssign, setShowAssign] = useState(false);
+  const [removingId, setRemovingId] = useState<string | null>(null);
+  const [removeError, setRemoveError] = useState('');
+
+  async function handleRemove(id: string) {
+    setRemovingId(id);
+    setRemoveError('');
+    const err = await remove(id);
+    setRemovingId(null);
+    if (err) setRemoveError(err);
+  }
+
+  return (
+    <>
+      <div>
+        <div className="mb-2 flex items-center justify-between">
+          <p className="text-xs font-bold tracking-widest text-slate-400 uppercase">
+            Assigned Quizzes · {loading ? '…' : assignments.length}
+          </p>
+          <button
+            onClick={() => setShowAssign(true)}
+            className="flex items-center gap-1 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-blue-700 active:scale-95"
+          >
+            <svg
+              className="h-3.5 w-3.5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2.5}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 4v16m8-8H4"
+              />
+            </svg>
+            Assign
+          </button>
+        </div>
+
+        {removeError && (
+          <ErrorBanner
+            message={removeError}
+            onDismiss={() => setRemoveError('')}
+          />
+        )}
+
+        {loading ? (
+          <div className="flex items-center justify-center py-8 text-slate-400">
+            <Spinner className="h-5 w-5" />
+          </div>
+        ) : error ? (
+          <p className="rounded-xl bg-red-50 px-3 py-2 text-xs text-red-600 ring-1 ring-red-100">
+            {error}
+          </p>
+        ) : assignments.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-slate-200 py-8 text-center">
+            <p className="text-sm text-slate-400">No quizzes assigned yet.</p>
+          </div>
+        ) : (
+          <ul className="flex flex-col gap-2">
+            {assignments.map((a) => (
+              <li
+                key={a.id}
+                className="flex items-start gap-3 rounded-xl bg-slate-50 px-4 py-3 ring-1 ring-black/5"
+              >
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-100">
+                  <svg
+                    className="h-4 w-4 text-blue-600"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                    />
+                  </svg>
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-semibold text-slate-800">
+                    {a.quiz.title}
+                  </p>
+                  <div className="mt-0.5 flex flex-wrap items-center gap-1.5">
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${a.isOverdue ? 'bg-red-100 text-red-600' : 'bg-slate-100 text-slate-500'}`}
+                    >
+                      {a.isOverdue ? 'Overdue · ' : 'Due '}
+                      {new Date(a.dueDate).toLocaleDateString(undefined, {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                      })}
+                    </span>
+                    <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
+                      {a.numLearnersCompleted ?? 0} completed
+                    </span>
+                  </div>
+                  {(a.learnersCompleted ?? []).length > 0 && (
+                    <p className="mt-1 truncate text-[10px] text-slate-400">
+                      {a.learnersCompleted!.map((l) => l.name).join(', ')}
+                    </p>
+                  )}
+                </div>
+                <button
+                  onClick={() => handleRemove(a.id)}
+                  disabled={removingId === a.id}
+                  className="shrink-0 rounded-lg p-1.5 text-slate-400 transition hover:bg-red-50 hover:text-red-500 disabled:opacity-40"
+                  title="Remove assignment"
+                >
+                  {removingId === a.id ? (
+                    <Spinner className="h-4 w-4" />
+                  ) : (
+                    <svg
+                      className="h-4 w-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                      />
+                    </svg>
+                  )}
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      {showAssign && (
+        <AssignQuizModal
+          onClose={() => setShowAssign(false)}
+          onAssign={assign}
+        />
+      )}
+    </>
+  );
+}
+
+// ─── Learner Quiz Assignments Panel ──────────────────────────────────────────
+
+function LearnerQuizPanel({ classroomId }: { classroomId: string }) {
+  const { assignments, loading, error } = useQuizAssignments(classroomId);
+
+  return (
+    <div>
+      <p className="mb-2 text-xs font-bold tracking-widest text-slate-400 uppercase">
+        Assigned Quizzes · {loading ? '…' : assignments.length}
+      </p>
+
+      {loading ? (
+        <div className="flex items-center justify-center py-8 text-slate-400">
+          <Spinner className="h-5 w-5" />
+        </div>
+      ) : error ? (
+        <p className="rounded-xl bg-red-50 px-3 py-2 text-xs text-red-600 ring-1 ring-red-100">
+          {error}
+        </p>
+      ) : assignments.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-slate-200 py-8 text-center">
+          <p className="text-sm text-slate-400">No quizzes assigned yet.</p>
+        </div>
+      ) : (
+        <ul className="flex flex-col gap-2">
+          {assignments.map((a) => (
+            <li
+              key={a.id}
+              className="flex items-start gap-3 rounded-xl bg-slate-50 px-4 py-3 ring-1 ring-black/5"
+            >
+              <div
+                className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${a.userHasCompleted ? 'bg-emerald-100' : 'bg-blue-100'}`}
+              >
+                {a.userHasCompleted ? (
+                  <svg
+                    className="h-4 w-4 text-emerald-600"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2.5}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                ) : (
+                  <svg
+                    className="h-4 w-4 text-blue-600"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                    />
+                  </svg>
+                )}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-semibold text-slate-800">
+                  {a.quiz.title}
+                </p>
+                {a.quiz.description && (
+                  <p className="mt-0.5 truncate text-xs text-slate-500">
+                    {a.quiz.description}
+                  </p>
+                )}
+                <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${a.isOverdue && !a.userHasCompleted ? 'bg-red-100 text-red-600' : 'bg-slate-100 text-slate-500'}`}
+                  >
+                    {a.isOverdue ? 'Overdue · ' : 'Due '}
+                    {new Date(a.dueDate).toLocaleDateString(undefined, {
+                      month: 'short',
+                      day: 'numeric',
+                      year: 'numeric',
+                    })}
+                  </span>
+                  {a.userHasCompleted && (
+                    <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
+                      Completed
+                    </span>
+                  )}
+                </div>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   );
 }
 
@@ -854,7 +1258,7 @@ export default function ClassroomPage() {
                 {loadingOwned ? (
                   <SectionSkeleton count={2} />
                 ) : ownedClasses.length === 0 ? (
-                  <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-slate-200 py-12 text-center">
+                  <div className="font-body flex flex-col items-center gap-2 rounded-2xl border border-dashed border-slate-200 py-12 text-center">
                     <p className="text-sm font-medium text-slate-500">
                       No classes yet
                     </p>
@@ -917,7 +1321,7 @@ export default function ClassroomPage() {
                 {loadingJoined ? (
                   <SectionSkeleton count={2} />
                 ) : joinedClasses.length === 0 ? (
-                  <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-slate-200 py-12 text-center">
+                  <div className="font-body flex flex-col items-center gap-2 rounded-2xl border border-dashed border-slate-200 py-12 text-center">
                     <p className="text-sm font-medium text-slate-500">
                       No joined classes yet
                     </p>

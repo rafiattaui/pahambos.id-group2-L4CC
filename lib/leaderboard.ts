@@ -12,6 +12,7 @@ export async function rebuildLeaderboard(quizId: string) {
     include: {
       user: { select: { name: true } },
     },
+    distinct: ['userId'],
     take: 10,
   });
 

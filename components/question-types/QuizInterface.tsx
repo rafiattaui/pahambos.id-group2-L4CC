@@ -28,6 +28,7 @@ interface AnswerResult {
 
 const c_SessionSchema = r_SessionSchema.extend({
   id: z.string(),
+  userId: z.string().optional(),
 });
 
 type Phase =
@@ -45,7 +46,6 @@ interface LeaderboardEntry {
   rank: number;
   name: string;
   score: number;
-  correct: number;
   total: number;
   isCurrentUser: boolean;
 }
@@ -165,7 +165,7 @@ function GlassCard({
 
 async function createSession(
   quizId: string
-): Promise<{ sessionId: string; totalQuestions: number }> {
+): Promise<{ sessionId: string; totalQuestions: number; userId: string }> {
   const res = await fetch(`/api/quiz/${quizId}/session`, { method: 'POST' });
   const data = await res.json();
   if (!data.success)
@@ -178,7 +178,11 @@ async function createSession(
 
   console.log(session);
 
-  return { sessionId: session.id, totalQuestions: session.totalQuestions };
+  return {
+    sessionId: session.id,
+    totalQuestions: session.totalQuestions,
+    userId: session.userId ?? '',
+  };
 }
 
 async function fetchQuestion(): Promise<{
@@ -250,8 +254,11 @@ export default function QuizInterface({ quizId }: { quizId: string }) {
 
   const [results, setResults] = useState<AnswerResult[]>([]);
   const [errorMessage, setErrorMessage] = useState<string>('');
+  const [currentUserId, setCurrentUserId] = useState<string>('');
 
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
+  const [currentUserRank, setCurrentUserRank] =
+    useState<LeaderboardEntry | null>(null);
   const [leaderboardLoading, setLeaderboardLoading] = useState(false);
 
   const [hint, setHint] = useState<string | null>(null);
@@ -270,46 +277,53 @@ export default function QuizInterface({ quizId }: { quizId: string }) {
     router.push('/dashboard');
   }
 
-  // async function fetchLeaderboard() {
-  //   setLeaderboardLoading(true);
-  //   try {
-  //     const res = await fetch(`/api/performance/${quizId}`);
-  //     const data = await res.json();
-  //     if (!res.ok)
-  //       throw new Error(data.message ?? 'Failed to fetch leaderboard');
+  async function fetchLeaderboard() {
+    setLeaderboardLoading(true);
+    try {
+      const res = await fetch(`/api/leaderboard/${quizId}`, { method: 'GET' });
+      const data = await res.json();
+      if (!res.ok)
+        throw new Error(data.message ?? 'Failed to fetch leaderboard');
 
-  //     // Expect data to be an array of performance entries; sort by score desc, take top 5
-  //     const entries: any[] = Array.isArray(data)
-  //       ? data
-  //       : (data.performances ?? data.data ?? []);
-  //     const sorted = [...entries]
-  //       .sort(
-  //         (a, b) =>
-  //           (b.score ?? b.totalPoints ?? 0) - (a.score ?? a.totalPoints ?? 0)
-  //       )
-  //       .slice(0, 5)
-  //       .map((entry, idx) => ({
-  //         rank: idx + 1,
-  //         name: entry.userName ?? entry.name ?? entry.user?.name ?? 'Anonymous',
-  //         score: entry.score ?? entry.totalPoints ?? 0,
-  //         correct: entry.correctAnswers ?? entry.correct ?? 0,
-  //         total: entry.totalQuestions ?? entry.total ?? totalQuestions,
-  //         isCurrentUser: entry.isCurrentUser ?? false,
-  //       }));
-  //     setLeaderboard(sorted);
-  //   } catch (e: any) {
-  //     console.error('Leaderboard fetch error:', e);
-  //     setLeaderboard([]);
-  //   } finally {
-  //     setLeaderboardLoading(false);
-  //   }
-  // }
+      // data.data is an array of { rank, userId, userName, finalScore }
+      const entries: {
+        rank: number;
+        userId: string;
+        userName: string;
+        finalScore: number;
+      }[] = Array.isArray(data.data) ? data.data : [];
+
+      // Identify the current user by matching userId captured at session start
+      const mapped: LeaderboardEntry[] = entries.map((entry) => ({
+        rank: entry.rank,
+        name: entry.userName,
+        score: entry.finalScore,
+        total: totalQuestions,
+        isCurrentUser: currentUserId !== '' && entry.userId === currentUserId,
+      }));
+
+      const top5 = mapped.slice(0, 5);
+      setLeaderboard(top5);
+
+      // If current user exists but isn't in the top 5, surface them below
+      const me = mapped.find((e) => e.isCurrentUser);
+      const meInTop5 = top5.some((e) => e.isCurrentUser);
+      setCurrentUserRank(me && !meInTop5 ? me : null);
+    } catch (e: any) {
+      console.error('Leaderboard fetch error:', e);
+      setLeaderboard([]);
+      setCurrentUserRank(null);
+    } finally {
+      setLeaderboardLoading(false);
+    }
+  }
 
   // Session creation
   useEffect(() => {
     createSession(quizId)
-      .then(({ totalQuestions: tq }) => {
+      .then(({ totalQuestions: tq, userId }) => {
         setTotalQuestions(tq);
+        setCurrentUserId(userId);
         setPhase('splash');
       })
       .catch((e: any) => {
@@ -713,7 +727,7 @@ export default function QuizInterface({ quizId }: { quizId: string }) {
             <button
               onClick={() => {
                 setPhase('leaderboard');
-                // fetchLeaderboard();
+                fetchLeaderboard();
               }}
               className="font-body mx-auto mt-5 mb-10 block w-full max-w-xl rounded-2xl bg-blue-500 py-4 text-center text-xl font-bold text-white transition hover:bg-blue-400 active:scale-95"
               style={{ boxShadow: '0 4px 24px rgba(59,130,246,0.4)' }}
@@ -857,9 +871,6 @@ export default function QuizInterface({ quizId }: { quizId: string }) {
                             </span>
                           )}
                         </span>
-                        <span className="font-body text-xs text-black/40">
-                          {entry.correct}/{entry.total} correct
-                        </span>
                       </div>
 
                       {/* Score */}
@@ -874,6 +885,51 @@ export default function QuizInterface({ quizId }: { quizId: string }) {
                     </div>
                   );
                 })}
+
+                {/* Current user rank — shown only when outside the top 5 */}
+                {currentUserRank && (
+                  <>
+                    {/* Ellipsis separator */}
+                    <div className="flex items-center gap-3 px-2">
+                      <div className="h-px flex-1 bg-black/10" />
+                      <span className="font-body text-xs text-black/30">
+                        •••
+                      </span>
+                      <div className="h-px flex-1 bg-black/10" />
+                    </div>
+
+                    <div
+                      className="flex items-center gap-4 rounded-2xl px-5 py-4"
+                      style={{
+                        background: 'rgba(59,130,246,0.12)',
+                        border: '1px solid rgba(59,130,246,0.4)',
+                      }}
+                    >
+                      {/* Rank number */}
+                      <span className="font-body w-8 text-center text-lg font-black text-blue-400">
+                        #{currentUserRank.rank}
+                      </span>
+
+                      {/* Name */}
+                      <div className="flex flex-1 flex-col">
+                        <span className="font-body leading-tight font-bold text-blue-700">
+                          {currentUserRank.name}
+                          <span className="ml-2 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-600">
+                            You
+                          </span>
+                        </span>
+                        <span className="font-body text-xs text-black/40">
+                          Your rank
+                        </span>
+                      </div>
+
+                      {/* Score */}
+                      <span className="font-body text-xl font-black text-blue-700">
+                        {currentUserRank.score} pts
+                      </span>
+                    </div>
+                  </>
+                )}
               </div>
             )}
 

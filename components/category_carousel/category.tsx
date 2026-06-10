@@ -31,7 +31,7 @@ export default function Category({ name, image }: CategoryProps) {
         sizes="(max-width: 768px) 100vw, 33vw"
       />
       <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-      <p className="absolute bottom-4 left-4 text-lg font-semibold text-white">
+      <p className="font-body absolute bottom-4 left-4 text-lg font-semibold text-white">
         {name}
       </p>
     </div>

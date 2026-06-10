@@ -73,7 +73,7 @@ function CreatePageItem({
       bgColor: 'bg-purple-100',
     },
     {
-      category: 'Literature',
+      category: 'Language',
       textColor: 'text-pink-500',
       bgColor: 'bg-pink-100',
     },

@@ -47,7 +47,7 @@ function getFeatured(quizzes: Quiz[]): Quiz[] {
         new Date(b.createdAt ?? 0).getTime() -
         new Date(a.createdAt ?? 0).getTime()
     )
-    .slice(0, 12); // cap at 12 items in the featured row
+    .slice(0, 6); // cap at 6 items in the featured row
 }
 
 // ── Fetch helpers ─────────────────────────────────────────────────────────────
@@ -570,7 +570,7 @@ export default function DashCarousel() {
       bgColor: 'bg-purple-100',
     },
     {
-      category: 'Literature',
+      category: 'Language',
       textColor: 'text-pink-500',
       bgColor: 'bg-pink-100',
     },

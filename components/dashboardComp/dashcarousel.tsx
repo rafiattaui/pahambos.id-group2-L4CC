@@ -11,7 +11,7 @@ import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import DashCarItem from './dashcaritem';
 import { type Quiz } from './quizmockup';
-import { X, ChevronRight, ArrowRight } from 'lucide-react';
+import { X, ChevronRight, ArrowRight, Copy } from 'lucide-react';
 import {
   Card,
   CardTitle,
@@ -174,6 +174,7 @@ const CATEGORIES = ['Mathematics', 'Technology', 'Science'] as const;
 export default function DashCarousel() {
   const [selectedQuiz, setSelectedQuiz] = useState<Quiz | null>(null);
   const router = useRouter();
+  const [isCopied, setIsCopied] = useState(false);
 
   // One status + data pair per section
   const [featured, setFeatured] = useState<Quiz[]>([]);
@@ -318,7 +319,7 @@ export default function DashCarousel() {
                   className="object-cover"
                 />
               </div>
-              <CardTitle className="font-body font-bold wrap-anywhere">
+              <CardTitle className="font-body mt-4 font-bold wrap-anywhere">
                 {selectedQuiz.title}
               </CardTitle>
               <CardDescription className="font-body flex flex-col">
@@ -340,6 +341,23 @@ export default function DashCarousel() {
                     {selectedQuiz.numQuestions} Questions
                   </span>
                 </div>
+                <Button
+                  className="font-body mt-3 w-max bg-blue-50 font-bold text-blue-600 hover:bg-blue-100 active:translate-y-1"
+                  onClick={() => {
+                    navigator.clipboard.writeText(selectedQuiz.id);
+                    setIsCopied(true);
+                    setTimeout(() => setIsCopied(false), 2000);
+                  }}
+                >
+                  {isCopied ? (
+                    <span className="text-blue-600">Copied!</span>
+                  ) : (
+                    <span className="flex flex-wrap gap-2">
+                      {' '}
+                      <Copy className="ml-1 h-4 w-4" /> Copy Quiz ID
+                    </span>
+                  )}
+                </Button>
               </CardDescription>
             </CardHeader>
             <CardContent>

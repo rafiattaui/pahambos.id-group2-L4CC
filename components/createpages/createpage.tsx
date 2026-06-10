@@ -35,10 +35,10 @@ async function getCreatorQuizzes(userId: string): Promise<Quiz[]> {
     credentials: 'include',
   });
 
-  if (!response.ok) {
-    throw new Error(`Error fetching quizzes: ${response.statusText}`);
-  }
   const data = await response.json();
+
+  if (!data.success) return [];
+
   return data.quizzes as Quiz[];
 }
 

@@ -766,6 +766,102 @@ function useQuizAssignments(classroomId: string) {
   return { assignments, loading, error, assign, remove, reload: load };
 }
 
+// ─── useQuizzes hook ──────────────────────────────────────────────────────────
+
+function useQuizzes() {
+  const [quizzes, setQuizzes] = useState<Quiz[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      setLoading(true);
+      setError('');
+      const { data, error } = await apiFetch<{ data: Quiz[] }>('/api/quiz');
+      if (cancelled) return;
+      setLoading(false);
+      if (error || !data) {
+        setError(error ?? 'Failed to load quizzes.');
+        return;
+      }
+      setQuizzes(data.data);
+    }
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  return { quizzes, loading, error };
+}
+
+// ─── QuizPickerItem ───────────────────────────────────────────────────────────
+
+function QuizPickerItem({
+  quiz,
+  selected,
+  onSelect,
+  disabled,
+}: {
+  quiz: Quiz;
+  selected: boolean;
+  onSelect: () => void;
+  disabled: boolean;
+}) {
+  return (
+    <button
+      onClick={onSelect}
+      disabled={disabled}
+      className={`w-full rounded-xl px-4 py-3 text-left ring-1 transition ${
+        selected
+          ? 'bg-blue-50 shadow-sm ring-blue-400'
+          : 'bg-slate-50 ring-black/5 hover:bg-white hover:ring-blue-200'
+      } disabled:opacity-50`}
+    >
+      <div className="flex items-start gap-3">
+        {/* Checkbox indicator */}
+        <div
+          className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2 transition ${
+            selected
+              ? 'border-blue-500 bg-blue-500'
+              : 'border-slate-300 bg-white'
+          }`}
+        >
+          {selected && (
+            <svg
+              className="h-2.5 w-2.5 text-white"
+              fill="currentColor"
+              viewBox="0 0 12 12"
+            >
+              <path
+                d="M10 3L5 8.5 2 5.5"
+                stroke="white"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                fill="none"
+              />
+            </svg>
+          )}
+        </div>
+        <div className="min-w-0 flex-1">
+          <p
+            className={`truncate text-sm font-semibold ${selected ? 'text-blue-700' : 'text-slate-800'}`}
+          >
+            {quiz.title}
+          </p>
+          {quiz.description && (
+            <p className="mt-0.5 truncate text-xs text-slate-400">
+              {quiz.description}
+            </p>
+          )}
+        </div>
+      </div>
+    </button>
+  );
+}
+
 // ─── Assign Quiz Modal ────────────────────────────────────────────────────────
 
 function AssignQuizModal({
@@ -775,19 +871,30 @@ function AssignQuizModal({
   onClose: () => void;
   onAssign: (quizId: string, dueDate: string) => Promise<string | null>;
 }) {
-  const [quizId, setQuizId] = useState('');
+  const {
+    quizzes,
+    loading: loadingQuizzes,
+    error: quizLoadError,
+  } = useQuizzes();
+  const [search, setSearch] = useState('');
+  const [selectedQuizId, setSelectedQuizId] = useState('');
   const [dueDate, setDueDate] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [assignError, setAssignError] = useState('');
 
-  // min date = today (local)
   const today = new Date().toISOString().split('T')[0];
 
+  const filteredQuizzes = quizzes.filter((q) =>
+    q.title.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const selectedQuiz = quizzes.find((q) => q.id === selectedQuizId);
+
   async function handleSubmit() {
-    if (!quizId.trim() || !dueDate) return;
+    if (!selectedQuizId || !dueDate) return;
     setSubmitting(true);
     setAssignError('');
-    const err = await onAssign(quizId.trim(), new Date(dueDate).toISOString());
+    const err = await onAssign(selectedQuizId, new Date(dueDate).toISOString());
     setSubmitting(false);
     if (err) {
       setAssignError(err);
@@ -803,14 +910,91 @@ function AssignQuizModal({
         gradient="from-blue-500 to-blue-600"
         onClose={onClose}
       />
-      <div className="flex flex-col gap-3 p-5">
-        <LabeledInput
-          label="Quiz ID"
-          placeholder="Paste the quiz ID"
-          value={quizId}
-          onChange={setQuizId}
-          disabled={submitting}
-        />
+      <div className="flex flex-1 flex-col gap-4 overflow-y-auto p-5">
+        {/* ── Quiz picker ── */}
+        <div className="flex flex-col gap-2">
+          <p className="text-xs font-semibold text-slate-500">Select a Quiz</p>
+
+          {/* Search */}
+          <div className="relative">
+            <svg
+              className="pointer-events-none absolute top-1/2 left-3 h-3.5 w-3.5 -translate-y-1/2 text-slate-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+            <input
+              type="text"
+              placeholder="Search quizzes…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              disabled={submitting}
+              className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pr-3.5 pl-9 text-sm text-slate-800 transition placeholder:text-slate-400 focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-200 focus:outline-none disabled:opacity-50"
+            />
+          </div>
+
+          {/* List */}
+          <div className="flex max-h-52 flex-col gap-1.5 overflow-y-auto rounded-xl">
+            {loadingQuizzes ? (
+              <div className="flex items-center justify-center py-8 text-slate-400">
+                <Spinner className="h-5 w-5" />
+              </div>
+            ) : quizLoadError ? (
+              <p className="rounded-xl bg-red-50 px-3 py-2.5 text-xs text-red-600 ring-1 ring-red-100">
+                {quizLoadError}
+              </p>
+            ) : filteredQuizzes.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-slate-200 py-6 text-center">
+                <p className="text-sm text-slate-400">
+                  {search
+                    ? 'No quizzes match your search.'
+                    : 'No quizzes found.'}
+                </p>
+              </div>
+            ) : (
+              filteredQuizzes.map((q) => (
+                <QuizPickerItem
+                  key={q.id}
+                  quiz={q}
+                  selected={selectedQuizId === q.id}
+                  onSelect={() => setSelectedQuizId(q.id)}
+                  disabled={submitting}
+                />
+              ))
+            )}
+          </div>
+
+          {/* Selected badge */}
+          {selectedQuiz && (
+            <div className="flex items-center gap-2 rounded-xl bg-blue-50 px-3 py-2 ring-1 ring-blue-100">
+              <svg
+                className="h-3.5 w-3.5 shrink-0 text-blue-500"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2.5}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M5 13l4 4L19 7"
+                />
+              </svg>
+              <p className="truncate text-xs font-semibold text-blue-700">
+                {selectedQuiz.title}
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* ── Due date ── */}
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-semibold text-slate-500">
             Due Date
@@ -824,15 +1008,17 @@ function AssignQuizModal({
             className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-800 transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-200 focus:outline-none disabled:opacity-50"
           />
         </div>
+
         {assignError && (
           <ErrorBanner
             message={assignError}
             onDismiss={() => setAssignError('')}
           />
         )}
+
         <button
           onClick={handleSubmit}
-          disabled={!quizId.trim() || !dueDate || submitting}
+          disabled={!selectedQuizId || !dueDate || submitting}
           className="mt-1 flex w-full items-center justify-center gap-1.5 rounded-xl bg-blue-600 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700 active:scale-[0.98] disabled:opacity-40"
         >
           {submitting && <Spinner />} Assign Quiz
@@ -953,6 +1139,19 @@ function EducatorQuizPanel({ classroomId }: { classroomId: string }) {
                     </p>
                   )}
                 </div>
+                <a
+                  href={`/play/${a.quiz.id}`}
+                  className="flex shrink-0 items-center gap-1 rounded-lg bg-blue-600 px-2.5 py-1.5 text-xs font-semibold text-white transition hover:bg-blue-700 active:scale-95"
+                >
+                  <svg
+                    className="h-3 w-3"
+                    fill="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path d="M8 5v14l11-7z" />
+                  </svg>
+                  Play
+                </a>
                 <button
                   onClick={() => handleRemove(a.id)}
                   disabled={removingId === a.id}
@@ -1021,7 +1220,7 @@ function LearnerQuizPanel({ classroomId }: { classroomId: string }) {
           {assignments.map((a) => (
             <li
               key={a.id}
-              className="flex items-start gap-3 rounded-xl bg-slate-50 px-4 py-3 ring-1 ring-black/5"
+              className="flex items-center gap-3 rounded-xl bg-slate-50 px-4 py-3 ring-1 ring-black/5"
             >
               <div
                 className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${a.userHasCompleted ? 'bg-emerald-100' : 'bg-blue-100'}`}
@@ -1083,6 +1282,19 @@ function LearnerQuizPanel({ classroomId }: { classroomId: string }) {
                   )}
                 </div>
               </div>
+              <a
+                href={`/play/${a.quiz.id}`}
+                className="flex shrink-0 items-center gap-1 rounded-lg bg-blue-600 px-2.5 py-1.5 text-xs font-semibold text-white transition hover:bg-blue-700 active:scale-95"
+              >
+                <svg
+                  className="h-3 w-3"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M8 5v14l11-7z" />
+                </svg>
+                Play
+              </a>
             </li>
           ))}
         </ul>

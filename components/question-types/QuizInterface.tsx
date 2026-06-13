@@ -51,10 +51,10 @@ interface LeaderboardEntry {
 }
 
 function resolveType(q: QuizQuestion): QuestionType {
-  if (q.type) return q.type;
+  if (q.type === 'MultiSelect') return 'MultiSelect';
   if (
     q.answers.length === 2 &&
-    q.answers.every((a) => ['true', 'false'].includes(a.toLowerCase()))
+    q.answers.every((a) => ['true', 'false'].includes(a.toLowerCase().trim()))
   ) {
     return 'TrueFalse';
   }
@@ -1058,26 +1058,28 @@ export default function QuizInterface({ quizId }: { quizId: string }) {
 
         {/* Answer buttons */}
         {isTrueFalse ? (
-          <div className="font-body mt-5 grid grid-cols-2 gap-5 sm:mt-10 md:mt-20">
-            {question.answers.map((answerText, index) => (
-              <button
-                key={index}
-                disabled={isLocked}
-                onClick={() => handleSingleSelect(index)}
-                className="h-12 rounded-2xl px-4 py-2 text-sm font-bold text-white transition-all duration-200 active:scale-95 disabled:cursor-not-allowed sm:h-40 sm:py-8 sm:text-xl"
-                style={{
-                  ...getAnswerStyle(index),
-                  backgroundColor:
-                    phase !== 'feedback'
-                      ? index === 0
-                        ? '#5FAD56'
-                        : '#FF3B3B'
-                      : getAnswerStyle(index).backgroundColor,
-                }}
-              >
-                {index === 0 ? '✓' : '✗'} {answerText}
-              </button>
-            ))}
+          <div className="mt-5 flex w-full justify-center sm:mt-10 md:mt-20">
+            <div className="font-body grid w-full grid-cols-2 gap-5">
+              {question.answers.map((answerText, index) => (
+                <button
+                  key={index}
+                  disabled={isLocked}
+                  onClick={() => handleSingleSelect(index)}
+                  className="h-12 rounded-2xl px-4 py-2 text-sm font-bold text-white transition-all duration-200 active:scale-95 disabled:cursor-not-allowed sm:h-40 sm:py-8 sm:text-xl"
+                  style={{
+                    ...getAnswerStyle(index),
+                    backgroundColor:
+                      phase !== 'feedback'
+                        ? index === 0
+                          ? '#5FAD56'
+                          : '#FF3B3B'
+                        : getAnswerStyle(index).backgroundColor,
+                  }}
+                >
+                  {index === 0 ? '✓' : '✗'} {answerText}
+                </button>
+              ))}
+            </div>
           </div>
         ) : isMultiSelect ? (
           <>

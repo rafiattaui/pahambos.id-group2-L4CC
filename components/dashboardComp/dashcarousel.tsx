@@ -417,7 +417,7 @@ function QuizDetailModal({
         {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute top-3 right-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 transition-colors hover:bg-slate-200"
+          className="absolute top-3 right-3 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 transition-colors hover:bg-slate-200"
           aria-label="Close"
         >
           <X size={14} color="#475569" />

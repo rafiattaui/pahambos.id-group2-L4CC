@@ -267,7 +267,7 @@ function SlotCard({
           <button
             type="button"
             onClick={() => onDelete(slotIndex)}
-            className="font-body flex items-center gap-1 rounded px-2 py-1 text-xs text-red-500 transition-colors hover:bg-red-50 hover:text-red-600"
+            className="font-body flex items-center gap-1 rounded px-2 py-1 text-xs text-orange-500 transition-colors hover:bg-orange-50 hover:text-orange-600"
             aria-label={`Delete slot ${slotIndex + 1} draft`}
           >
             <Trash2 className="h-3 w-3" />

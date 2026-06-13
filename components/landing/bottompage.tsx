@@ -28,7 +28,7 @@ export default function BottomPage() {
       number: '03',
       title: 'Start Learning',
       desc: 'Answer questions and track your progress.',
-      image: '/gameplay.png',
+      image: '/games.png',
     },
   ];
   return (

@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { authClient } from '@/lib/auth-client';
 import FadeInSection from '@/components/animation/fade-in-section';
+import Image from 'next/image';
 import Link from 'next/link';
 
 export default function BottomPage() {
@@ -15,16 +16,19 @@ export default function BottomPage() {
       number: '01',
       title: 'Sign Up',
       desc: 'Create your free account in seconds.',
+      image: '/sign_up.png',
     },
     {
       number: '02',
       title: 'Pick a Quiz',
       desc: 'Browse 7 categories and choose your topic.',
+      image: '/quiz_pop_up.png',
     },
     {
       number: '03',
       title: 'Start Learning',
       desc: 'Answer questions and track your progress.',
+      image: '/gameplay.png',
     },
   ];
   return (
@@ -56,27 +60,44 @@ export default function BottomPage() {
       </FadeInSection>
 
       <FadeInSection>
-        <div className="w-full bg-white p-4">
-          <h2 className="font-body mb-8 text-center text-3xl font-bold text-slate-800">
+        <section className="my-20">
+          <h2 className="font-body mb-12 text-center text-4xl font-bold text-slate-800">
             How It Works
           </h2>
-          <div className="my-16 flex flex-col justify-center gap-6 px-8 md:flex-row">
+
+          <div className="container mx-auto grid gap-6 px-4 md:grid-cols-3">
             {steps.map((step) => (
               <div
                 key={step.number}
-                className="flex-1 rounded-2xl bg-white p-6 text-center shadow-sm"
+                className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-md"
               >
-                <p className="font-body mb-2 text-4xl font-black text-orange-400">
-                  {step.number}
-                </p>
-                <p className="font-body mb-1 text-lg font-bold text-slate-800">
-                  {step.title}
-                </p>
-                <p className="font-body text-sm text-slate-500">{step.desc}</p>
+                {/* Image — 16:9 */}
+                <div className="relative aspect-video w-full overflow-hidden">
+                  <Image
+                    src={step.image}
+                    alt={step.title}
+                    fill
+                    className="object-cover"
+                  />
+                  {/* Number badge overlay */}
+                  <div className="font-body absolute top-3 left-3 flex h-10 w-10 items-center justify-center rounded-full bg-orange-400 text-lg font-black text-white shadow-md">
+                    {step.number}
+                  </div>
+                </div>
+
+                {/* Text content */}
+                <div className="p-5 text-center">
+                  <p className="font-body text-lg font-bold text-slate-800">
+                    {step.title}
+                  </p>
+                  <p className="font-body mt-1 text-sm text-slate-500">
+                    {step.desc}
+                  </p>
+                </div>
               </div>
             ))}
           </div>
-        </div>
+        </section>
       </FadeInSection>
 
       <FadeInSection>

@@ -305,7 +305,7 @@ export default function CreatePage() {
           </Button>
         </div>
 
-        <div className="rounded-2x mt-4 grid h-full w-full grid-cols-1 sm:grid-cols-3 md:grid-cols-4">
+        <div className="rounded-2x mt-4 grid h-full w-full grid-cols-1 md:grid-cols-3 lg:grid-cols-4">
           {status === 'loading' &&
             Array.from({ length: SKELETON_COUNT }, (_, i) => (
               <div key={i} className="m-4">

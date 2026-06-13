@@ -72,7 +72,7 @@ export const QuizSchema = z.object({
   createdBy: z.uuid(),
   createdAt: z.coerce.date(),
   title: z.string().min(5),
-  description: z.string(),
+  description: z.string().optional().nullable(),
   imageUrl: z.url().optional(),
   imageKey: z.string().optional(),
   category: CategoryEnum,

@@ -1025,7 +1025,7 @@ export default function QuizInterface({ quizId }: { quizId: string }) {
               <img
                 src={question.imageUrl}
                 alt=""
-                className="max-h-30 w-full max-w-lg rounded-2xl object-contain shadow-xl"
+                className="max-h-40 w-full max-w-lg rounded-2xl object-cover shadow-xl"
               />
             </div>
           )}

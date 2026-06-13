@@ -37,7 +37,7 @@ export async function getLeaderboard(quizId: string) {
   // this does not seem like a good idea but it is better than doing a full table scan every time.
   if (members.length === 0) {
     await rebuildLeaderboard(quizId);
-    return getLeaderboard(quizId);
+    return [];
   }
 
   const leaderboard = [];

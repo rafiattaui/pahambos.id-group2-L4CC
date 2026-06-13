@@ -214,7 +214,7 @@ export default function HeroSect() {
       <section className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden">
         {/* Left pencil — floats with gentle animation */}
         <div
-          className="pointer-events-none absolute bottom-16 left-0 hidden items-end md:flex"
+          className="pointer-events-none absolute bottom-16 left-4 hidden items-end md:flex"
           style={{ animation: 'floatY 5s ease-in-out infinite' }}
         >
           <PencilDecor />
@@ -222,7 +222,7 @@ export default function HeroSect() {
 
         {/* Right lightbulb */}
         <div
-          className="pointer-events-none absolute top-20 right-0 hidden items-start md:flex"
+          className="pointer-events-none absolute top-20 right-4 hidden items-start md:flex"
           style={{ animation: 'floatY 6s ease-in-out infinite reverse' }}
         >
           <LightbulbDecor />

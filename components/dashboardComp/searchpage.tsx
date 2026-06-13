@@ -54,11 +54,19 @@ interface SearchQuery {
 }
 
 type PageItem = number | 'ellipsis';
-type SortOption = 'a-z' | 'z-a' | 'most-questions' | 'least-questions';
+type SortOption =
+  | 'a-z'
+  | 'z-a'
+  | 'most-questions'
+  | 'least-questions'
+  | 'newest'
+  | 'oldest';
 type FetchStatus = 'idle' | 'loading' | 'success' | 'error';
 
-const ITEMS_PER_PAGE = 12;
+const ITEMS_PER_PAGE = 8;
 const VALID_SORTS: SortOption[] = [
+  'newest',
+  'oldest',
   'a-z',
   'z-a',
   'most-questions',
@@ -116,7 +124,7 @@ export default function SearchPage({ query: initialQuery = '' }: SearchQuery) {
   const sortOption = (
     VALID_SORTS.includes(searchParams.get(PARAM_SORT) as SortOption)
       ? searchParams.get(PARAM_SORT)
-      : 'a-z'
+      : 'newest'
   ) as SortOption;
   const currentPage = Math.max(1, Number(searchParams.get(PARAM_PAGE) ?? '1'));
 
@@ -194,10 +202,12 @@ export default function SearchPage({ query: initialQuery = '' }: SearchQuery) {
         query: trimmedQuery || undefined,
         tags: selectedCategories.length > 0 ? selectedCategories : undefined,
         sortBy:
-          sortOption === 'a-z' || sortOption === 'most-questions'
+          sortOption === 'a-z' ||
+          sortOption === 'most-questions' ||
+          sortOption === 'newest'
             ? 'asc'
             : 'desc',
-        limit: 12,
+        limit: 20,
       });
       if (cancelled) return;
       setQuizzes(res.data ?? res);
@@ -218,6 +228,18 @@ export default function SearchPage({ query: initialQuery = '' }: SearchQuery) {
   const sortedItems = useMemo(() => {
     const items = queryTooShort ? [] : [...quizzes];
     switch (sortOption) {
+      case 'newest':
+        return items.sort(
+          (a, b) =>
+            new Date(b.createdAt ?? 0).getTime() -
+            new Date(a.createdAt ?? 0).getTime()
+        );
+      case 'oldest':
+        return items.sort(
+          (a, b) =>
+            new Date(a.createdAt ?? 0).getTime() -
+            new Date(b.createdAt ?? 0).getTime()
+        );
       case 'a-z':
         return items.sort((a, b) => a.title.localeCompare(b.title));
       case 'z-a':
@@ -311,6 +333,8 @@ export default function SearchPage({ query: initialQuery = '' }: SearchQuery) {
               variant="outline"
               className="font-body rounded-xl px-4 py-2 text-sm hover:border-0 hover:bg-gray-300"
             >
+              {sortOption === 'newest' && 'Newest'}
+              {sortOption === 'oldest' && 'Oldest'}
               {sortOption === 'a-z' && 'A to Z'}
               {sortOption === 'z-a' && 'Z to A'}
               {sortOption === 'most-questions' && 'Most Questions'}
@@ -325,6 +349,12 @@ export default function SearchPage({ query: initialQuery = '' }: SearchQuery) {
                 router.push(buildUrl({ [PARAM_SORT]: value }))
               }
             >
+              <DropdownMenuRadioItem value="newest" className="font-body">
+                Newest
+              </DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value="oldest" className="font-body">
+                Oldest
+              </DropdownMenuRadioItem>
               <DropdownMenuRadioItem value="a-z" className="font-body">
                 A to Z
               </DropdownMenuRadioItem>

@@ -146,12 +146,12 @@ function QuizDetailModal({
 
       <div className="mt-2 flex items-center gap-2">
         <span
-          className={`rounded-full px-2 py-0.5 text-xs font-bold ${categoryStyle?.textColor ?? 'text-gray-500'} ${categoryStyle?.bgColor ?? 'bg-gray-100'}`}
+          className={`font-body rounded-full px-2 py-0.5 text-xs font-bold ${categoryStyle?.textColor ?? 'text-gray-500'} ${categoryStyle?.bgColor ?? 'bg-gray-100'}`}
         >
           {quiz.category}
         </span>
         <span className="text-xs text-slate-400">•</span>
-        <span className="text-xs text-slate-500">
+        <span className="font-body text-xs text-slate-500">
           {quiz.numQuestions} Questions
         </span>
       </div>
@@ -159,7 +159,7 @@ function QuizDetailModal({
       <div className="mt-4 rounded-xl bg-slate-50 px-4 py-3">
         <div className="mb-1 flex items-center gap-1.5">
           <BookOpen size={12} className="text-slate-400" />
-          <span className="text-xs font-semibold tracking-wide text-slate-400 uppercase">
+          <span className="font-body text-xs font-semibold tracking-wide text-slate-400 uppercase">
             Description
           </span>
         </div>
@@ -189,12 +189,12 @@ function QuizDetailModal({
         </div>
       )}
       {questionsStatus === 'error' && (
-        <p className="py-8 text-center text-sm text-red-400">
+        <p className="font-body py-8 text-center text-sm text-orange-400">
           Failed to load questions.
         </p>
       )}
       {questionsStatus === 'success' && questions.length === 0 && (
-        <p className="py-8 text-center text-sm text-gray-400">
+        <p className="font-body py-8 text-center text-sm text-gray-400">
           No questions yet.
         </p>
       )}
@@ -205,7 +205,7 @@ function QuizDetailModal({
               key={q.id}
               className="flex items-start gap-3 rounded-xl bg-slate-50 px-4 py-3"
             >
-              <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-blue-600">
+              <span className="font-body mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-blue-600">
                 {idx + 1}
               </span>
               <p className="font-body text-sm text-slate-700">{q.question}</p>
@@ -226,14 +226,14 @@ function QuizDetailModal({
         </div>
       )}
       {leaderboardStatus === 'error' && (
-        <p className="py-8 text-center text-sm text-red-400">
+        <p className="font-body py-8 text-center text-sm text-orange-400">
           Failed to load leaderboard.
         </p>
       )}
       {leaderboardStatus === 'success' && leaderboard.length === 0 && (
         <div className="flex flex-col items-center py-10 text-center">
           <Trophy size={32} className="mb-2 text-slate-200" />
-          <p className="text-sm text-slate-400">
+          <p className="font-body text-sm text-slate-400">
             No one has played this quiz yet.
           </p>
         </div>
@@ -327,7 +327,7 @@ function QuizDetailModal({
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex flex-1 items-center justify-center gap-1.5 py-3 text-xs font-semibold transition-colors ${
+                className={`font-body flex flex-1 items-center justify-center gap-1.5 py-3 text-xs font-bold transition-colors ${
                   activeTab === tab.id
                     ? 'border-b-2 border-blue-600 text-blue-600'
                     : 'text-slate-400'
@@ -424,6 +424,7 @@ export function QuizSkeleton() {
 export default function GridItems({ quiz }: { quiz: Quiz }) {
   const router = useRouter();
   const [selectedQuiz, setSelectedQuiz] = useState<Quiz | null>(null);
+  const [isCopied, setIsCopied] = useState(false);
 
   const categoriesText: CategoryTextColor[] = [
     {
@@ -493,7 +494,7 @@ export default function GridItems({ quiz }: { quiz: Quiz }) {
             </div>
           </CardHeader>
           <CardContent className="px-2 sm:p-3">
-            <CardTitle className="font-body line-clamp-4 text-sm font-bold text-slate-800 sm:text-base">
+            <CardTitle className="font-body line-clamp-4 text-sm font-bold wrap-anywhere text-slate-800 sm:text-base">
               {quiz.title}
             </CardTitle>
             <CardDescription className="font-body mt-1 line-clamp-3 text-sm text-slate-400">

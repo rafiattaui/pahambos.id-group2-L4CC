@@ -48,11 +48,12 @@ export default function DashboardMain({
 }: DashboardMainProps) {
   const router = useRouter();
   const { performance, loading } = usePerformance(userId);
+  const userAvatarImage = userAvatar ?? '/avatar_placeholder.jpg';
 
   return (
     <section className="space-y-6">
       <div className="grid gap-4 md:grid-cols-3">
-        <div className="relative col-span-1 h-99 overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 via-blue-400 to-blue-200 p-6">
+        <div className="relative col-span-2 h-99 overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 via-blue-400 to-blue-200 p-6 md:col-span-1">
           {/* Dot pattern overlay */}
           <div
             className="pointer-events-none absolute inset-0 opacity-10"
@@ -255,7 +256,7 @@ export default function DashboardMain({
           </div>
         </div>
 
-        <div className="relative col-span-2 h-99 overflow-hidden rounded-2xl bg-gradient-to-tr from-blue-200 via-blue-400 to-blue-600 p-6">
+        <div className="relative col-span-2 h-108 overflow-hidden rounded-2xl bg-gradient-to-tr from-blue-200 via-blue-400 to-blue-600 p-6 sm:h-99">
           <div
             className="pointer-events-none absolute inset-0 opacity-10"
             style={{
@@ -508,7 +509,7 @@ export default function DashboardMain({
               Performance Summary
             </h2>
             <Avatar className="mt-2 h-15 w-15">
-              <AvatarImage src={userAvatar} alt={`${userName}'s avatar`} />
+              <AvatarImage src={userAvatarImage} alt={`${userName}'s avatar`} />
               <AvatarFallback>{userName.charAt(0)}</AvatarFallback>
             </Avatar>
             <div>
@@ -528,12 +529,12 @@ export default function DashboardMain({
                 <div className="mt-4 grid grid-cols-2 justify-center gap-3">
                   {[
                     {
-                      label: 'Final Score',
+                      label: 'Highest Score',
                       value: performance?.finalScore ?? '—',
                       icon: <Trophy className="h-5 w-5" />,
                     },
                     {
-                      label: 'Accuracy Rate',
+                      label: 'Average Accuracy',
                       value: performance?.accuracyRate ?? '—',
                       icon: <ChartNoAxesCombined className="h-5 w-5" />,
                     },
@@ -543,7 +544,7 @@ export default function DashboardMain({
                       icon: <Flame className="h-5 w-5" />,
                     },
                     {
-                      label: 'Quizzes Done',
+                      label: 'Quiz Attempts',
                       value: performance?.totalQuizzes ?? '—',
                       icon: <NotebookPen className="h-5 w-5" />,
                     },

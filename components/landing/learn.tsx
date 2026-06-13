@@ -13,13 +13,10 @@ export default function Learn() {
           <h2 className="font-body ml-2 text-4xl font-bold text-slate-800 sm:ml-4">
             Start To Learn
           </h2>
-          <p className="font-body mt-6 mb-6 ml-4 wrap-normal text-slate-700">
+          <p className="font-body mt-6 mb-6 ml-4 text-justify wrap-normal text-slate-700">
             Learning is not just about reading books, and remembering materials.
             You can having fun while learning by playing quizzes! <br />
             our quizzes also support features such as:
-          </p>
-          <p className="font-body mt-6 mb-6 ml-4 wrap-normal text-slate-700">
-            the features include:
           </p>
           <ul className="font-body list-disc pl-5 text-slate-700">
             <li>

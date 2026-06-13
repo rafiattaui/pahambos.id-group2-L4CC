@@ -37,7 +37,7 @@ export default function Create() {
           <h2 className="font-body ml-4 text-4xl font-bold text-slate-800">
             Create Your Own Quiz
           </h2>
-          <p className="font-body mt-6 mb-6 ml-4 wrap-normal text-slate-700">
+          <p className="font-body mt-6 mb-6 ml-4 text-justify wrap-normal text-slate-700">
             Create your own quiz and share it with the world! Our quiz creation
             is easy to use for new users. <br />
             the features include:

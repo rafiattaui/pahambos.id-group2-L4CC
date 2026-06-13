@@ -514,6 +514,11 @@ function QuestionEditor({
       <FieldLabel className="font-body font-bold">
         Question {index + 1}
       </FieldLabel>
+      <span className="font-body text-muted-foreground text-xs leading-none">
+        note: You can create true or false question by: <br />
+        selecting &quot;Single Answer&quot; and providing &quot;True&quot; and
+        &quot;False&quot; as options
+      </span>
 
       {/* Question type selector */}
       <Select

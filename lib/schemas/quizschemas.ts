@@ -83,7 +83,7 @@ export const PublicQuizSchema = QuizSchema;
 
 export const CreateQuizSchema = z.object({
   title: z.string().min(5),
-  description: z.string(),
+  description: z.string().optional().nullable(),
   imageFile: imageFileSchema.optional(),
   category: CategoryEnum,
 });

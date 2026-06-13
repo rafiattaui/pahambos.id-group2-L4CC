@@ -388,7 +388,7 @@ export default function SearchPage({ query: initialQuery = '' }: SearchQuery) {
       )}
 
       {/* Quiz grid */}
-      <div className="mx-auto grid max-w-md grid-cols-1 gap-3 p-6 sm:max-w-none sm:grid-cols-3 md:grid-cols-4">
+      <div className="mx-auto grid max-w-md grid-cols-1 gap-3 p-6 sm:max-w-none md:grid-cols-3 lg:grid-cols-4">
         {isLoading
           ? Array.from({ length: ITEMS_PER_PAGE }, (_, i) => (
               <QuizSkeleton key={i} />

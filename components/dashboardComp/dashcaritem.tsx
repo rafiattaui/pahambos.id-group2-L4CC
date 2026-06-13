@@ -14,7 +14,7 @@ export default function DashCarItem({ quiz }: { quiz: Quiz }) {
           fill
           className="object-cover transition-transform duration-300 group-hover:scale-105"
         />
-        {/* Question count — top right */}
+        {/* Question count — bottom left */}
         <div className="absolute bottom-2 left-2">
           <span className="font-body rounded-full bg-black/50 px-2 py-0.5 text-xs font-semibold text-white backdrop-blur-sm">
             {quiz.numQuestions} Qs

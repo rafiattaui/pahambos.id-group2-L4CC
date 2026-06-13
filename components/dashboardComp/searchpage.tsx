@@ -124,7 +124,7 @@ export default function SearchPage({ query: initialQuery = '' }: SearchQuery) {
   const sortOption = (
     VALID_SORTS.includes(searchParams.get(PARAM_SORT) as SortOption)
       ? searchParams.get(PARAM_SORT)
-      : 'a-z'
+      : 'newest'
   ) as SortOption;
   const currentPage = Math.max(1, Number(searchParams.get(PARAM_PAGE) ?? '1'));
 
@@ -202,7 +202,9 @@ export default function SearchPage({ query: initialQuery = '' }: SearchQuery) {
         query: trimmedQuery || undefined,
         tags: selectedCategories.length > 0 ? selectedCategories : undefined,
         sortBy:
-          sortOption === 'a-z' || sortOption === 'most-questions'
+          sortOption === 'a-z' ||
+          sortOption === 'most-questions' ||
+          sortOption === 'newest'
             ? 'asc'
             : 'desc',
         limit: 20,

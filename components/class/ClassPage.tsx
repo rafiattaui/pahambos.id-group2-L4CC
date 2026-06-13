@@ -265,7 +265,7 @@ function ClassCard({
         className={`relative h-28 w-full bg-linear-to-br ${grad} flex items-end p-3`}
       >
         {badge && <span className="absolute top-3 left-3">{badge}</span>}
-        <span className="ml-auto rounded-full bg-white/20 px-2.5 py-0.5 text-[11px] font-semibold text-white backdrop-blur-sm">
+        <span className="font-body ml-auto rounded-full bg-white/20 px-2.5 py-0.5 text-[11px] font-semibold text-white backdrop-blur-sm">
           {cls.members.length}{' '}
           {cls.members.length === 1 ? 'learner' : 'learners'}
         </span>
@@ -1485,7 +1485,7 @@ export default function ClassroomPage() {
                         key={cls.id}
                         cls={cls}
                         badge={
-                          <span className="rounded-full bg-white/30 px-2 py-0.5 text-[10px] font-bold tracking-wide text-white uppercase backdrop-blur-sm">
+                          <span className="font-body rounded-full bg-white/30 px-2 py-0.5 text-[10px] font-bold tracking-wide text-white uppercase backdrop-blur-sm">
                             Educator
                           </span>
                         }
@@ -1548,7 +1548,7 @@ export default function ClassroomPage() {
                         key={cls.id}
                         cls={cls}
                         badge={
-                          <span className="rounded-full bg-white/30 px-2 py-0.5 text-[10px] font-bold tracking-wide text-white uppercase backdrop-blur-sm">
+                          <span className="font-body rounded-full bg-white/30 px-2 py-0.5 text-[10px] font-bold tracking-wide text-white uppercase backdrop-blur-sm">
                             Learner
                           </span>
                         }

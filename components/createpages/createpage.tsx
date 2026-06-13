@@ -35,10 +35,10 @@ async function getCreatorQuizzes(userId: string): Promise<Quiz[]> {
     credentials: 'include',
   });
 
-  if (!response.ok) {
-    throw new Error(`Error fetching quizzes: ${response.statusText}`);
-  }
   const data = await response.json();
+
+  if (!data.success) return [];
+
   return data.quizzes as Quiz[];
 }
 
@@ -320,7 +320,7 @@ export default function CreatePage() {
           )}
 
           {status === 'success' && quizzes.length === 0 && (
-            <div className="col-span-full flex flex-col items-center gap-2 py-16 text-center">
+            <div className="font-body col-span-full flex flex-col items-center gap-2 py-16 text-center">
               <p className="text-base font-medium text-gray-500">
                 No quizzes yet — your creations will appear here.
               </p>

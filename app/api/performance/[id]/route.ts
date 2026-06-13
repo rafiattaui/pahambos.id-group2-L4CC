@@ -2,19 +2,11 @@ import { WithAuth } from '@/lib/api/auth-protected';
 import { handleError } from '@/lib/api/errors';
 import { prisma } from '@/lib/prisma';
 
-export const GET = WithAuth(async (req, { user, params }) => {
+//
+export const GET = WithAuth(async (req, { user }) => {
   try {
-    const { id } = await params;
-
-    if (user.id !== id) {
-      return new Response(
-        JSON.stringify({ success: false, error: 'Forbidden' }),
-        { status: 403 }
-      );
-    }
-
     const records = await prisma.userPerformance.findMany({
-      where: { userId: id },
+      where: { userId: user.id },
       orderBy: { completedAt: 'desc' },
     });
 

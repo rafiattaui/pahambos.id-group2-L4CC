@@ -119,23 +119,28 @@ Provide feedback in the following structure:
 
 Keep the tone supportive and constructive. Be specific — reference actual questions and answers where helpful.
 `.trim();
+  const feedback: string | null = null;
 
-  const response = await generateText({
-    model,
-    prompt,
-    providerOptions: {
-      groq: {} satisfies GroqLanguageModelOptions,
-    },
-    system:
-      'You are a helpful and encouraging educational coach providing feedback on quiz performance.',
-    output: Output.object({
-      schema: z.object({
-        feedback: z.string().describe('The generated feedback for the user.'),
+  try {
+    const response = await generateText({
+      model,
+      prompt,
+      providerOptions: {
+        groq: {} satisfies GroqLanguageModelOptions,
+      },
+      system:
+        'You are a helpful and encouraging educational coach providing feedback on quiz performance.',
+      output: Output.object({
+        schema: z.object({
+          feedback: z.string().describe('The generated feedback for the user.'),
+        }),
       }),
-    }),
-  });
+    });
 
-  const feedback = response.output.feedback;
-
+    const feedback = response.output.feedback;
+  } catch (error) {
+    console.error('Error generating feedback:', error);
+    return null; // or return a default feedback message if desired
+  }
   return feedback; // return parsed AI response
 }

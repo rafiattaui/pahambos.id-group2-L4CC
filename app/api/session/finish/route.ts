@@ -111,7 +111,13 @@ export const POST = WithAuth(async (req, { user, params }) => {
     await pipe.exec();
 
     // ai feedback logic
-    const feedback = await generateFeedback(session, session.id);
+    let feedback: string | null = await generateFeedback(session, session.id);
+
+    if (!feedback) {
+      console.warn('No feedback generated for session:', session.id);
+      feedback =
+        'Great effort! Keep practicing to improve your score and accuracy.';
+    }
 
     pipe.del(`session:${session.id}:answers`); // now we can delete the answers after generating feedback
     await pipe.exec();

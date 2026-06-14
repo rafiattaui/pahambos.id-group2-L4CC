@@ -4,8 +4,15 @@ import { prisma } from '@/lib/prisma';
 
 export const GET = WithAuth(async (req, { user }) => {
   try {
+    // only grab ones within one month,
+    // if its 12 may, grab ones starting 1 may
+
+    const startOfMonth = new Date();
+    startOfMonth.setDate(1);
+    startOfMonth.setHours(0, 0, 0, 0);
+
     const agg = await prisma.userPerformance.aggregate({
-      where: { userId: user.id },
+      where: { userId: user.id, completedAt: { gte: startOfMonth } },
       _max: { finalScore: true, longestStreak: true },
       _avg: { accuracyRate: true },
       _count: { _all: true },

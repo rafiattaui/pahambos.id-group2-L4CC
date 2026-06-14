@@ -1,0 +1,38 @@
+$kind: http-example
+request:
+  url: localhost:3000/api/quiz/29955e49-b640-4117-8d0c-d1f267a01215/metrics
+  method: GET
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    x-ratelimit-remaining: "88"
+    vary: rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch
+    content-type: application/json
+    date: Sun, 14 Jun 2026 08:53:29 GMT
+    connection: keep-alive
+    keep-alive: timeout=5
+    transfer-encoding: chunked
+  body:
+    type: json
+    content: |-
+      {
+        "success": true,
+        "data": {
+          "id": "7fedbff5-d1cf-41e7-bdf3-5d2da7c1e448",
+          "quizId": "29955e49-b640-4117-8d0c-d1f267a01215",
+          "attempts": 3,
+          "uniqueUsers": 5,
+          "avgAccuracy": "0.77",
+          "avgScore": "557.45",
+          "avgTimeTaken": 25196,
+          "updatedAt": "2026-06-14T08:52:09.871Z",
+          "quiz": {
+            "title": "My Science Quiz",
+            "description": "A fun quiz about basic science",
+            "numQuestions": 3,
+            "createdAt": "2026-05-24T11:25:30.346Z"
+          }
+        }
+      }
+order: 1781427213544

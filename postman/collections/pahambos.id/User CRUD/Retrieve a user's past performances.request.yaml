@@ -1,0 +1,5 @@
+$kind: http-request
+url: "{{baseUrl}}/api/quiz/user/performance"
+method: GET
+examples: .resources/Retrieve a user's past performances.resources/examples
+order: 2824580405206690

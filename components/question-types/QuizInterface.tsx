@@ -1247,7 +1247,7 @@ export default function QuizInterface({
               <button
                 disabled={isLocked || selectedIndices.length === 0}
                 onClick={handleMultiSubmit}
-                className="text-md w-full max-w-xs items-center justify-center rounded-2xl bg-blue-500 py-2 font-bold text-white transition hover:bg-blue-400 active:scale-95 disabled:cursor-not-allowed sm:py-4 sm:text-xl"
+                className="text-md font-body w-full max-w-xs items-center justify-center rounded-2xl bg-blue-500 py-2 font-bold text-white transition hover:bg-blue-400 active:scale-95 disabled:cursor-not-allowed sm:py-4 sm:text-xl"
               >
                 {isLocked ? 'Submitted!' : 'Confirm Selection'}
               </button>

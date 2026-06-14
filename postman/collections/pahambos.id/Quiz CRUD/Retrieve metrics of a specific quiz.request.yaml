@@ -1,4 +1,5 @@
 $kind: http-request
+name: Retrieve metrics of a specific quiz
 description: |-
   ## Retrieve Metrics of a Specific Quiz
 
@@ -42,7 +43,7 @@ description: |-
     "error": "Performance not found"
   }
   ```
-url: localhost:3000/api/performance/29955e49-b640-4117-8d0c-d1f267a01215
+url: localhost:3000/api/quiz/29955e49-b640-4117-8d0c-d1f267a01215/performance
 method: GET
 headers:
   User-Agent: insomnia/12.6.0

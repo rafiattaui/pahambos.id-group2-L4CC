@@ -243,6 +243,7 @@ export default function QuizInterface({ quizId }: { quizId: string }) {
   const [totalQuestions, setTotalQuestions] = useState(0);
 
   const [question, setQuestion] = useState<QuizQuestion | null>(null);
+  const questionRef = useRef<QuizQuestion | null>(null);
   const [questionIndex, setQuestionIndex] = useState(0);
   const [timeLeft, setTimeLeft] = useState<number>(30);
 
@@ -384,6 +385,7 @@ export default function QuizInterface({ quizId }: { quizId: string }) {
         await fetchQuestion();
       const elapsed = (Date.now() - new Date(startTime).getTime()) / 1000;
       const remaining = Math.max(0, Math.floor((q.time ?? 30) - elapsed));
+      questionRef.current = q;
       setQuestion(q);
       setTimeLeft(remaining);
       setPhase('answering');
@@ -428,7 +430,12 @@ export default function QuizInterface({ quizId }: { quizId: string }) {
       setErrorMessage(e.message);
       setPhase('error');
     }
-  }, [results, loadQuestion]);
+  }, []);
+
+  const doAdvanceRef = useRef(doAdvance);
+  useEffect(() => {
+    doAdvanceRef.current = doAdvance;
+  }, [doAdvance]);
 
   // Handle timeout
   const handleTimeout = useCallback(async () => {
@@ -441,18 +448,18 @@ export default function QuizInterface({ quizId }: { quizId: string }) {
       setResults((prev) => [
         ...prev,
         {
-          questionText: question?.question ?? '',
+          questionText: questionRef.current?.question ?? '',
           isCorrect: false,
           timedOut: true,
           points: 0,
         },
       ]);
-      await doAdvance();
+      await doAdvanceRef.current();
     } catch (e: any) {
       setErrorMessage(e.message);
       setPhase('error');
     }
-  }, [question, doAdvance]);
+  }, []);
 
   const handleTimeoutRef = useRef(handleTimeout);
   useEffect(() => {
@@ -481,14 +488,14 @@ export default function QuizInterface({ quizId }: { quizId: string }) {
         setResults((prev) => [
           ...prev,
           {
-            questionText: question?.question ?? '',
+            questionText: questionRef.current?.question ?? '',
             isCorrect: result.isCorrect,
             timedOut: result.isTimedOut,
             points: result.points,
           },
         ]);
         setTimeout(async () => {
-          await doAdvance();
+          await doAdvanceRef.current();
         }, 1400);
       } catch (e: any) {
         setErrorMessage(e.message);
@@ -496,7 +503,7 @@ export default function QuizInterface({ quizId }: { quizId: string }) {
       }
       setPhase('feedback');
     },
-    [phase, question, doAdvance]
+    [phase]
   );
 
   // Handle selections

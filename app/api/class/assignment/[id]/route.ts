@@ -110,6 +110,11 @@ export const GET = WithAuth(async (req, { user, params }) => {
           isAssigner: isEducator,
           // Check whether the requesting user specifically has a performance record for this assignment
           userHasCompleted: completedIds.has(user.id),
+          // Learners can see their own score; educators see per-learner scores via learnersCompleted
+          ...(!isEducator && {
+            finalScore:
+              completions.find((p) => p.userId === user.id)?.finalScore ?? null,
+          }),
           // Spread educator-only fields conditionally; learners receive none of this
           ...(isEducator && {
             numLearnersCompleted: completions.length,

@@ -31,9 +31,15 @@ interface Assignment {
   isOverdue: boolean;
   isAssigner: boolean;
   userHasCompleted: boolean;
+  finalScore?: number | null;
   // educator-only fields
   numLearnersCompleted?: number;
-  learnersCompleted?: { name: string; email: string; image?: string | null }[];
+  learnersCompleted?: {
+    name: string;
+    email: string;
+    image?: string | null;
+    finalScore?: number | null;
+  }[];
 }
 
 // ─── API helper ───────────────────────────────────────────────────────────────
@@ -1179,6 +1185,11 @@ function EducatorQuizPanel({ classroomId }: { classroomId: string }) {
                               </span>
                             )}
                             {l.name}
+                            {l.finalScore != null && (
+                              <span className="ml-0.5 rounded-full bg-emerald-200 px-1.5 py-px text-[9px] font-bold text-emerald-800">
+                                {l.finalScore.toLocaleString()} pts
+                              </span>
+                            )}
                           </span>
                         ))}
                       </div>
@@ -1328,6 +1339,11 @@ function LearnerQuizPanel({ classroomId }: { classroomId: string }) {
                   {a.userHasCompleted && (
                     <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
                       Completed
+                    </span>
+                  )}
+                  {a.userHasCompleted && a.finalScore != null && (
+                    <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-semibold text-blue-700">
+                      {a.finalScore.toLocaleString()} pts
                     </span>
                   )}
                 </div>

@@ -5,9 +5,11 @@ import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
 
 const include = {
-  owner: { select: { id: true, name: true, email: true } },
+  owner: { select: { id: true, name: true, email: true, image: true } },
   members: {
-    include: { user: { select: { id: true, name: true, email: true } } },
+    include: {
+      user: { select: { id: true, name: true, email: true, image: true } },
+    },
   },
 } as const;
 

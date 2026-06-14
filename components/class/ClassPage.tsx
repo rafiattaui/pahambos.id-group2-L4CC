@@ -33,7 +33,7 @@ interface Assignment {
   userHasCompleted: boolean;
   // educator-only fields
   numLearnersCompleted?: number;
-  learnersCompleted?: { name: string; email: string }[];
+  learnersCompleted?: { name: string; email: string; image?: string | null }[];
 }
 
 // ─── API helper ───────────────────────────────────────────────────────────────
@@ -77,9 +77,11 @@ function cardGradient(id: string) {
 
 function Avatar({
   name,
+  image,
   size = 'md',
 }: {
   name: string;
+  image?: string | null;
   size?: 'sm' | 'md' | 'lg';
 }) {
   const initials = name
@@ -102,6 +104,18 @@ function Avatar({
       : size === 'sm'
         ? 'h-7 w-7 text-xs'
         : 'h-8 w-8 text-xs';
+  if (image) {
+    return (
+      <img
+        src={image.replace(
+          '/upload/',
+          '/upload/w_80,h_80,c_fill,g_face,f_auto,q_auto/'
+        )}
+        alt={name}
+        className={`${sz} shrink-0 rounded-full object-cover`}
+      />
+    );
+  }
   return (
     <div
       className={`${sz} ${color} flex shrink-0 items-center justify-center rounded-full font-bold`}
@@ -529,7 +543,7 @@ function EducatorClassOverlay({
             <button
               onClick={handleDelete}
               disabled={deleting}
-              className="ml-auto flex items-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-3.5 py-2.5 text-sm font-semibold text-red-600 transition hover:bg-red-100 disabled:opacity-40"
+              className="ml-auto flex items-center gap-1.5 rounded-xl border border-orange-200 bg-orange-50 px-3.5 py-2.5 text-sm font-semibold text-orange-600 transition hover:bg-orange-100 disabled:opacity-40"
             >
               {deleting ? (
                 <Spinner className="h-4 w-4 text-red-500" />
@@ -587,7 +601,7 @@ function EducatorClassOverlay({
                   key={m.id}
                   className="flex items-center gap-3 rounded-xl bg-slate-50 px-4 py-3 ring-1 ring-black/5"
                 >
-                  <Avatar name={m.name} size="lg" />
+                  <Avatar name={m.name} image={m.image} size="lg" />
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-semibold text-slate-800">
                       {m.name}
@@ -650,21 +664,29 @@ function LearnerClassOverlay({
       <div className="flex flex-1 flex-col gap-4 overflow-y-auto p-5">
         {/* Educator */}
         <div className="flex items-center gap-3 rounded-xl bg-slate-50 px-4 py-3 ring-1 ring-black/5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-100">
-            <svg
-              className="h-4 w-4 text-blue-600"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-              />
-            </svg>
-          </div>
+          {cls.owner.image ? (
+            <img
+              src={cls.owner.image}
+              alt={cls.owner.name}
+              className="h-9 w-9 shrink-0 rounded-full object-cover"
+            />
+          ) : (
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-100">
+              <svg
+                className="h-4 w-4 text-blue-600"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                />
+              </svg>
+            </div>
+          )}
           <div>
             <p className="text-[11px] font-semibold tracking-wider text-slate-400 uppercase">
               Educator
@@ -691,7 +713,7 @@ function LearnerClassOverlay({
                   key={m.id}
                   className="flex items-center gap-3 rounded-xl bg-slate-50 px-4 py-3 ring-1 ring-black/5"
                 >
-                  <Avatar name={m.name} size="lg" />
+                  <Avatar name={m.name} image={m.image} size="lg" />
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-semibold text-slate-800">
                       {m.name}
@@ -1129,18 +1151,42 @@ function EducatorQuizPanel({ classroomId }: { classroomId: string }) {
                         year: 'numeric',
                       })}
                     </span>
-                    <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
-                      {a.numLearnersCompleted ?? 0} completed
-                    </span>
                   </div>
-                  {(a.learnersCompleted ?? []).length > 0 && (
-                    <p className="mt-1 truncate text-[10px] text-slate-400">
-                      {a.learnersCompleted!.map((l) => l.name).join(', ')}
-                    </p>
+                  {(a.learnersCompleted ?? []).length > 0 ? (
+                    <div className="mt-2 rounded-lg bg-emerald-50 px-3 py-2 ring-1 ring-emerald-100">
+                      <p className="mb-1.5 text-[10px] font-bold tracking-wider text-emerald-600 uppercase">
+                        Completed · {a.numLearnersCompleted}
+                      </p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {a.learnersCompleted!.map((l) => (
+                          <span
+                            key={l.email}
+                            className="flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-700"
+                          >
+                            {l.image ? (
+                              <img
+                                src={l.image}
+                                alt={l.name}
+                                className="h-3.5 w-3.5 rounded-full object-cover"
+                              />
+                            ) : (
+                              <span className="flex h-3.5 w-3.5 items-center justify-center rounded-full bg-emerald-500 text-[8px] font-bold text-white">
+                                {l.name[0].toUpperCase()}
+                              </span>
+                            )}
+                            {l.name}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <span className="mt-1.5 inline-block rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-400">
+                      0 completed
+                    </span>
                   )}
                 </div>
                 <a
-                  href={`/play/${a.quiz.id}`}
+                  href={`/play/${a.quiz.id}?assignmentId=${a.id}`}
                   className="flex shrink-0 items-center gap-1 rounded-lg bg-blue-600 px-2.5 py-1.5 text-xs font-semibold text-white transition hover:bg-blue-700 active:scale-95"
                 >
                   <svg
@@ -1283,7 +1329,7 @@ function LearnerQuizPanel({ classroomId }: { classroomId: string }) {
                 </div>
               </div>
               <a
-                href={`/play/${a.quiz.id}`}
+                href={`/play/${a.quiz.id}?assignmentId=${a.id}`}
                 className="flex shrink-0 items-center gap-1 rounded-lg bg-blue-600 px-2.5 py-1.5 text-xs font-semibold text-white transition hover:bg-blue-700 active:scale-95"
               >
                 <svg

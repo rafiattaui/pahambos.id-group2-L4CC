@@ -72,6 +72,7 @@ export const GET = WithAuth(async (req, { user, params }) => {
           select: {
             name: true,
             email: true,
+            image: true,
           },
         },
       },

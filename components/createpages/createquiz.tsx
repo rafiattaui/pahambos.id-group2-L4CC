@@ -1604,7 +1604,7 @@ export default function CreateQuizForm({
                     className="font-body border border-blue-600 bg-white font-bold text-blue-600 hover:scale-105 hover:bg-blue-50"
                     onClick={() => setAiModalOpen(true)}
                   >
-                    Generate with AI <Sparkles className="h-4 w-4" />
+                    Generate Question With Bos <Sparkles className="h-4 w-4" />
                   </Button>
                 )}
                 {!isEditMode && (

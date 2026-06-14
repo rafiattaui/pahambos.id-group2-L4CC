@@ -130,7 +130,7 @@ export default function AiQuizPanel({
     {
       role: 'assistant',
       content:
-        "Hi! I'm your quiz editor assistant. I can add, edit, remove, or reorder questions — just tell me what you'd like to change.",
+        "Hi! I'm Bos, your quiz editor assistant. I can add, edit, remove, or reorder questions — just tell me what you'd like to change.",
     },
   ]);
   const [input, setInput] = useState('');
@@ -238,7 +238,7 @@ export default function AiQuizPanel({
             </div>
             <div className="flex-1">
               <p className="font-body text-sm font-bold text-white">
-                Quiz AI Assistant
+                Bos, Your Quiz Editor Assistant
               </p>
               <p className="font-body text-xs text-blue-100">
                 {questions.length} question{questions.length !== 1 ? 's' : ''}{' '}
@@ -262,17 +262,17 @@ export default function AiQuizPanel({
                 className={`flex gap-2 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 {msg.role === 'assistant' && (
-                  <div className="mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-100">
+                  <div className="my-2 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-100">
                     <Bot className="h-3 w-3 text-blue-600" />
                   </div>
                 )}
 
                 <div
-                  className={`max-w-[85%] space-y-2 ${msg.role === 'user' ? 'items-end' : 'items-start'} flex flex-col`}
+                  className={`my-2 max-w-[85%] space-y-2 ${msg.role === 'user' ? 'items-end' : 'items-start'} flex flex-col`}
                 >
                   {msg.content && (
                     <div
-                      className={`font-body rounded-2xl px-3 py-2 text-sm leading-relaxed ${
+                      className={`font-body my-2 rounded-2xl px-3 py-2 text-sm leading-relaxed ${
                         msg.role === 'user'
                           ? 'rounded-tr-sm bg-blue-600 text-white'
                           : 'rounded-tl-sm bg-slate-100 text-slate-800'

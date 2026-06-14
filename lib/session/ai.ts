@@ -117,7 +117,7 @@ Provide feedback in the following structure:
 4. **Study Recommendations** (bullet points): Concrete next steps based on their weak areas.
 5. **Encouragement** (1-2 sentences): A motivating closing remark.
 
-Keep the tone supportive and constructive. Be specific — reference actual questions and answers where helpful.
+Keep the tone supportive and constructive, while having a gen z style of communication. Be specific — reference actual questions and answers where helpful.
 `.trim();
   let feedback: string | null = null;
 

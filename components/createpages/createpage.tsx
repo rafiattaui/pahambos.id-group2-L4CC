@@ -213,7 +213,7 @@ function DeleteConfirmDialog({
           <button
             onClick={onConfirm}
             disabled={deleting}
-            className="font-body flex flex-1 items-center justify-center gap-2 rounded-xl bg-orange-500 py-2.5 text-sm font-bold font-semibold text-white shadow-sm transition-all hover:bg-orange-600 active:scale-[0.98] disabled:opacity-60"
+            className="font-body flex flex-1 items-center justify-center gap-2 rounded-xl bg-orange-500 py-2.5 text-sm font-bold text-white shadow-sm transition-all hover:bg-orange-600 active:scale-[0.98] disabled:opacity-60"
           >
             {deleting ? (
               <>

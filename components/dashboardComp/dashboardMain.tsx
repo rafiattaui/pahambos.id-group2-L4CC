@@ -41,6 +41,14 @@ export function usePerformance(userId: string) {
   return { performance, loading, error };
 }
 
+function toPercent(value: number | string): string {
+  const num = typeof value === 'string' ? parseFloat(value) : value;
+  if (isNaN(num)) return '0%';
+  // if value is a decimal (0–1), convert to percent; if already 0–100, leave as-is
+  const percent = num <= 1 ? num * 100 : num;
+  return `${percent.toFixed(0)}%`;
+}
+
 export default function DashboardMain({
   userId,
   userName,
@@ -49,7 +57,7 @@ export default function DashboardMain({
   const router = useRouter();
   const { performance, loading } = usePerformance(userId);
   const userAvatarImage = userAvatar ?? '/avatar_placeholder.jpg';
-
+  const accuracyRate = toPercent(performance?.accuracyRate ?? '0%');
   return (
     <section className="space-y-6">
       <div className="grid gap-4 md:grid-cols-3">
@@ -535,7 +543,7 @@ export default function DashboardMain({
                     },
                     {
                       label: 'Average Accuracy',
-                      value: performance?.accuracyRate ?? '—',
+                      value: accuracyRate ?? '—',
                       icon: <ChartNoAxesCombined className="h-5 w-5" />,
                     },
                     {

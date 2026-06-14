@@ -30,7 +30,7 @@ export const GET = WithAuth(async (req, { user }) => {
         data: {
           totalQuizzes: agg._count._all,
           finalScore: agg._max.finalScore ?? 0,
-          accuracyRate: Number(agg._avg.accuracyRate ?? 0).toFixed(1),
+          accuracyRate: Number(agg._avg.accuracyRate ?? 0).toFixed(2),
           longestStreak: agg._max.longestStreak ?? 0,
         },
       }),

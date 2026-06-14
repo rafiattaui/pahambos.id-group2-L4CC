@@ -735,6 +735,36 @@ export default function QuizInterface({ quizId }: { quizId: string }) {
             )}
           </div>
 
+          {/* Review list */}
+          <div className="font-body mx-auto flex max-w-xl flex-col gap-3">
+            <p className="text-black/40">Review</p>
+            {results.map((r, i) => {
+              const icon = r.timedOut ? '⏱️' : r.isCorrect ? '✅' : '❌';
+              return (
+                <div
+                  key={i}
+                  className="flex items-start gap-3 rounded-xl px-4 py-3"
+                  style={{
+                    background: 'rgba(255,255,255,0.7)',
+                    border: '1px solid rgba(0,0,0,0.07)',
+                  }}
+                >
+                  <span className="mt-0.5 text-xl">{icon}</span>
+                  <div className="flex flex-1 items-center justify-between gap-2">
+                    <span className="font-body text-sm leading-snug text-gray-700">
+                      {r.questionText}
+                    </span>
+                    {r.points > 0 && (
+                      <span className="shrink-0 text-sm font-bold text-blue-600">
+                        +{r.points}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
           <div className="flex flex-col items-center">
             {/* AI Feedback */}
             {aiFeedback ? (
@@ -788,36 +818,6 @@ export default function QuizInterface({ quizId }: { quizId: string }) {
             >
               Continue 🏆
             </button>
-          </div>
-
-          {/* Review list */}
-          <div className="font-body mx-auto flex max-w-xl flex-col gap-3">
-            <p className="text-black/40">Review</p>
-            {results.map((r, i) => {
-              const icon = r.timedOut ? '⏱️' : r.isCorrect ? '✅' : '❌';
-              return (
-                <div
-                  key={i}
-                  className="flex items-start gap-3 rounded-xl px-4 py-3"
-                  style={{
-                    background: 'rgba(255,255,255,0.7)',
-                    border: '1px solid rgba(0,0,0,0.07)',
-                  }}
-                >
-                  <span className="mt-0.5 text-xl">{icon}</span>
-                  <div className="flex flex-1 items-center justify-between gap-2">
-                    <span className="font-body text-sm leading-snug text-gray-700">
-                      {r.questionText}
-                    </span>
-                    {r.points > 0 && (
-                      <span className="shrink-0 text-sm font-bold text-blue-600">
-                        +{r.points}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
           </div>
         </div>
       </AnimatedBackground>

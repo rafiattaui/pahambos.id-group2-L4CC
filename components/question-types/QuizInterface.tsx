@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useState, useCallback, useRef, useEffect } from 'react';
+import Image from 'next/image';
 import { r_SessionSchema } from '@/lib/schemas/sessionschemas';
 import { z } from 'zod';
 
@@ -230,11 +231,12 @@ async function advanceQuestion(): Promise<{
   return { newStatus: data.newStatus };
 }
 
-async function finishSession(): Promise<void> {
+async function finishSession(): Promise<string | null> {
   const res = await fetch('/api/session/finish', { method: 'POST' });
   const data = await res.json();
   if (!data.success)
     throw new Error(data.message ?? 'Failed to finish session');
+  return data.data?.feedback ?? null;
 }
 
 // ── Main component ────────────────────────────────────────────────────────────
@@ -252,6 +254,7 @@ export default function QuizInterface({
   const [totalQuestions, setTotalQuestions] = useState(0);
 
   const [question, setQuestion] = useState<QuizQuestion | null>(null);
+  const questionRef = useRef<QuizQuestion | null>(null);
   const [questionIndex, setQuestionIndex] = useState(0);
   const [timeLeft, setTimeLeft] = useState<number>(30);
 
@@ -276,6 +279,9 @@ export default function QuizInterface({
   const [hintLoading, setHintLoading] = useState(false);
   const [hintUsed, setHintUsed] = useState(false);
 
+  const [aiFeedback, setAiFeedback] = useState<string | null>(null);
+  const [isMuted, setIsMuted] = useState(false);
+
   const bgMusicRef = useRef<HTMLAudioElement | null>(null);
   const finishMusicRef = useRef<HTMLAudioElement | null>(null);
   const submitLockRef = useRef(false); // prevent double-submit
@@ -286,6 +292,15 @@ export default function QuizInterface({
       await fetch('/api/session', { method: 'DELETE' });
     }
     router.push('/dashboard');
+  }
+
+  function handleToggleMute() {
+    setIsMuted((prev) => {
+      const next = !prev;
+      if (bgMusicRef.current) bgMusicRef.current.muted = next;
+      if (finishMusicRef.current) finishMusicRef.current.muted = next;
+      return next;
+    });
   }
 
   async function fetchLeaderboard() {
@@ -391,6 +406,7 @@ export default function QuizInterface({
         await fetchQuestion();
       const elapsed = (Date.now() - new Date(startTime).getTime()) / 1000;
       const remaining = Math.max(0, Math.floor((q.time ?? 30) - elapsed));
+      questionRef.current = q;
       setQuestion(q);
       setTimeLeft(remaining);
       setPhase('answering');
@@ -422,7 +438,8 @@ export default function QuizInterface({
       const { newStatus } = await advanceQuestion();
       if (newStatus === 'finished') {
         setPhase('finishing');
-        await finishSession();
+        const feedback = await finishSession();
+        setAiFeedback(feedback);
         setPhase('results');
       } else {
         setTimeout(() => {
@@ -434,7 +451,12 @@ export default function QuizInterface({
       setErrorMessage(e.message);
       setPhase('error');
     }
-  }, [results, loadQuestion]);
+  }, []);
+
+  const doAdvanceRef = useRef(doAdvance);
+  useEffect(() => {
+    doAdvanceRef.current = doAdvance;
+  }, [doAdvance]);
 
   // Handle timeout
   const handleTimeout = useCallback(async () => {
@@ -447,18 +469,18 @@ export default function QuizInterface({
       setResults((prev) => [
         ...prev,
         {
-          questionText: question?.question ?? '',
+          questionText: questionRef.current?.question ?? '',
           isCorrect: false,
           timedOut: true,
           points: 0,
         },
       ]);
-      await doAdvance();
+      await doAdvanceRef.current();
     } catch (e: any) {
       setErrorMessage(e.message);
       setPhase('error');
     }
-  }, [question]);
+  }, []);
 
   const handleTimeoutRef = useRef(handleTimeout);
   useEffect(() => {
@@ -487,14 +509,14 @@ export default function QuizInterface({
         setResults((prev) => [
           ...prev,
           {
-            questionText: question?.question ?? '',
+            questionText: questionRef.current?.question ?? '',
             isCorrect: result.isCorrect,
             timedOut: result.isTimedOut,
             points: result.points,
           },
         ]);
         setTimeout(async () => {
-          await doAdvance();
+          await doAdvanceRef.current();
         }, 1400);
       } catch (e: any) {
         setErrorMessage(e.message);
@@ -502,7 +524,7 @@ export default function QuizInterface({
       }
       setPhase('feedback');
     },
-    [phase, question, doAdvance]
+    [phase]
   );
 
   // Handle selections
@@ -734,19 +756,6 @@ export default function QuizInterface({
             )}
           </div>
 
-          <div className="flex flex-col items-center">
-            <button
-              onClick={() => {
-                setPhase('leaderboard');
-                fetchLeaderboard();
-              }}
-              className="font-body mx-auto mt-5 mb-10 block w-full max-w-xl rounded-2xl bg-blue-500 py-4 text-center text-xl font-bold text-white transition hover:bg-blue-400 active:scale-95"
-              style={{ boxShadow: '0 4px 24px rgba(59,130,246,0.4)' }}
-            >
-              Continue 🏆
-            </button>
-          </div>
-
           {/* Review list */}
           <div className="font-body mx-auto flex max-w-xl flex-col gap-3">
             <p className="text-black/40">Review</p>
@@ -775,6 +784,61 @@ export default function QuizInterface({
                 </div>
               );
             })}
+          </div>
+
+          <div className="flex flex-col items-center">
+            {/* AI Feedback */}
+            {aiFeedback ? (
+              <div
+                className="font-body mx-auto mt-6 w-full max-w-xl rounded-3xl px-6 py-5"
+                style={{
+                  background: 'rgba(255,255,255,0.65)',
+                  backdropFilter: 'blur(20px)',
+                  WebkitBackdropFilter: 'blur(20px)',
+                  border: '1px solid rgba(255,255,255,0.9)',
+                  boxShadow:
+                    '0 25px 60px rgba(99,149,210,0.18), inset 0 1px 0 rgba(255,255,255,0.8)',
+                }}
+              >
+                <div className="mb-3 flex items-center gap-2">
+                  <span className="text-xl">🤖</span>
+                  <span className="text-sm font-bold tracking-wider text-blue-700 uppercase">
+                    AI Coach Feedback
+                  </span>
+                </div>
+                <div className="prose prose-sm max-w-none leading-relaxed whitespace-pre-wrap text-gray-700">
+                  {aiFeedback}
+                </div>
+              </div>
+            ) : (
+              <div
+                className="font-body mx-auto mt-6 w-full max-w-xl rounded-3xl px-6 py-5"
+                style={{
+                  background: 'rgba(255,255,255,0.45)',
+                  backdropFilter: 'blur(20px)',
+                  WebkitBackdropFilter: 'blur(20px)',
+                  border: '1px solid rgba(255,255,255,0.7)',
+                }}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="h-5 w-5 animate-spin rounded-full border-2 border-blue-400 border-t-transparent" />
+                  <span className="text-sm text-black/40">
+                    Generating AI feedback…
+                  </span>
+                </div>
+              </div>
+            )}
+
+            <button
+              onClick={() => {
+                setPhase('leaderboard');
+                fetchLeaderboard();
+              }}
+              className="font-body mx-auto mt-5 mb-10 block w-full max-w-xl rounded-2xl bg-blue-500 py-4 text-center text-xl font-bold text-white transition hover:bg-blue-400 active:scale-95"
+              style={{ boxShadow: '0 4px 24px rgba(59,130,246,0.4)' }}
+            >
+              Continue 🏆
+            </button>
           </div>
         </div>
       </AnimatedBackground>
@@ -951,6 +1015,12 @@ export default function QuizInterface({
             >
               Back to Dashboard
             </button>
+            <button
+              onClick={handleToggleMute}
+              className="font-body mt-3 flex w-full items-center justify-center gap-2 rounded-2xl border border-gray-300 bg-white/60 py-4 text-xl font-bold text-gray-700 transition hover:bg-white/80 active:scale-95"
+            >
+              {isMuted ? '🔇' : '🔊'} {isMuted ? 'Unmute' : 'Mute'}
+            </button>
           </div>
         </div>
       </AnimatedBackground>
@@ -965,10 +1035,18 @@ export default function QuizInterface({
         {/* Back to Dashboard button */}
         <button
           onClick={handleBackToDashboard}
-          className="absolute top-4 right-4 z-20 flex h-10 w-10 items-center justify-center rounded-xl border border-gray-300 text-lg transition hover:bg-black/10 active:scale-95"
+          className="absolute top-4 right-16 z-20 flex h-10 w-10 items-center justify-center rounded-xl border border-gray-300 text-lg transition hover:bg-black/10 active:scale-95"
           title="Back to Dashboard"
         >
           🏠
+        </button>
+        {/* Mute button */}
+        <button
+          onClick={handleToggleMute}
+          className="absolute top-4 right-4 z-20 flex h-10 w-10 items-center justify-center rounded-xl border border-gray-300 text-lg transition hover:bg-black/10 active:scale-95"
+          title={isMuted ? 'Unmute' : 'Mute'}
+        >
+          {isMuted ? '🔇' : '🔊'}
         </button>
 
         {/* Timer + counter pills */}
@@ -1033,9 +1111,11 @@ export default function QuizInterface({
           </h2>
           {question.imageUrl && (
             <div className="mt-4 flex justify-center">
-              <img
+              <Image
                 src={question.imageUrl}
                 alt=""
+                width={512}
+                height={160}
                 className="max-h-40 w-full max-w-lg rounded-2xl object-cover shadow-xl"
               />
             </div>

@@ -28,7 +28,7 @@ export function usePerformance(userId: string) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch(`/api/performance/${userId}`)
+    fetch(`/api/performance`)
       .then((res) => res.json())
       .then((json) => {
         if (json.success) setPerformance(json.data);

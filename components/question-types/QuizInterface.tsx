@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useState, useCallback, useRef, useEffect } from 'react';
+import Image from 'next/image';
 import { r_SessionSchema } from '@/lib/schemas/sessionschemas';
 import { z } from 'zod';
 
@@ -225,11 +226,12 @@ async function advanceQuestion(): Promise<{
   return { newStatus: data.newStatus };
 }
 
-async function finishSession(): Promise<void> {
+async function finishSession(): Promise<string | null> {
   const res = await fetch('/api/session/finish', { method: 'POST' });
   const data = await res.json();
   if (!data.success)
     throw new Error(data.message ?? 'Failed to finish session');
+  return data.data?.feedback ?? null;
 }
 
 // ── Main component ────────────────────────────────────────────────────────────
@@ -264,6 +266,8 @@ export default function QuizInterface({ quizId }: { quizId: string }) {
   const [hint, setHint] = useState<string | null>(null);
   const [hintLoading, setHintLoading] = useState(false);
   const [hintUsed, setHintUsed] = useState(false);
+
+  const [aiFeedback, setAiFeedback] = useState<string | null>(null);
 
   const bgMusicRef = useRef<HTMLAudioElement | null>(null);
   const finishMusicRef = useRef<HTMLAudioElement | null>(null);
@@ -411,7 +415,8 @@ export default function QuizInterface({ quizId }: { quizId: string }) {
       const { newStatus } = await advanceQuestion();
       if (newStatus === 'finished') {
         setPhase('finishing');
-        await finishSession();
+        const feedback = await finishSession();
+        setAiFeedback(feedback);
         setPhase('results');
       } else {
         setTimeout(() => {
@@ -447,7 +452,7 @@ export default function QuizInterface({ quizId }: { quizId: string }) {
       setErrorMessage(e.message);
       setPhase('error');
     }
-  }, [question]);
+  }, [question, doAdvance]);
 
   const handleTimeoutRef = useRef(handleTimeout);
   useEffect(() => {
@@ -724,6 +729,48 @@ export default function QuizInterface({ quizId }: { quizId: string }) {
           </div>
 
           <div className="flex flex-col items-center">
+            {/* AI Feedback */}
+            {aiFeedback ? (
+              <div
+                className="font-body mx-auto mt-6 w-full max-w-xl rounded-3xl px-6 py-5"
+                style={{
+                  background: 'rgba(255,255,255,0.65)',
+                  backdropFilter: 'blur(20px)',
+                  WebkitBackdropFilter: 'blur(20px)',
+                  border: '1px solid rgba(255,255,255,0.9)',
+                  boxShadow:
+                    '0 25px 60px rgba(99,149,210,0.18), inset 0 1px 0 rgba(255,255,255,0.8)',
+                }}
+              >
+                <div className="mb-3 flex items-center gap-2">
+                  <span className="text-xl">🤖</span>
+                  <span className="text-sm font-bold tracking-wider text-blue-700 uppercase">
+                    AI Coach Feedback
+                  </span>
+                </div>
+                <div className="prose prose-sm max-w-none leading-relaxed whitespace-pre-wrap text-gray-700">
+                  {aiFeedback}
+                </div>
+              </div>
+            ) : (
+              <div
+                className="font-body mx-auto mt-6 w-full max-w-xl rounded-3xl px-6 py-5"
+                style={{
+                  background: 'rgba(255,255,255,0.45)',
+                  backdropFilter: 'blur(20px)',
+                  WebkitBackdropFilter: 'blur(20px)',
+                  border: '1px solid rgba(255,255,255,0.7)',
+                }}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="h-5 w-5 animate-spin rounded-full border-2 border-blue-400 border-t-transparent" />
+                  <span className="text-sm text-black/40">
+                    Generating AI feedback…
+                  </span>
+                </div>
+              </div>
+            )}
+
             <button
               onClick={() => {
                 setPhase('leaderboard');
@@ -1022,9 +1069,11 @@ export default function QuizInterface({ quizId }: { quizId: string }) {
           </h2>
           {question.imageUrl && (
             <div className="mt-4 flex justify-center">
-              <img
+              <Image
                 src={question.imageUrl}
                 alt=""
+                width={512}
+                height={160}
                 className="max-h-40 w-full max-w-lg rounded-2xl object-cover shadow-xl"
               />
             </div>

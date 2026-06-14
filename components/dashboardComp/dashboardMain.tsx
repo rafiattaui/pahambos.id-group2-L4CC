@@ -565,7 +565,12 @@ export default function DashboardMain({
               )}
             </div>
 
-            <Button className="font-body mt-4 h-11 w-full max-w-xs bg-white font-bold text-blue-600 transition-all hover:scale-105 hover:bg-orange-50">
+            <Button
+              className="font-body mt-4 h-11 w-full max-w-xs bg-white font-bold text-blue-600 transition-all hover:scale-105 hover:bg-orange-50"
+              onClick={() => {
+                router.push(dashboardHref('/profile?tab=performance'));
+              }}
+            >
               View Your Performance
             </Button>
           </div>

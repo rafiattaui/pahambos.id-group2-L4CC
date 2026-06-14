@@ -37,6 +37,7 @@ import { useRouter } from 'next/navigation';
 import { Spinner } from '../ui/spinner';
 import { Textarea } from '../ui/textarea';
 import { toast } from 'sonner';
+import AiQuizPanel from './AiQuizPanel';
 
 // Maps to schema's 'SingleSelect' | 'MultiSelect'
 type QuestionType = 'multiple-choice' | 'multiple-select-choice';
@@ -1427,6 +1428,13 @@ export default function CreateQuizForm({
           onClose={() => setDraftOpen(false)}
         />
       )}
+
+      <AiQuizPanel
+        questions={questions}
+        onQuestionsChange={setQuestions}
+        title={title}
+        description={description}
+      />
     </div>
   );
 }

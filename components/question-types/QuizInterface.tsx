@@ -1060,7 +1060,7 @@ export default function QuizInterface({
               )}
               {hint && !hintLoading && (
                 <div className="font-body w-full rounded-2xl border border-yellow-400/40 bg-yellow-50 px-4 py-3 text-center text-sm text-yellow-800">
-                  💡 {hint}
+                  💡 Bos said: {hint}
                 </div>
               )}
             </div>

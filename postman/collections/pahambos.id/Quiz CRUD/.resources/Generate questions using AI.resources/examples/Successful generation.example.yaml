@@ -22,12 +22,11 @@ response:
     x-ratelimit-remaining: "99"
     vary: rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch
     content-type: text/plain;charset=UTF-8
-    set-cookie: better-auth.session_data=eyJzZXNzaW9uIjp7InNlc3Npb24iOnsiZXhwaXJlc0F0IjoiMjAyNi0wNi0yMVQwNToyNDowMC4yOTFaIiwidG9rZW4iOiJYNnB1QWJxa2ZaamFhWlZLT3JPblZBeHdzT0ptWEVqaSIsImNyZWF0ZWRBdCI6IjIwMjYtMDYtMTRUMDU6MjQ6MDAuMjkxWiIsInVwZGF0ZWRBdCI6IjIwMjYtMDYtMTRUMDU6MjQ6MDAuMjkxWiIsImlwQWRkcmVzcyI6IjAwMDA6MDAwMDowMDAwOjAwMDA6MDAwMDowMDAwOjAwMDA6MDAwMCIsInVzZXJBZ2VudCI6Ik1vemlsbGEvNS4wIChXaW5kb3dzIE5UIDEwLjA7IFdpbjY0OyB4NjQpIEFwcGxlV2ViS2l0LzUzNy4zNiAoS0hUTUwsIGxpa2UgR2Vja28pIENocm9tZS8xNDguMC4wLjAgU2FmYXJpLzUzNy4zNiIsInVzZXJJZCI6ImYwZWM5ZjVhLTNkN2ItNDYyMy05MjQ5LTE1MDEyNjFiNDdiOCIsImlkIjoiMTNjYTZjZmYtNzNjNy00ODk2LTg5MTMtOGFkMzZkNzE4ZTE0In0sInVzZXIiOnsibmFtZSI6ImF0dGEiLCJlbWFpbCI6InRlc3RAZ21haWwuY29tIiwiZW1haWxWZXJpZmllZCI6ZmFsc2UsImltYWdlIjpudWxsLCJjcmVhdGVkQXQiOiIyMDI2LTA1LTI0VDEwOjQwOjUwLjI1MloiLCJ1cGRhdGVkQXQiOiIyMDI2LTA1LTI0VDEwOjQwOjUwLjI1MloiLCJpZCI6ImYwZWM5ZjVhLTNkN2ItNDYyMy05MjQ5LTE1MDEyNjFiNDdiOCJ9LCJ1cGRhdGVkQXQiOjE3ODE0MjQ0NjYxMTksInZlcnNpb24iOiIxIn0sImV4cGlyZXNBdCI6MTc4MTQyNDc2NjExOSwic2lnbmF0dXJlIjoieDRHUjZ4SjgyRnM0YXVRVU5oWklwRDNvSUNBaVUwcEJHdUZNQWpsRmpKNCJ9; Path=/; Expires=Sun, 14 Jun 2026 08:12:47 GMT; Max-Age=300; HttpOnly; SameSite=lax
-    date: Sun, 14 Jun 2026 08:07:47 GMT
+    date: Sun, 14 Jun 2026 09:30:39 GMT
     connection: keep-alive
     keep-alive: timeout=5
     transfer-encoding: chunked
   body:
     type: text
-    content: '{"success":true,"data":[{"order":0,"question":"What is 7 × 6?","type":"SingleSelect","time":30,"answers":["42","36","48","54"],"correctAnswers":[0]},{"order":1,"question":"Select all the correct products of 12 × 5 and 13 × 5.","type":"MultiSelect","time":30,"answers":["60","65","55","70"],"correctAnswers":[1]},{"order":2,"question":"What is 14 × 9?","type":"SingleSelect","time":30,"answers":["126","112","140","144"],"correctAnswers":[0]},{"order":3,"question":"Select all correct results of 15×7 and 16×7.","type":"MultiSelect","time":30,"answers":["105","112","100","120"],"correctAnswers":[1]}]}'
-order: 1781424546943
+    content: '{"success":true,"data":[{"order":0,"question":"What is 7 × 8?","type":"SingleSelect","time":30,"answers":["49","56","63","72"],"correctAnswers":[1]},{"order":1,"question":"Which of the following are multiples of 12?","type":"MultiSelect","time":30,"answers":["24","25","36","47"],"correctAnswers":[0,2]},{"order":2,"question":"What is 13 × 9?","type":"SingleSelect","time":30,"answers":["117","99","126","108"],"correctAnswers":[0]},{"order":3,"question":"Select all products that are less than 200 from the following list: 144, 225, 189, 256.","type":"MultiSelect","time":30,"answers":["144","225","189","256"],"correctAnswers":[0,2]}]}'
+order: 1781429441035

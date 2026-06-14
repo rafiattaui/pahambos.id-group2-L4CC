@@ -20,10 +20,7 @@ const QuizOutputSchema = z.object({
       type: z.enum(['MultiSelect', 'SingleSelect']),
       time: z.number().int().nonnegative(),
       answers: z.array(z.string()).min(2).max(4),
-      correctAnswers: z
-        .array(z.union([z.number(), z.string()]))
-        .min(1)
-        .max(4),
+      correctAnswers: z.array(z.string()).min(1).max(4), // now expects answer text
     })
   ),
 });
@@ -49,8 +46,8 @@ ${description ? `Quiz Description: "${description}"` : ''}
 Difficulty: ${difficultyLabel} (${difficulty}/5)
 
 Rules:
-- SingleSelect: exactly 1 index in correctAnswers. MultiSelect: 2+ indexes, use occasionally.
-- correctAnswers are integer indexes into the answers array (e.g. [0] or [1, 2]), never strings.
+- SingleSelect: exactly 1 value in correctAnswers. MultiSelect: 2+ values, use occasionally.
+- correctAnswers must be the exact answer strings from the answers array (e.g. ["60"] or ["60", "65"]).
 - time in seconds: 20 for easy, 30 for medium, 45 for hard.
 - order starts from 0. Do not repeat questions.`,
     output: Output.object({ schema: QuizOutputSchema }),
@@ -58,7 +55,9 @@ Rules:
 
   return output.questions.map((q) => ({
     ...q,
-    correctAnswers: q.correctAnswers.map(Number),
+    correctAnswers: q.correctAnswers
+      .map((answer) => q.answers.indexOf(answer))
+      .filter((i) => i !== -1), // drop any that don't match
   }));
 }
 

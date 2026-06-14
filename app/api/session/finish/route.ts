@@ -64,6 +64,37 @@ export const POST = WithAuth(async (req, { user, params }) => {
       },
     });
 
+    const uniqueUsers = await prisma.userPerformance.findMany({
+      where: { quizId: session.quizId },
+      distinct: ['userId'],
+      select: { userId: true },
+    });
+
+    const perfAgg = await prisma.userPerformance.aggregate({
+      where: { quizId: session.quizId },
+      _avg: { accuracyRate: true, finalScore: true, timeTaken: true },
+      _count: { _all: true },
+    });
+
+    await prisma.quizMetrics.upsert({
+      where: { quizId: session.quizId },
+      create: {
+        quizId: session.quizId,
+        attempts: 1,
+        uniqueUsers: 1,
+        avgAccuracy: metrics.totalCorrect / session.totalQuestions,
+        avgScore: session.score,
+        avgTimeTaken: metrics.totalResponseTime,
+      },
+      update: {
+        attempts: { increment: 1 },
+        uniqueUsers: uniqueUsers.length,
+        avgAccuracy: perfAgg._avg.accuracyRate ?? 0,
+        avgScore: perfAgg._avg.finalScore ?? 0,
+        avgTimeTaken: Math.round(perfAgg._avg.timeTaken ?? 0),
+      },
+    });
+
     // right now, leaderboards are being rebuilt
     // for every session submission which is not efficient,
     // but because we take into account hintsUsed and timeTaken as tiebreakers,

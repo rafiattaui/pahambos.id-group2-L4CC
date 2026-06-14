@@ -785,7 +785,7 @@ function AIGenerateModal({
               <Sparkles className="h-4 w-4 text-white" />
             </div>
             <h3 className="font-body text-sm font-semibold text-gray-900">
-              Generate Questions with AI
+              Generate Questions with Bos
             </h3>
           </div>
           <button
@@ -800,12 +800,12 @@ function AIGenerateModal({
 
         {/* Context preview */}
         <div className="rounded-xl border border-blue-100 bg-blue-50 p-3 text-xs text-blue-700">
-          <p className="font-semibold">{title || 'No title yet'}</p>
+          <p className="font-body font-semibold">{title || 'No title yet'}</p>
           {description?.trim() && (
             <p className="mt-0.5 line-clamp-2 text-blue-500">{description}</p>
           )}
           {!canGenerate && (
-            <p className="mt-1 font-medium text-orange-500">
+            <p className="font-body mt-1 font-medium text-orange-500">
               Quiz title must be at least 5 characters to generate.
             </p>
           )}
@@ -855,15 +855,16 @@ function AIGenerateModal({
             onChange={(e) => setDifficulty(Number(e.target.value))}
             className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-gray-200 accent-blue-600"
           />
-          <div className="flex justify-between text-xs text-gray-400">
+          <div className="font-body flex justify-between text-xs text-gray-400">
             <span>Very Easy</span>
             <span>Very Hard</span>
           </div>
         </div>
 
         {/* Warning if questions already exist */}
-        <p className="text-center text-xs text-gray-400">
-          This will <span className="font-medium text-orange-500">replace</span>{' '}
+        <p className="font-body text-center text-xs text-gray-400">
+          This will{' '}
+          <span className="font-body font-medium text-orange-500">replace</span>{' '}
           any questions you&apos;ve already added.
         </p>
 
@@ -872,14 +873,14 @@ function AIGenerateModal({
           <button
             onClick={onClose}
             disabled={isGenerating}
-            className="flex-1 rounded-xl border border-gray-200 py-2.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50 disabled:opacity-50"
+            className="font-body flex-1 rounded-xl border border-gray-200 py-2.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50 disabled:opacity-50"
           >
             Cancel
           </button>
           <button
             onClick={() => onGenerate(numQuestions, difficulty)}
             disabled={!canGenerate || isGenerating}
-            className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-blue-600 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-blue-700 active:scale-[0.98] disabled:opacity-50"
+            className="font-body flex flex-1 items-center justify-center gap-2 rounded-xl bg-blue-600 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-blue-700 active:scale-[0.98] disabled:opacity-50"
           >
             {isGenerating ? (
               <>

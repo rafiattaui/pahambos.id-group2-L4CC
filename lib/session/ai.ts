@@ -119,7 +119,7 @@ Provide feedback in the following structure:
 
 Keep the tone supportive and constructive. Be specific — reference actual questions and answers where helpful.
 `.trim();
-  const feedback: string | null = null;
+  let feedback: string | null = null;
 
   try {
     const response = await generateText({
@@ -137,10 +137,10 @@ Keep the tone supportive and constructive. Be specific — reference actual ques
       }),
     });
 
-    const feedback = response.output.feedback;
+    feedback = response.output.feedback;
   } catch (error) {
     console.error('Error generating feedback:', error);
-    return null; // or return a default feedback message if desired
+    throw error; // or return a default feedback message if desired
   }
   return feedback; // return parsed AI response
 }

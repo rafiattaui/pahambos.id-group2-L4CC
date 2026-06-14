@@ -111,7 +111,14 @@ export const POST = WithAuth(async (req, { user, params }) => {
     await pipe.exec();
 
     // ai feedback logic
-    let feedback: string | null = await generateFeedback(session, session.id);
+    let feedback: string | null = null;
+
+    try {
+      feedback = await generateFeedback(session, session.id);
+      // console.log('Feedback generated successfully:', feedback);
+    } catch (error) {
+      console.error('Feedback generation failed:', error);
+    }
 
     if (!feedback) {
       console.warn('No feedback generated for session:', session.id);

@@ -1,6 +1,7 @@
 import ImageSlideshow from '@/components/image-slideshow';
 import { SignupForm } from '@/components/signup-form';
 import NavbarLogin from '@/components/header/navbarlogin';
+import { Suspense } from 'react';
 
 export default function SignupPage() {
   return (
@@ -13,7 +14,9 @@ export default function SignupPage() {
         <div className="flex flex-col gap-4 p-6 md:p-10">
           <div className="flex flex-1 items-center justify-center">
             <div className="w-full max-w-xs rounded-2xl bg-white p-6 shadow-lg">
-              <SignupForm />
+              <Suspense fallback={<div>Loading...</div>}>
+                <SignupForm />
+              </Suspense>
             </div>
           </div>
         </div>

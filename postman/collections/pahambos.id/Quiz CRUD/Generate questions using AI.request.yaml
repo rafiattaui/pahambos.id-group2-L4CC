@@ -1,5 +1,4 @@
 $kind: http-request
-name: Generate questions using AI
 url: "{{baseUrl}}/api/quiz/ai"
 method: POST
 body:
@@ -15,4 +14,5 @@ body:
     \    \"difficulty\": 3\r
 
     }"
+examples: .resources/Generate questions using AI.resources/examples
 order: 4487746137583348

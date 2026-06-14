@@ -281,6 +281,7 @@ export default function QuizInterface({
 
   const [aiFeedback, setAiFeedback] = useState<string | null>(null);
   const [isMuted, setIsMuted] = useState(false);
+  const [isImageEnlarged, setIsImageEnlarged] = useState(false);
 
   const bgMusicRef = useRef<HTMLAudioElement | null>(null);
   const finishMusicRef = useRef<HTMLAudioElement | null>(null);
@@ -399,6 +400,7 @@ export default function QuizInterface({
     setHint(null);
     setHintLoading(false);
     setHintUsed(false);
+    setIsImageEnlarged(false);
     hintLockRef.current = false;
     submitLockRef.current = false;
     try {
@@ -803,7 +805,7 @@ export default function QuizInterface({
                 <div className="mb-3 flex items-center gap-2">
                   <span className="text-xl">🤖</span>
                   <span className="text-sm font-bold tracking-wider text-blue-700 uppercase">
-                    AI Coach Feedback
+                    Feedback from Bos
                   </span>
                 </div>
                 <div className="prose prose-sm max-w-none leading-relaxed whitespace-pre-wrap text-gray-700">
@@ -1015,12 +1017,6 @@ export default function QuizInterface({
             >
               Back to Dashboard
             </button>
-            <button
-              onClick={handleToggleMute}
-              className="font-body mt-3 flex w-full items-center justify-center gap-2 rounded-2xl border border-gray-300 bg-white/60 py-4 text-xl font-bold text-gray-700 transition hover:bg-white/80 active:scale-95"
-            >
-              {isMuted ? '🔇' : '🔊'} {isMuted ? 'Unmute' : 'Mute'}
-            </button>
           </div>
         </div>
       </AnimatedBackground>
@@ -1111,13 +1107,25 @@ export default function QuizInterface({
           </h2>
           {question.imageUrl && (
             <div className="mt-4 flex justify-center">
-              <Image
-                src={question.imageUrl}
-                alt=""
-                width={512}
-                height={160}
-                className="max-h-40 w-full max-w-lg rounded-2xl object-cover shadow-xl"
-              />
+              <div
+                className="group relative cursor-zoom-in"
+                onClick={() => setIsImageEnlarged(true)}
+                title="Click to enlarge"
+              >
+                <Image
+                  src={question.imageUrl}
+                  alt=""
+                  width={512}
+                  height={160}
+                  className="max-h-40 w-full max-w-lg rounded-2xl object-cover shadow-xl transition-transform duration-200 group-hover:scale-[1.02]"
+                />
+                <span
+                  className="pointer-events-none absolute right-2 bottom-2 flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100"
+                  style={{ background: 'rgba(0,0,0,0.45)' }}
+                >
+                  🔍 Enlarge
+                </span>
+              </div>
             </div>
           )}
 
@@ -1146,6 +1154,41 @@ export default function QuizInterface({
             </div>
           )}
         </GlassCard>
+
+        {/* Image popup modal — outside GlassCard so backdrop-filter doesn't clip it */}
+        {isImageEnlarged && question.imageUrl && (
+          <div
+            className="fixed inset-0 z-[9999] flex items-center justify-center"
+            style={{ background: 'rgba(0,0,0,0.78)' }}
+            onClick={() => setIsImageEnlarged(false)}
+          >
+            <div
+              className="relative rounded-3xl p-3"
+              style={{
+                background: '#fff',
+                boxShadow: '0 32px 80px rgba(0,0,0,0.5)',
+                width: 'min(560px, 90vw)',
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                onClick={() => setIsImageEnlarged(false)}
+                className="absolute -top-3 -right-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white text-sm font-bold text-gray-600 shadow-lg transition hover:bg-gray-100 active:scale-95"
+                title="Close"
+              >
+                ✕
+              </button>
+              <Image
+                src={question.imageUrl}
+                alt=""
+                width={540}
+                height={380}
+                className="w-full rounded-2xl object-contain"
+                style={{ maxHeight: '60vh' }}
+              />
+            </div>
+          </div>
+        )}
 
         {/* Answer buttons */}
         {isTrueFalse ? (

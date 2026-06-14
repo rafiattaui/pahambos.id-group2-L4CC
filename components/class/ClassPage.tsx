@@ -48,7 +48,11 @@ async function apiFetch<T>(
       ...options,
     });
     const json = await res.json();
-    if (!res.ok) return { data: null, error: json.error ?? 'Request failed.' };
+    if (!res.ok)
+      return {
+        data: null,
+        error: json.message ?? json.error ?? 'Request failed.',
+      };
     return { data: json as T, error: null };
   } catch {
     return { data: null, error: 'Network error. Please try again.' };
@@ -1455,6 +1459,7 @@ export default function ClassroomPage() {
     );
     setJoining(false);
     if (error || !data) {
+      // take the message field from the response json
       setJoinError(error ?? 'Failed to join class.');
       setJoinStatus('error');
       return;

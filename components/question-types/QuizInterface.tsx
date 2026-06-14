@@ -269,6 +269,7 @@ export default function QuizInterface({ quizId }: { quizId: string }) {
   const [hintUsed, setHintUsed] = useState(false);
 
   const [aiFeedback, setAiFeedback] = useState<string | null>(null);
+  const [isMuted, setIsMuted] = useState(false);
 
   const bgMusicRef = useRef<HTMLAudioElement | null>(null);
   const finishMusicRef = useRef<HTMLAudioElement | null>(null);
@@ -280,6 +281,15 @@ export default function QuizInterface({ quizId }: { quizId: string }) {
       await fetch('/api/session', { method: 'DELETE' });
     }
     router.push('/dashboard');
+  }
+
+  function handleToggleMute() {
+    setIsMuted((prev) => {
+      const next = !prev;
+      if (bgMusicRef.current) bgMusicRef.current.muted = next;
+      if (finishMusicRef.current) finishMusicRef.current.muted = next;
+      return next;
+    });
   }
 
   async function fetchLeaderboard() {
@@ -994,6 +1004,12 @@ export default function QuizInterface({ quizId }: { quizId: string }) {
             >
               Back to Dashboard
             </button>
+            <button
+              onClick={handleToggleMute}
+              className="font-body mt-3 flex w-full items-center justify-center gap-2 rounded-2xl border border-gray-300 bg-white/60 py-4 text-xl font-bold text-gray-700 transition hover:bg-white/80 active:scale-95"
+            >
+              {isMuted ? '🔇' : '🔊'} {isMuted ? 'Unmute' : 'Mute'}
+            </button>
           </div>
         </div>
       </AnimatedBackground>
@@ -1008,10 +1024,18 @@ export default function QuizInterface({ quizId }: { quizId: string }) {
         {/* Back to Dashboard button */}
         <button
           onClick={handleBackToDashboard}
-          className="absolute top-4 right-4 z-20 flex h-10 w-10 items-center justify-center rounded-xl border border-gray-300 text-lg transition hover:bg-black/10 active:scale-95"
+          className="absolute top-4 right-16 z-20 flex h-10 w-10 items-center justify-center rounded-xl border border-gray-300 text-lg transition hover:bg-black/10 active:scale-95"
           title="Back to Dashboard"
         >
           🏠
+        </button>
+        {/* Mute button */}
+        <button
+          onClick={handleToggleMute}
+          className="absolute top-4 right-4 z-20 flex h-10 w-10 items-center justify-center rounded-xl border border-gray-300 text-lg transition hover:bg-black/10 active:scale-95"
+          title={isMuted ? 'Unmute' : 'Mute'}
+        >
+          {isMuted ? '🔇' : '🔊'}
         </button>
 
         {/* Timer + counter pills */}

@@ -28,6 +28,7 @@ import {
   X,
   ImageIcon,
   NotebookPen,
+  Sparkles,
 } from 'lucide-react';
 import { useState, useEffect, useRef, useMemo } from 'react';
 import DraftPopup, { QuizDraft } from '@/components/createpages/draftpopup';
@@ -745,6 +746,158 @@ function QuestionEditor({
   );
 }
 
+// ── AI Generate Modal ─────────────────────────────────────────────────────────
+
+type AIGenerateModalProps = {
+  title: string;
+  description: string;
+  onGenerate: (numQuestions: number, difficulty: number) => Promise<void>;
+  onClose: () => void;
+  isGenerating: boolean;
+};
+
+const DIFFICULTY_LABELS = ['Very Easy', 'Easy', 'Medium', 'Hard', 'Very Hard'];
+
+function AIGenerateModal({
+  title,
+  description,
+  onGenerate,
+  onClose,
+  isGenerating,
+}: AIGenerateModalProps) {
+  const [numQuestions, setNumQuestions] = useState(3);
+  const [difficulty, setDifficulty] = useState(2);
+
+  const canGenerate = title.trim().length >= 5;
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
+      onClick={(e) =>
+        e.target === e.currentTarget && !isGenerating && onClose()
+      }
+    >
+      <div className="flex w-full max-w-sm flex-col gap-5 rounded-2xl bg-white p-6 shadow-2xl ring-1 ring-black/5">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600">
+              <Sparkles className="h-4 w-4 text-white" />
+            </div>
+            <h3 className="font-body text-sm font-semibold text-gray-900">
+              Generate Questions with Bos
+            </h3>
+          </div>
+          <button
+            onClick={onClose}
+            disabled={isGenerating}
+            className="flex h-7 w-7 items-center justify-center rounded-full text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 disabled:opacity-40"
+            aria-label="Close"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        {/* Context preview */}
+        <div className="rounded-xl border border-blue-100 bg-blue-50 p-3 text-xs text-blue-700">
+          <p className="font-body font-semibold">{title || 'No title yet'}</p>
+          {description?.trim() && (
+            <p className="mt-0.5 line-clamp-2 text-blue-500">{description}</p>
+          )}
+          {!canGenerate && (
+            <p className="font-body mt-1 font-medium text-orange-500">
+              Quiz title must be at least 5 characters to generate.
+            </p>
+          )}
+        </div>
+
+        {/* Number of questions */}
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center justify-between">
+            <label className="font-body text-sm font-medium text-gray-700">
+              Number of questions
+            </label>
+            <span className="font-body text-sm font-bold text-blue-600">
+              {numQuestions}
+            </span>
+          </div>
+          <input
+            type="range"
+            min={1}
+            max={6}
+            step={1}
+            value={numQuestions}
+            onChange={(e) => setNumQuestions(Number(e.target.value))}
+            className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-gray-200 accent-blue-600"
+          />
+          <div className="flex justify-between text-xs text-gray-400">
+            <span>1</span>
+            <span>6</span>
+          </div>
+        </div>
+
+        {/* Difficulty */}
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center justify-between">
+            <label className="font-body text-sm font-medium text-gray-700">
+              Difficulty
+            </label>
+            <span className="font-body text-sm font-bold text-blue-600">
+              {DIFFICULTY_LABELS[difficulty - 1]}
+            </span>
+          </div>
+          <input
+            type="range"
+            min={1}
+            max={5}
+            step={1}
+            value={difficulty}
+            onChange={(e) => setDifficulty(Number(e.target.value))}
+            className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-gray-200 accent-blue-600"
+          />
+          <div className="font-body flex justify-between text-xs text-gray-400">
+            <span>Very Easy</span>
+            <span>Very Hard</span>
+          </div>
+        </div>
+
+        {/* Warning if questions already exist */}
+        <p className="font-body text-center text-xs text-gray-400">
+          This will{' '}
+          <span className="font-body font-medium text-orange-500">replace</span>{' '}
+          any questions you&apos;ve already added.
+        </p>
+
+        {/* Actions */}
+        <div className="flex gap-2">
+          <button
+            onClick={onClose}
+            disabled={isGenerating}
+            className="font-body flex-1 rounded-xl border border-gray-200 py-2.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50 disabled:opacity-50"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={() => onGenerate(numQuestions, difficulty)}
+            disabled={!canGenerate || isGenerating}
+            className="font-body flex flex-1 items-center justify-center gap-2 rounded-xl bg-blue-600 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-blue-700 active:scale-[0.98] disabled:opacity-50"
+          >
+            {isGenerating ? (
+              <>
+                <Spinner className="h-4 w-4" /> Generating…
+              </>
+            ) : (
+              <>
+                <Sparkles className="h-4 w-4" /> Generate
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export type InitialQuizData = {
   quizId: string;
   title: string;
@@ -807,6 +960,8 @@ export default function CreateQuizForm({
   const [draftOpen, setDraftOpen] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [aiModalOpen, setAiModalOpen] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
   const [validationErrors, setvalidationErrors] = useState<validationErrors>(
     {}
   );
@@ -902,6 +1057,59 @@ export default function CreateQuizForm({
         answer: padAnswers(q.answer),
       }))
     );
+  };
+
+  const handleAIGenerate = async (numQuestions: number, difficulty: number) => {
+    setIsGenerating(true);
+    try {
+      const res = await fetch('/api/quiz/ai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          title,
+          description: description?.trim() || undefined,
+          numQuestions,
+          difficulty,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        toast.error(data.message || 'Failed to generate questions');
+        return;
+      }
+
+      // Map AI response → local Question shape
+      const generated: Question[] = data.data.map(
+        (q: {
+          order: number;
+          question: string;
+          type: 'SingleSelect' | 'MultiSelect';
+          time: number;
+          answers: string[];
+          correctAnswers: number[];
+        }) => ({
+          order: q.order,
+          type: toLocalType(q.type),
+          question: q.question,
+          time: q.time,
+          answer: padAnswers(q.answers),
+          correctAnswers: q.correctAnswers,
+          imageUrl: null,
+          rawImageUrl: null,
+        })
+      );
+
+      setQuestions(generated);
+      setAiModalOpen(false);
+      toast.success(`Generated ${generated.length} questions!`);
+    } catch {
+      toast.error('Something went wrong. Please try again.');
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const handleSubmit = async () => {
@@ -1393,6 +1601,14 @@ export default function CreateQuizForm({
                 </Button>
                 {!isEditMode && (
                   <Button
+                    className="font-body border border-blue-600 bg-white font-bold text-blue-600 hover:scale-105 hover:bg-blue-50"
+                    onClick={() => setAiModalOpen(true)}
+                  >
+                    Generate Question With Bos <Sparkles className="h-4 w-4" />
+                  </Button>
+                )}
+                {!isEditMode && (
+                  <Button
                     onClick={() => setDraftOpen(true)}
                     className="font-body border border-blue-600 bg-white font-bold text-blue-600 hover:scale-105 hover:bg-blue-50"
                   >
@@ -1435,6 +1651,15 @@ export default function CreateQuizForm({
         title={title}
         description={description}
       />
+      {aiModalOpen && (
+        <AIGenerateModal
+          title={title}
+          description={description ?? ''}
+          onGenerate={handleAIGenerate}
+          onClose={() => !isGenerating && setAiModalOpen(false)}
+          isGenerating={isGenerating}
+        />
+      )}
     </div>
   );
 }

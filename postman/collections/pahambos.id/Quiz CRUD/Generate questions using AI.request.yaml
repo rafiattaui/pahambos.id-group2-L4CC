@@ -1,0 +1,18 @@
+$kind: http-request
+name: Generate questions using AI
+url: "{{baseUrl}}/api/quiz/ai"
+method: POST
+body:
+  type: json
+  content: "{\r
+
+    \    \"title\": \"Multiplication Math Quiz\",\r
+
+    \    \"description\": \"Simple Multiplication quiz ranging from single digit to three digit.\",\r
+
+    \    \"numQuestions\": 4,\r
+
+    \    \"difficulty\": 3\r
+
+    }"
+order: 4487746137583348

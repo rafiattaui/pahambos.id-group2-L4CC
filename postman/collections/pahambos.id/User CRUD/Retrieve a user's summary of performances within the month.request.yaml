@@ -1,0 +1,5 @@
+$kind: http-request
+url: "{{baseUrl}}/api/performance"
+method: GET
+examples: .resources/Retrieve a user's summary of performances within the month.resources/examples
+order: 2990269797323266

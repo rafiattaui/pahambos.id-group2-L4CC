@@ -110,6 +110,7 @@ model Quiz {
   creator       User              @relation(fields: [createdBy], references: [id])
   questions     QuizQuestion[]
   performances  UserPerformance[]
+  metrics       QuizMetrics?
 }
 
 model QuizQuestion {
@@ -156,6 +157,18 @@ model ClassroomQuiz {
   Classroom       Classroom         @relation(fields: [classroomId], references: [id], onDelete: Cascade)
   Quiz            Quiz              @relation(fields: [quizId], references: [id], onDelete: Cascade)
   UserPerformance UserPerformance[]
+}
+
+model QuizMetrics {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  quizId       String   @unique @db.Uuid
+  attempts     Int      @default(0)
+  uniqueUsers  Int      @default(0)
+  avgAccuracy  Decimal  @default(0) @db.Decimal(5, 2)
+  avgScore     Decimal  @default(0) @db.Decimal(10, 2)
+  avgTimeTaken Int      @default(0)
+  updatedAt    DateTime @updatedAt
+  quiz         Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
 }
 
 enum Role {

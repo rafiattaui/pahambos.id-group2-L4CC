@@ -1,0 +1,105 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/api/quiz/user/performance"
+  method: GET
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    x-ratelimit-remaining: "83"
+    vary: rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch
+    content-type: application/json
+    set-cookie: better-auth.session_data=eyJzZXNzaW9uIjp7InNlc3Npb24iOnsiZXhwaXJlc0F0IjoiMjAyNi0wNi0yMVQwODo0NzowMC4yODZaIiwidG9rZW4iOiJkdkRiSnVPTU50UWFucmxFRlhYYkJNVmliY1JkeWhLZCIsImNyZWF0ZWRBdCI6IjIwMjYtMDYtMTRUMDg6NDc6MDAuMjg2WiIsInVwZGF0ZWRBdCI6IjIwMjYtMDYtMTRUMDg6NDc6MDAuMjg2WiIsImlwQWRkcmVzcyI6IjAwMDA6MDAwMDowMDAwOjAwMDA6MDAwMDowMDAwOjAwMDA6MDAwMCIsInVzZXJBZ2VudCI6Ik1vemlsbGEvNS4wIChXaW5kb3dzIE5UIDEwLjA7IFdpbjY0OyB4NjQpIEFwcGxlV2ViS2l0LzUzNy4zNiAoS0hUTUwsIGxpa2UgR2Vja28pIENocm9tZS8xNDguMC4wLjAgU2FmYXJpLzUzNy4zNiIsInVzZXJJZCI6ImYwZWM5ZjVhLTNkN2ItNDYyMy05MjQ5LTE1MDEyNjFiNDdiOCIsImlkIjoiMTFlY2YzMzAtNWQ3OS00Y2QyLTkzNDEtODNkZjE0MGEyOGNhIn0sInVzZXIiOnsibmFtZSI6ImF0dGEiLCJlbWFpbCI6InRlc3RAZ21haWwuY29tIiwiZW1haWxWZXJpZmllZCI6ZmFsc2UsImltYWdlIjpudWxsLCJjcmVhdGVkQXQiOiIyMDI2LTA1LTI0VDEwOjQwOjUwLjI1MloiLCJ1cGRhdGVkQXQiOiIyMDI2LTA1LTI0VDEwOjQwOjUwLjI1MloiLCJpZCI6ImYwZWM5ZjVhLTNkN2ItNDYyMy05MjQ5LTE1MDEyNjFiNDdiOCJ9LCJ1cGRhdGVkQXQiOjE3ODE0Mjc2NjIxMzEsInZlcnNpb24iOiIxIn0sImV4cGlyZXNBdCI6MTc4MTQyNzk2MjEzMSwic2lnbmF0dXJlIjoiN0g2d05EckkzY3c5Vnp5dk1abFAyMzZ3ZXdUTHVBZ2JuUjhCNnJSM2IyUSJ9; Path=/; Expires=Sun, 14 Jun 2026 09:06:02 GMT; Max-Age=300; HttpOnly; SameSite=lax
+    date: Sun, 14 Jun 2026 09:01:02 GMT
+    connection: keep-alive
+    keep-alive: timeout=5
+    transfer-encoding: chunked
+  body:
+    type: json
+    content: |-
+      {
+        "success": true,
+        "data": [
+          {
+            "id": "1062a29d-2b14-46d7-ba63-25224c350d5d",
+            "quizId": "29955e49-b640-4117-8d0c-d1f267a01215",
+            "userId": "f0ec9f5a-3d7b-4623-9249-1501261b47b8",
+            "finalScore": 750,
+            "accuracyRate": "1",
+            "timeTaken": 3215,
+            "completedAt": "2026-06-14T08:52:09.684Z",
+            "longestStreak": 3,
+            "hintsUsed": 3,
+            "classroomQuizId": null
+          },
+          {
+            "id": "324ff4c1-1133-4889-abb8-6bdebfcf6f7f",
+            "quizId": "29955e49-b640-4117-8d0c-d1f267a01215",
+            "userId": "f0ec9f5a-3d7b-4623-9249-1501261b47b8",
+            "finalScore": 500,
+            "accuracyRate": "0.67",
+            "timeTaken": 2961,
+            "completedAt": "2026-06-14T08:50:53.731Z",
+            "longestStreak": 2,
+            "hintsUsed": 3,
+            "classroomQuizId": null
+          },
+          {
+            "id": "859834d1-f761-4336-a134-0878cdcaa929",
+            "quizId": "29955e49-b640-4117-8d0c-d1f267a01215",
+            "userId": "f0ec9f5a-3d7b-4623-9249-1501261b47b8",
+            "finalScore": 350,
+            "accuracyRate": "0.67",
+            "timeTaken": 12583,
+            "completedAt": "2026-06-14T08:47:41.024Z",
+            "longestStreak": 2,
+            "hintsUsed": 3,
+            "classroomQuizId": null
+          },
+          {
+            "id": "cec4b7da-56ee-4dee-aa73-d985ead1b3d5",
+            "quizId": "29955e49-b640-4117-8d0c-d1f267a01215",
+            "userId": "f0ec9f5a-3d7b-4623-9249-1501261b47b8",
+            "finalScore": 250,
+            "accuracyRate": "0.33",
+            "timeTaken": 27119,
+            "completedAt": "2026-06-08T12:42:37.547Z",
+            "longestStreak": 1,
+            "hintsUsed": 3,
+            "classroomQuizId": null
+          },
+          {
+            "id": "93a0464f-d79e-4e62-aa73-e2c983830817",
+            "quizId": "29955e49-b640-4117-8d0c-d1f267a01215",
+            "userId": "f0ec9f5a-3d7b-4623-9249-1501261b47b8",
+            "finalScore": 500,
+            "accuracyRate": "0.67",
+            "timeTaken": 21761,
+            "completedAt": "2026-05-27T15:11:26.834Z",
+            "longestStreak": 1,
+            "hintsUsed": 0,
+            "classroomQuizId": null
+          },
+          {
+            "id": "acb7c4a2-a12e-479e-8212-aac11b49b79a",
+            "quizId": "29955e49-b640-4117-8d0c-d1f267a01215",
+            "userId": "f0ec9f5a-3d7b-4623-9249-1501261b47b8",
+            "finalScore": 500,
+            "accuracyRate": "0.67",
+            "timeTaken": 27672,
+            "completedAt": "2026-05-27T13:22:08.946Z",
+            "longestStreak": 1,
+            "hintsUsed": 0,
+            "classroomQuizId": null
+          }
+        ],
+        "pagination": {
+          "total": 6,
+          "page": 1,
+          "limit": 10,
+          "totalPages": 1,
+          "hasNext": false,
+          "hasPrev": false
+        }
+      }
+order: 1781427663180

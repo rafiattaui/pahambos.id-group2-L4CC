@@ -49,7 +49,9 @@ export const GET = WithAuth(async (req, { user, params }) => {
         ? prisma.userClassroom.findMany({
             where: { classroomId: id, role: 'Learner' },
             include: {
-              user: { select: { id: true, name: true, email: true } },
+              user: {
+                select: { id: true, name: true, email: true, image: true },
+              },
             },
           })
         : Promise.resolve([]),
@@ -75,7 +77,7 @@ export const GET = WithAuth(async (req, { user, params }) => {
         finalScore: true,
         accuracyRate: true,
         completedAt: true,
-        user: { select: { id: true, name: true, email: true } },
+        user: { select: { id: true, name: true, email: true, image: true } },
       },
     });
 
@@ -117,6 +119,7 @@ export const GET = WithAuth(async (req, { user, params }) => {
               id: p.user.id,
               name: p.user.name,
               email: p.user.email,
+              image: p.user.image,
               finalScore: p.finalScore,
               accuracyRate: p.accuracyRate,
               completedAt: p.completedAt,
@@ -128,6 +131,7 @@ export const GET = WithAuth(async (req, { user, params }) => {
                 id: uc.user.id,
                 name: uc.user.name,
                 email: uc.user.email,
+                image: uc.user.image,
               })),
           }),
         };

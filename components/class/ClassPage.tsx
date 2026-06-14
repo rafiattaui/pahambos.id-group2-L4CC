@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -16,6 +16,24 @@ interface Classroom {
   name: string;
   owner: ClassUser;
   members: ClassUser[];
+}
+
+interface Quiz {
+  id: string;
+  title: string;
+  description?: string | null;
+}
+
+interface Assignment {
+  id: string;
+  quiz: Quiz;
+  dueDate: string;
+  isOverdue: boolean;
+  isAssigner: boolean;
+  userHasCompleted: boolean;
+  // educator-only fields
+  numLearnersCompleted?: number;
+  learnersCompleted?: { name: string; email: string; image?: string | null }[];
 }
 
 // ─── API helper ───────────────────────────────────────────────────────────────
@@ -59,9 +77,11 @@ function cardGradient(id: string) {
 
 function Avatar({
   name,
+  image,
   size = 'md',
 }: {
   name: string;
+  image?: string | null;
   size?: 'sm' | 'md' | 'lg';
 }) {
   const initials = name
@@ -84,6 +104,18 @@ function Avatar({
       : size === 'sm'
         ? 'h-7 w-7 text-xs'
         : 'h-8 w-8 text-xs';
+  if (image) {
+    return (
+      <img
+        src={image.replace(
+          '/upload/',
+          '/upload/w_80,h_80,c_fill,g_face,f_auto,q_auto/'
+        )}
+        alt={name}
+        className={`${sz} shrink-0 rounded-full object-cover`}
+      />
+    );
+  }
   return (
     <div
       className={`${sz} ${color} flex shrink-0 items-center justify-center rounded-full font-bold`}
@@ -180,7 +212,7 @@ function Overlay({
   children: React.ReactNode;
 }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="font-body fixed inset-0 z-50 flex items-center justify-center p-4">
       <div
         className="absolute inset-0 bg-black/40 backdrop-blur-sm"
         onClick={onClose}
@@ -221,7 +253,7 @@ function OverlayHeader({
           />
         </svg>
       </button>
-      <h2 className="mt-0.5 text-xl font-bold text-white">{title}</h2>
+      <h2 className="font-body mt-0.5 text-xl font-bold text-white">{title}</h2>
     </div>
   );
 }
@@ -247,12 +279,12 @@ function ClassCard({
         className={`relative h-28 w-full bg-linear-to-br ${grad} flex items-end p-3`}
       >
         {badge && <span className="absolute top-3 left-3">{badge}</span>}
-        <span className="ml-auto rounded-full bg-white/20 px-2.5 py-0.5 text-[11px] font-semibold text-white backdrop-blur-sm">
+        <span className="font-body ml-auto rounded-full bg-white/20 px-2.5 py-0.5 text-[11px] font-semibold text-white backdrop-blur-sm">
           {cls.members.length}{' '}
           {cls.members.length === 1 ? 'learner' : 'learners'}
         </span>
       </div>
-      <div className="flex flex-col gap-1 p-4">
+      <div className="font-body flex flex-col gap-1 p-4">
         <p className="truncate text-sm font-bold text-slate-800 transition group-hover:text-blue-700">
           {cls.name}
         </p>
@@ -274,7 +306,7 @@ function SectionHeader({
   action?: React.ReactNode;
 }) {
   return (
-    <div className="mb-3 flex items-center justify-between">
+    <div className="font-body mb-3 flex items-center justify-between">
       <div className="flex items-center gap-2">
         <h2 className="text-base font-bold text-slate-800">{label}</h2>
         <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-500">
@@ -282,6 +314,27 @@ function SectionHeader({
         </span>
       </div>
       {action}
+    </div>
+  );
+}
+
+// ─── Section skeleton ─────────────────────────────────────────────────────────
+
+function SectionSkeleton({ count = 2 }: { count?: number }) {
+  return (
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
+      {Array.from({ length: count }).map((_, i) => (
+        <div
+          key={i}
+          className="flex animate-pulse flex-col overflow-hidden rounded-2xl bg-white shadow-md ring-1 ring-black/5"
+        >
+          <div className="h-28 w-full bg-slate-200" />
+          <div className="flex flex-col gap-2 p-4">
+            <div className="h-3.5 w-3/4 rounded-full bg-slate-200" />
+            <div className="h-3 w-1/2 rounded-full bg-slate-100" />
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
@@ -490,7 +543,7 @@ function EducatorClassOverlay({
             <button
               onClick={handleDelete}
               disabled={deleting}
-              className="ml-auto flex items-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-3.5 py-2.5 text-sm font-semibold text-red-600 transition hover:bg-red-100 disabled:opacity-40"
+              className="ml-auto flex items-center gap-1.5 rounded-xl border border-orange-200 bg-orange-50 px-3.5 py-2.5 text-sm font-semibold text-orange-600 transition hover:bg-orange-100 disabled:opacity-40"
             >
               {deleting ? (
                 <Spinner className="h-4 w-4 text-red-500" />
@@ -548,7 +601,7 @@ function EducatorClassOverlay({
                   key={m.id}
                   className="flex items-center gap-3 rounded-xl bg-slate-50 px-4 py-3 ring-1 ring-black/5"
                 >
-                  <Avatar name={m.name} size="lg" />
+                  <Avatar name={m.name} image={m.image} size="lg" />
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-semibold text-slate-800">
                       {m.name}
@@ -557,7 +610,7 @@ function EducatorClassOverlay({
                   </div>
                   <button
                     onClick={() => handleRemoveMember(m.id)}
-                    disabled={removingId === m.id}
+                    disabled={removingId === m.id || removingId !== null}
                     className="shrink-0 rounded-lg p-1.5 text-slate-400 transition hover:bg-red-50 hover:text-red-500 disabled:opacity-40"
                     title="Remove learner"
                   >
@@ -584,6 +637,9 @@ function EducatorClassOverlay({
             </ul>
           )}
         </div>
+
+        {/* Quiz assignments */}
+        <EducatorQuizPanel classroomId={cls.id} />
       </div>
     </Overlay>
   );
@@ -608,21 +664,29 @@ function LearnerClassOverlay({
       <div className="flex flex-1 flex-col gap-4 overflow-y-auto p-5">
         {/* Educator */}
         <div className="flex items-center gap-3 rounded-xl bg-slate-50 px-4 py-3 ring-1 ring-black/5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-100">
-            <svg
-              className="h-4 w-4 text-blue-600"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-              />
-            </svg>
-          </div>
+          {cls.owner.image ? (
+            <img
+              src={cls.owner.image}
+              alt={cls.owner.name}
+              className="h-9 w-9 shrink-0 rounded-full object-cover"
+            />
+          ) : (
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-100">
+              <svg
+                className="h-4 w-4 text-blue-600"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                />
+              </svg>
+            </div>
+          )}
           <div>
             <p className="text-[11px] font-semibold tracking-wider text-slate-400 uppercase">
               Educator
@@ -649,7 +713,7 @@ function LearnerClassOverlay({
                   key={m.id}
                   className="flex items-center gap-3 rounded-xl bg-slate-50 px-4 py-3 ring-1 ring-black/5"
                 >
-                  <Avatar name={m.name} size="lg" />
+                  <Avatar name={m.name} image={m.image} size="lg" />
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-semibold text-slate-800">
                       {m.name}
@@ -661,15 +725,635 @@ function LearnerClassOverlay({
             </ul>
           )}
         </div>
+
+        {/* Quiz assignments */}
+        <LearnerQuizPanel classroomId={cls.id} />
       </div>
     </Overlay>
+  );
+}
+
+// ─── useQuizAssignments hook ──────────────────────────────────────────────────
+
+function useQuizAssignments(classroomId: string) {
+  const [assignments, setAssignments] = useState<Assignment[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError('');
+    const { data, error } = await apiFetch<{ data: Assignment[] }>(
+      `/api/class/assignment/${classroomId}`
+    );
+    setLoading(false);
+    if (error || !data) {
+      setError(error ?? 'Failed to load assignments.');
+      return;
+    }
+    setAssignments(data.data);
+  }, [classroomId]);
+
+  const loadedRef = useRef(load);
+  useEffect(() => {
+    loadedRef.current = load;
+  }, [load]);
+
+  useEffect(() => {
+    loadedRef.current();
+  }, [classroomId]);
+
+  async function assign(
+    quizId: string,
+    dueDate: string
+  ): Promise<string | null> {
+    const { error } = await apiFetch(`/api/class/assignment/${classroomId}`, {
+      method: 'POST',
+      body: JSON.stringify({ quizId, dueDate }),
+    });
+    if (error) return error;
+    await load();
+    return null;
+  }
+
+  async function remove(assignmentId: string): Promise<string | null> {
+    const { error } = await apiFetch(`/api/class/assignment/${assignmentId}`, {
+      method: 'DELETE',
+    });
+    if (error) return error;
+    setAssignments((p) => p.filter((a) => a.id !== assignmentId));
+    return null;
+  }
+
+  return { assignments, loading, error, assign, remove, reload: load };
+}
+
+// ─── useQuizzes hook ──────────────────────────────────────────────────────────
+
+function useQuizzes() {
+  const [quizzes, setQuizzes] = useState<Quiz[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      setLoading(true);
+      setError('');
+      const { data, error } = await apiFetch<{ data: Quiz[] }>('/api/quiz');
+      if (cancelled) return;
+      setLoading(false);
+      if (error || !data) {
+        setError(error ?? 'Failed to load quizzes.');
+        return;
+      }
+      setQuizzes(data.data);
+    }
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  return { quizzes, loading, error };
+}
+
+// ─── QuizPickerItem ───────────────────────────────────────────────────────────
+
+function QuizPickerItem({
+  quiz,
+  selected,
+  onSelect,
+  disabled,
+}: {
+  quiz: Quiz;
+  selected: boolean;
+  onSelect: () => void;
+  disabled: boolean;
+}) {
+  return (
+    <button
+      onClick={onSelect}
+      disabled={disabled}
+      className={`w-full rounded-xl px-4 py-3 text-left ring-1 transition ${
+        selected
+          ? 'bg-blue-50 shadow-sm ring-blue-400'
+          : 'bg-slate-50 ring-black/5 hover:bg-white hover:ring-blue-200'
+      } disabled:opacity-50`}
+    >
+      <div className="flex items-start gap-3">
+        {/* Checkbox indicator */}
+        <div
+          className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2 transition ${
+            selected
+              ? 'border-blue-500 bg-blue-500'
+              : 'border-slate-300 bg-white'
+          }`}
+        >
+          {selected && (
+            <svg
+              className="h-2.5 w-2.5 text-white"
+              fill="currentColor"
+              viewBox="0 0 12 12"
+            >
+              <path
+                d="M10 3L5 8.5 2 5.5"
+                stroke="white"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                fill="none"
+              />
+            </svg>
+          )}
+        </div>
+        <div className="min-w-0 flex-1">
+          <p
+            className={`truncate text-sm font-semibold ${selected ? 'text-blue-700' : 'text-slate-800'}`}
+          >
+            {quiz.title}
+          </p>
+          {quiz.description && (
+            <p className="mt-0.5 truncate text-xs text-slate-400">
+              {quiz.description}
+            </p>
+          )}
+        </div>
+      </div>
+    </button>
+  );
+}
+
+// ─── Assign Quiz Modal ────────────────────────────────────────────────────────
+
+function AssignQuizModal({
+  onClose,
+  onAssign,
+}: {
+  onClose: () => void;
+  onAssign: (quizId: string, dueDate: string) => Promise<string | null>;
+}) {
+  const {
+    quizzes,
+    loading: loadingQuizzes,
+    error: quizLoadError,
+  } = useQuizzes();
+  const [search, setSearch] = useState('');
+  const [selectedQuizId, setSelectedQuizId] = useState('');
+  const [dueDate, setDueDate] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [assignError, setAssignError] = useState('');
+
+  const today = new Date().toISOString().split('T')[0];
+
+  const filteredQuizzes = quizzes.filter((q) =>
+    q.title.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const selectedQuiz = quizzes.find((q) => q.id === selectedQuizId);
+
+  async function handleSubmit() {
+    if (!selectedQuizId || !dueDate) return;
+    setSubmitting(true);
+    setAssignError('');
+    const err = await onAssign(selectedQuizId, new Date(dueDate).toISOString());
+    setSubmitting(false);
+    if (err) {
+      setAssignError(err);
+      return;
+    }
+    onClose();
+  }
+
+  return (
+    <Overlay onClose={onClose}>
+      <OverlayHeader
+        title="Assign Quiz"
+        gradient="from-blue-500 to-blue-600"
+        onClose={onClose}
+      />
+      <div className="flex flex-1 flex-col gap-4 overflow-y-auto p-5">
+        {/* ── Quiz picker ── */}
+        <div className="flex flex-col gap-2">
+          <p className="text-xs font-semibold text-slate-500">Select a Quiz</p>
+
+          {/* Search */}
+          <div className="relative">
+            <svg
+              className="pointer-events-none absolute top-1/2 left-3 h-3.5 w-3.5 -translate-y-1/2 text-slate-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+            <input
+              type="text"
+              placeholder="Search quizzes…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              disabled={submitting}
+              className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pr-3.5 pl-9 text-sm text-slate-800 transition placeholder:text-slate-400 focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-200 focus:outline-none disabled:opacity-50"
+            />
+          </div>
+
+          {/* List */}
+          <div className="flex max-h-52 flex-col gap-1.5 overflow-y-auto rounded-xl">
+            {loadingQuizzes ? (
+              <div className="flex items-center justify-center py-8 text-slate-400">
+                <Spinner className="h-5 w-5" />
+              </div>
+            ) : quizLoadError ? (
+              <p className="rounded-xl bg-red-50 px-3 py-2.5 text-xs text-red-600 ring-1 ring-red-100">
+                {quizLoadError}
+              </p>
+            ) : filteredQuizzes.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-slate-200 py-6 text-center">
+                <p className="text-sm text-slate-400">
+                  {search
+                    ? 'No quizzes match your search.'
+                    : 'No quizzes found.'}
+                </p>
+              </div>
+            ) : (
+              filteredQuizzes.map((q) => (
+                <QuizPickerItem
+                  key={q.id}
+                  quiz={q}
+                  selected={selectedQuizId === q.id}
+                  onSelect={() => setSelectedQuizId(q.id)}
+                  disabled={submitting}
+                />
+              ))
+            )}
+          </div>
+
+          {/* Selected badge */}
+          {selectedQuiz && (
+            <div className="flex items-center gap-2 rounded-xl bg-blue-50 px-3 py-2 ring-1 ring-blue-100">
+              <svg
+                className="h-3.5 w-3.5 shrink-0 text-blue-500"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2.5}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M5 13l4 4L19 7"
+                />
+              </svg>
+              <p className="truncate text-xs font-semibold text-blue-700">
+                {selectedQuiz.title}
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* ── Due date ── */}
+        <div className="flex flex-col gap-1.5">
+          <label className="text-xs font-semibold text-slate-500">
+            Due Date
+          </label>
+          <input
+            type="date"
+            min={today}
+            value={dueDate}
+            disabled={submitting}
+            onChange={(e) => setDueDate(e.target.value)}
+            className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-800 transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-200 focus:outline-none disabled:opacity-50"
+          />
+        </div>
+
+        {assignError && (
+          <ErrorBanner
+            message={assignError}
+            onDismiss={() => setAssignError('')}
+          />
+        )}
+
+        <button
+          onClick={handleSubmit}
+          disabled={!selectedQuizId || !dueDate || submitting}
+          className="mt-1 flex w-full items-center justify-center gap-1.5 rounded-xl bg-blue-600 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700 active:scale-[0.98] disabled:opacity-40"
+        >
+          {submitting && <Spinner />} Assign Quiz
+        </button>
+      </div>
+    </Overlay>
+  );
+}
+
+// ─── Educator Quiz Assignments Panel ─────────────────────────────────────────
+
+function EducatorQuizPanel({ classroomId }: { classroomId: string }) {
+  const { assignments, loading, error, assign, remove } =
+    useQuizAssignments(classroomId);
+  const [showAssign, setShowAssign] = useState(false);
+  const [removingId, setRemovingId] = useState<string | null>(null);
+  const [removeError, setRemoveError] = useState('');
+
+  async function handleRemove(id: string) {
+    setRemovingId(id);
+    setRemoveError('');
+    const err = await remove(id);
+    setRemovingId(null);
+    if (err) setRemoveError(err);
+  }
+
+  return (
+    <>
+      <div>
+        <div className="mb-2 flex items-center justify-between">
+          <p className="text-xs font-bold tracking-widest text-slate-400 uppercase">
+            Assigned Quizzes · {loading ? '…' : assignments.length}
+          </p>
+          <button
+            onClick={() => setShowAssign(true)}
+            className="flex items-center gap-1 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-blue-700 active:scale-95"
+          >
+            <svg
+              className="h-3.5 w-3.5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2.5}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 4v16m8-8H4"
+              />
+            </svg>
+            Assign
+          </button>
+        </div>
+
+        {removeError && (
+          <ErrorBanner
+            message={removeError}
+            onDismiss={() => setRemoveError('')}
+          />
+        )}
+
+        {loading ? (
+          <div className="flex items-center justify-center py-8 text-slate-400">
+            <Spinner className="h-5 w-5" />
+          </div>
+        ) : error ? (
+          <p className="rounded-xl bg-red-50 px-3 py-2 text-xs text-red-600 ring-1 ring-red-100">
+            {error}
+          </p>
+        ) : assignments.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-slate-200 py-8 text-center">
+            <p className="text-sm text-slate-400">No quizzes assigned yet.</p>
+          </div>
+        ) : (
+          <ul className="flex flex-col gap-2">
+            {assignments.map((a) => (
+              <li
+                key={a.id}
+                className="flex items-start gap-3 rounded-xl bg-slate-50 px-4 py-3 ring-1 ring-black/5"
+              >
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-100">
+                  <svg
+                    className="h-4 w-4 text-blue-600"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                    />
+                  </svg>
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-semibold text-slate-800">
+                    {a.quiz.title}
+                  </p>
+                  <div className="mt-0.5 flex flex-wrap items-center gap-1.5">
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${a.isOverdue ? 'bg-red-100 text-red-600' : 'bg-slate-100 text-slate-500'}`}
+                    >
+                      {a.isOverdue ? 'Overdue · ' : 'Due '}
+                      {new Date(a.dueDate).toLocaleDateString(undefined, {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                      })}
+                    </span>
+                  </div>
+                  {(a.learnersCompleted ?? []).length > 0 ? (
+                    <div className="mt-2 rounded-lg bg-emerald-50 px-3 py-2 ring-1 ring-emerald-100">
+                      <p className="mb-1.5 text-[10px] font-bold tracking-wider text-emerald-600 uppercase">
+                        Completed · {a.numLearnersCompleted}
+                      </p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {a.learnersCompleted!.map((l) => (
+                          <span
+                            key={l.email}
+                            className="flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-700"
+                          >
+                            {l.image ? (
+                              <img
+                                src={l.image}
+                                alt={l.name}
+                                className="h-3.5 w-3.5 rounded-full object-cover"
+                              />
+                            ) : (
+                              <span className="flex h-3.5 w-3.5 items-center justify-center rounded-full bg-emerald-500 text-[8px] font-bold text-white">
+                                {l.name[0].toUpperCase()}
+                              </span>
+                            )}
+                            {l.name}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <span className="mt-1.5 inline-block rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-400">
+                      0 completed
+                    </span>
+                  )}
+                </div>
+                <a
+                  href={`/play/${a.quiz.id}?assignmentId=${a.id}`}
+                  className="flex shrink-0 items-center gap-1 rounded-lg bg-blue-600 px-2.5 py-1.5 text-xs font-semibold text-white transition hover:bg-blue-700 active:scale-95"
+                >
+                  <svg
+                    className="h-3 w-3"
+                    fill="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path d="M8 5v14l11-7z" />
+                  </svg>
+                  Play
+                </a>
+                <button
+                  onClick={() => handleRemove(a.id)}
+                  disabled={removingId === a.id}
+                  className="shrink-0 rounded-lg p-1.5 text-slate-400 transition hover:bg-red-50 hover:text-red-500 disabled:opacity-40"
+                  title="Remove assignment"
+                >
+                  {removingId === a.id ? (
+                    <Spinner className="h-4 w-4" />
+                  ) : (
+                    <svg
+                      className="h-4 w-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                      />
+                    </svg>
+                  )}
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      {showAssign && (
+        <AssignQuizModal
+          onClose={() => setShowAssign(false)}
+          onAssign={assign}
+        />
+      )}
+    </>
+  );
+}
+
+// ─── Learner Quiz Assignments Panel ──────────────────────────────────────────
+
+function LearnerQuizPanel({ classroomId }: { classroomId: string }) {
+  const { assignments, loading, error } = useQuizAssignments(classroomId);
+
+  return (
+    <div>
+      <p className="mb-2 text-xs font-bold tracking-widest text-slate-400 uppercase">
+        Assigned Quizzes · {loading ? '…' : assignments.length}
+      </p>
+
+      {loading ? (
+        <div className="flex items-center justify-center py-8 text-slate-400">
+          <Spinner className="h-5 w-5" />
+        </div>
+      ) : error ? (
+        <p className="rounded-xl bg-red-50 px-3 py-2 text-xs text-red-600 ring-1 ring-red-100">
+          {error}
+        </p>
+      ) : assignments.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-slate-200 py-8 text-center">
+          <p className="text-sm text-slate-400">No quizzes assigned yet.</p>
+        </div>
+      ) : (
+        <ul className="flex flex-col gap-2">
+          {assignments.map((a) => (
+            <li
+              key={a.id}
+              className="flex items-center gap-3 rounded-xl bg-slate-50 px-4 py-3 ring-1 ring-black/5"
+            >
+              <div
+                className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${a.userHasCompleted ? 'bg-emerald-100' : 'bg-blue-100'}`}
+              >
+                {a.userHasCompleted ? (
+                  <svg
+                    className="h-4 w-4 text-emerald-600"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2.5}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                ) : (
+                  <svg
+                    className="h-4 w-4 text-blue-600"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                    />
+                  </svg>
+                )}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-semibold text-slate-800">
+                  {a.quiz.title}
+                </p>
+                {a.quiz.description && (
+                  <p className="mt-0.5 truncate text-xs text-slate-500">
+                    {a.quiz.description}
+                  </p>
+                )}
+                <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${a.isOverdue && !a.userHasCompleted ? 'bg-red-100 text-red-600' : 'bg-slate-100 text-slate-500'}`}
+                  >
+                    {a.isOverdue ? 'Overdue · ' : 'Due '}
+                    {new Date(a.dueDate).toLocaleDateString(undefined, {
+                      month: 'short',
+                      day: 'numeric',
+                      year: 'numeric',
+                    })}
+                  </span>
+                  {a.userHasCompleted && (
+                    <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
+                      Completed
+                    </span>
+                  )}
+                </div>
+              </div>
+              <a
+                href={`/play/${a.quiz.id}?assignmentId=${a.id}`}
+                className="flex shrink-0 items-center gap-1 rounded-lg bg-blue-600 px-2.5 py-1.5 text-xs font-semibold text-white transition hover:bg-blue-700 active:scale-95"
+              >
+                <svg
+                  className="h-3 w-3"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M8 5v14l11-7z" />
+                </svg>
+                Play
+              </a>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   );
 }
 
 // ─── Root ─────────────────────────────────────────────────────────────────────
 
 export default function ClassroomPage() {
-  const [loading, setLoading] = useState(true);
+  const [loadingOwned, setLoadingOwned] = useState(true);
+  const [loadingJoined, setLoadingJoined] = useState(true);
   const [fetchError, setFetchError] = useState('');
 
   const [ownedClasses, setOwnedClasses] = useState<Classroom[]>([]);
@@ -701,19 +1385,29 @@ export default function ClassroomPage() {
   const [joinError, setJoinError] = useState('');
 
   useEffect(() => {
-    (async () => {
-      const { data, error } = await apiFetch<{
-        educatorClasses: Classroom[];
-        learnerClasses: Classroom[];
-      }>('/api/class');
-      setLoading(false);
-      if (error || !data) {
-        setFetchError(error ?? 'Failed to load classrooms.');
-        return;
+    // Fetch owned (educator) classes
+    apiFetch<{ educatorClasses: Classroom[] }>('/api/class?type=educator').then(
+      ({ data, error }) => {
+        setLoadingOwned(false);
+        if (error || !data) {
+          setFetchError(error ?? 'Failed to load classrooms.');
+          return;
+        }
+        setOwnedClasses(data.educatorClasses);
       }
-      setOwnedClasses(data.educatorClasses);
-      setJoinedClasses(data.learnerClasses);
-    })();
+    );
+
+    // Fetch joined (learner) classes independently
+    apiFetch<{ learnerClasses: Classroom[] }>('/api/class?type=learner').then(
+      ({ data, error }) => {
+        setLoadingJoined(false);
+        if (error || !data) {
+          setFetchError(error ?? 'Failed to load classrooms.');
+          return;
+        }
+        setJoinedClasses(data.learnerClasses);
+      }
+    );
   }, []);
 
   // Sync the open educator overlay when ownedClasses updates — no setState in useEffect
@@ -783,12 +1477,7 @@ export default function ClassroomPage() {
     <div className="flex w-full items-start justify-center p-6">
       <div className="w-full max-w-7xl overflow-hidden rounded-2xl bg-white shadow-xl ring-1 ring-black/5">
         <div className="p-8">
-          {loading ? (
-            <div className="flex items-center justify-center gap-2 py-20 text-slate-500">
-              <Spinner className="h-5 w-5" />
-              <span className="text-sm">Loading classrooms…</span>
-            </div>
-          ) : fetchError ? (
+          {fetchError ? (
             <div className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-600 ring-1 ring-red-100">
               {fetchError}
             </div>
@@ -798,7 +1487,7 @@ export default function ClassroomPage() {
               <section>
                 <SectionHeader
                   label="My Classes"
-                  count={ownedClasses.length}
+                  count={loadingOwned ? 0 : ownedClasses.length}
                   action={
                     <button
                       onClick={() => {
@@ -824,8 +1513,10 @@ export default function ClassroomPage() {
                     </button>
                   }
                 />
-                {ownedClasses.length === 0 ? (
-                  <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-slate-200 py-12 text-center">
+                {loadingOwned ? (
+                  <SectionSkeleton count={4} />
+                ) : ownedClasses.length === 0 ? (
+                  <div className="font-body flex flex-col items-center gap-2 rounded-2xl border border-dashed border-slate-200 py-12 text-center">
                     <p className="text-sm font-medium text-slate-500">
                       No classes yet
                     </p>
@@ -834,13 +1525,13 @@ export default function ClassroomPage() {
                     </p>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
                     {ownedClasses.map((cls) => (
                       <ClassCard
                         key={cls.id}
                         cls={cls}
                         badge={
-                          <span className="rounded-full bg-white/30 px-2 py-0.5 text-[10px] font-bold tracking-wide text-white uppercase backdrop-blur-sm">
+                          <span className="font-body rounded-full bg-white/30 px-2 py-0.5 text-[10px] font-bold tracking-wide text-white uppercase backdrop-blur-sm">
                             Educator
                           </span>
                         }
@@ -858,7 +1549,7 @@ export default function ClassroomPage() {
               <section>
                 <SectionHeader
                   label="Joined Classes"
-                  count={joinedClasses.length}
+                  count={loadingJoined ? 0 : joinedClasses.length}
                   action={
                     <button
                       onClick={() => {
@@ -885,8 +1576,10 @@ export default function ClassroomPage() {
                     </button>
                   }
                 />
-                {joinedClasses.length === 0 ? (
-                  <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-slate-200 py-12 text-center">
+                {loadingJoined ? (
+                  <SectionSkeleton count={4} />
+                ) : joinedClasses.length === 0 ? (
+                  <div className="font-body flex flex-col items-center gap-2 rounded-2xl border border-dashed border-slate-200 py-12 text-center">
                     <p className="text-sm font-medium text-slate-500">
                       No joined classes yet
                     </p>
@@ -895,13 +1588,13 @@ export default function ClassroomPage() {
                     </p>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
                     {joinedClasses.map((cls) => (
                       <ClassCard
                         key={cls.id}
                         cls={cls}
                         badge={
-                          <span className="rounded-full bg-white/30 px-2 py-0.5 text-[10px] font-bold tracking-wide text-white uppercase backdrop-blur-sm">
+                          <span className="font-body rounded-full bg-white/30 px-2 py-0.5 text-[10px] font-bold tracking-wide text-white uppercase backdrop-blur-sm">
                             Learner
                           </span>
                         }
@@ -1026,7 +1719,7 @@ export default function ClassroomPage() {
             <button
               onClick={handleJoin}
               disabled={!joinId.trim() || joining || joinStatus === 'success'}
-              className="mt-1 flex w-full items-center justify-center gap-1.5 rounded-xl bg-orange-600 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-700 active:scale-[0.98] disabled:opacity-40"
+              className="mt-1 flex w-full items-center justify-center gap-1.5 rounded-xl bg-orange-600 py-2.5 text-sm font-semibold text-white transition hover:bg-orange-700 active:scale-[0.98] disabled:opacity-40"
             >
               {joining && <Spinner />} Join Class
             </button>

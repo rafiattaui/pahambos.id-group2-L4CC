@@ -164,9 +164,14 @@ function GlassCard({
 // ── API helpers ───────────────────────────────────────────────────────────────
 
 async function createSession(
-  quizId: string
+  quizId: string,
+  classroomQuizId?: string
 ): Promise<{ sessionId: string; totalQuestions: number; userId: string }> {
-  const res = await fetch(`/api/quiz/${quizId}/session`, { method: 'POST' });
+  const endpoint = classroomQuizId
+    ? `/api/session/${classroomQuizId}`
+    : `/api/quiz/${quizId}/session`;
+
+  const res = await fetch(endpoint, { method: 'POST' });
   const data = await res.json();
   if (!data.success)
     throw new Error(data.message ?? 'Failed to create session');
@@ -234,7 +239,13 @@ async function finishSession(): Promise<void> {
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-export default function QuizInterface({ quizId }: { quizId: string }) {
+export default function QuizInterface({
+  quizId,
+  classroomQuizId,
+}: {
+  quizId: string;
+  classroomQuizId?: string;
+}) {
   const router = useRouter();
   const [phase, setPhase] = useState<Phase>('init');
   const [countdown, setCountdown] = useState(3);
@@ -320,7 +331,7 @@ export default function QuizInterface({ quizId }: { quizId: string }) {
 
   // Session creation
   useEffect(() => {
-    createSession(quizId)
+    createSession(quizId, classroomQuizId)
       .then(({ totalQuestions: tq, userId }) => {
         setTotalQuestions(tq);
         setCurrentUserId(userId);
@@ -330,7 +341,7 @@ export default function QuizInterface({ quizId }: { quizId: string }) {
         setErrorMessage(e.message ?? 'Failed to create session');
         setPhase('error');
       });
-  }, [quizId]);
+  }, [quizId, classroomQuizId]);
 
   // Initialize audio once
   useEffect(() => {

@@ -11,7 +11,7 @@ body:
   content: |-
     {
         "email":"test@gmail.com",
-        "password":"Testing123"
+        "password":"test"
     }
 scripts:
   - type: afterResponse

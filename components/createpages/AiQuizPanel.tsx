@@ -61,7 +61,7 @@ type Message =
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function applyToolCalls(
+export function applyToolCalls(
   questions: Question[],
   toolCalls: ToolCall[]
 ): Question[] {

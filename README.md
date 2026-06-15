@@ -37,22 +37,24 @@ Main features:
 
 - Quiz/game creation interface
 - Question bank with multiple categories
-- Timed quizzes and scoring system
-- Leaderboard and user ranking
+- Timed quizzes and scoring system via server validation preventing cheating
+- Leaderboard and user ranking using Redis
 - Student performance analytics
-- Teacher/admin dashboard
+- Classrooms system allowing teachers to give assignments, and track student's submissions
 
 ## 4. Technology Stack (MANDATORY)
 
-| Layer            | Technology        |
-| ---------------- | ----------------- |
-| Frontend         | Next.js           |
-| Backend          | Next.js           |
-| API              | REST API          |
-| Database         | Prisma PostgreSQL |
-| Containerization | Docker            |
-| Deployment       | Vercel            |
-| Version Control  | GitHub            |
+| Layer            | Technology                             |
+| ---------------- | -------------------------------------- |
+| Frontend         | Next.js                                |
+| Backend          | Next.js                                |
+| API              | REST API                               |
+| Database         | Prisma PostgreSQL                      |
+| Cache            | Redis                                  |
+| AI               | Groq                                   |
+| Containerization | Docker                                 |
+| Deployment       | Private Server provided by Instructors |
+| Version Control  | GitHub                                 |
 
 ## 5. System Architecture
 
@@ -145,6 +147,8 @@ All API's begin with /api/.
     - If the player is struggling with question, they can request for a hint generated with AI, however if they answer the question successfully after, it will reward them with less points than if they were to answer without AI.
   - End of Quiz Feedback:
     - At the end of the quiz, the player will receive feedback generated with AI and tailored with their results during the quiz. The feedback will consist of ways for the player to improve and recommend material to study for improvement.
+  - AI Quiz Creation Assistant:
+    - When a user is creating a quiz, they can ask for help from an AI assistant in the form of a chatbot or instant generation using the title and description of the quiz.
 
 ## 9. Security Implementation (MANDATORY)
 
@@ -172,7 +176,12 @@ export const QuizQuestionSchema = z.object({
 ```
 
 - **AI: Vercel AI SDK & Groq**
-  Our two use cases of AI are mid-question hints and end-of-session feedbacks, both do not take input from the user, and only take input from tested pre-defined prompts by developers therefore preventing prompt injection from ever happening.
+  In mid-question hints and end-of-session feedbacks, both do not take input from the user, and only take input from tested pre-defined prompts by developers therefore preventing prompt injection from ever happening.
+
+  For our AI Chatbot and Instant Quiz Generation using AI, prompt injection cannot be fully prevented. What's important is limiting its damage were it to happen. To do so, our chatbot does not have any direct access to our database or any private keys, it only has access to the form-data in the quiz creation page.
+
+  We tested our AI using several cases below:
+
 - **Authentcation & Authorization: Better Auth**
   All routes requiring auth uses a wrapper function `WithAuth`. This function ensures that when user credentials are needed in an operation, the server has already validated them before functions are allowed to operate with them, forming a layer of security.
 
@@ -271,11 +280,166 @@ export const GET = WithAuth(async (req, { user, params }) => {
 
 ## 11. Deployment & Production Setup
 
+### 11.1 Docker Setup
+
+dockerfile:
+
+```
+FROM node:22-bookworm-slim AS base
+WORKDIR /app
+
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends openssl ca-certificates \
+  && rm -rf /var/lib/apt/lists/*
+
+RUN corepack enable && corepack prepare pnpm@10.33.0 --activate
+
+ENV NEXT_TELEMETRY_DISABLED=1
+
+FROM base AS deps
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile
+
+FROM base AS builder
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+
+# prisma generate does not open a DB connection; fixed placeholder satisfies prisma.config.ts only.
+ENV DATABASE_URL=postgresql://build:build@127.0.0.1:5432/build?sslmode=disable
+RUN pnpm dlx prisma generate
+
+# Values come from compose `build.args` — single source: .env.production + compose defaults.
+ARG NEXT_PUBLIC_APP_URL
+ARG NEXT_PUBLIC_API_DOCS_ENABLED
+ARG NEXT_PUBLIC_BETTER_AUTH_URL
+
+ENV NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL}
+ENV NEXT_PUBLIC_API_DOCS_ENABLED=${NEXT_PUBLIC_API_DOCS_ENABLED}
+ENV NEXT_PUBLIC_BETTER_AUTH_URL=${NEXT_PUBLIC_BETTER_AUTH_URL}
+
+RUN pnpm build
+
+# One-off migrations against Neon (or any Postgres). Run on the VPS with:
+#   docker compose --profile migrate run --rm db-schema-sync
+# Uses DATABASE_URL from `.env.production` (or compose environment).
+FROM base AS migrator
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile
+COPY prisma ./prisma
+COPY prisma.config.ts ./
+ENV DATABASE_URL=postgresql://migrate:migrate@127.0.0.1:5432/migrate?sslmode=disable
+RUN pnpm dlx prisma generate
+CMD ["pnpm", "dlx", "prisma", "migrate", "deploy"]
+
+FROM base AS runner
+
+LABEL org.opencontainers.image.title="pahambos-id"
+LABEL org.opencontainers.image.url="e2526-wads-b4cc-03.csbihub.id"
+
+RUN addgroup --system --gid 1001 nodejs \
+  && adduser --system --uid 1001 --ingroup nodejs nextjs
+
+COPY --from=builder /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/generated ./generated
+
+USER nextjs
+
+EXPOSE 3017
+ENV NODE_ENV=production
+ENV PORT=3017
+ENV HOSTNAME=0.0.0.0
+
+CMD ["node", "server.js"]
+```
+
+docker-compose.yml:
+
+```
+name: pahambos.id
+
+services:
+  app:
+    image: ${DOCKER_USERNAME:-local}/pahambos.id:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-https://e2526-wads-b4cc-03.csbihub.id}
+        NEXT_PUBLIC_API_DOCS_ENABLED: ${NEXT_PUBLIC_API_DOCS_ENABLED:-true}
+        NEXT_PUBLIC_BETTER_AUTH_URL: ${NEXT_PUBLIC_BETTER_AUTH_URL:-https://e2526-wads-b4cc-03.csbihub.id}
+    env_file:
+      - .env.production
+    ports:
+      - "3017:3017"
+    restart: unless-stopped
+
+  db-schema-sync:
+    profiles: ["migrate"]
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: migrator
+    env_file:
+      - .env.production
+    restart: "no"
+```
+
+### 11.2 Production Environment
+
+.env.example:
+
+```ts
+// used for cookie and token validation by betterauth.
+BETTER_AUTH_SECRET=
+// points to the betterauth api. since it's on the same server, we set it to the same domain the webapp is hosted on.
+BETTER_AUTH_URL=
+// database connection string.
+DATABASE_URL=
+// cloudinary credentials for quick image delivery and upload.
+NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=
+NEXT_PUBLIC_CLOUDINARY_API_KEY=
+CLOUDINARY_API_SECRET=
+// next.js app setup.
+NEXT_PUBLIC_APP_URL=
+NEXT_PUBLIC_API_DOCS_ENABLED=
+// redis server connection and credentials.
+REDIS_HOST=
+REDIS_PORT=
+REDIS_USERNAME=
+REDIS_PASSWORD=
+// groq api key for ai features.
+GROQ_API_KEY=
+```
+
+### 11.3 Live Application URL
+
+[e2526-wads-b4cc-03.csbihub.id](e2526-wads-b4cc-03.csbihub.id)
+
 ## 12. GitHub Contribution Summary (INDIVIDUAL)
 
 ## 13. AI Usage Disclosure (MANDATORY)
 
+**All usage of AI code was tested and reviewed prior to being commited to the repository.**
+
+- AI Tool Used: Claude, Gemini
+  - Purpose: Used for refactoring code, and applying industry and best practices to code that we made, and consultation regarding structure of API.
+  - Specific usage:
+    - Quiz Session Flow and API Design
+    - Classroom Implementation
+
 ## 14. Known Limitations & Future Improvements
+
+- Known Technical Limitations:
+  - Search options are quite limited. (Only limited to category and quiz name.)
+    - Possible improvement using vector search by generating embeddings using AI allowing users to search by quiz contents, image and etc.
+  - Quiz questions are restricted to two-types: Single-Choice and Multiple-Choice.
+    - Improve by adding more types such as answer via text additionally supporting TTS.
+  - Quiz gameplay is limited to one player.
+    - Possible improvement in the future by implementing a secondary server using WebSockets for live multiplayer quiz gameplay with full synchronization between clients.
+
+- AI Limitations:
 
 ## 15. Final Declaration
 

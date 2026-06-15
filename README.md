@@ -499,6 +499,7 @@ GROQ_API_KEY=
   - Zod Schemas
   - BetterAuth
   - Linting Configuration for Development
+  - AI Chatbot, Quiz Creation Assistance, Mid-Quiz Hint, and End-of-Quiz Feedback
 - Tests written:
   - Postman manual testing scripts for Quiz, QuizQuestion, User, Session, Classroom
 - Security Work:

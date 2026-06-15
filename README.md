@@ -362,6 +362,8 @@ We use Postman for our API testing pipeline. All relevant collection and environ
 
 Isolated test cases may also be ran, but collections may be ran using the Postman Runner by **right-clicking the parent folders and clicking** `run`.
 
+Don't forget to register on our frontend, and then insert your credentials in the Log-in route on the body section for testing to work.
+
 💡 Note: Because the application features an extensive number of API routes, a full endpoint reference is not listed directly in this README. Please refer to the Postman collection for a complete interactive documentation of all routes and their parameters.
 
 ### 10.3 Security Testing

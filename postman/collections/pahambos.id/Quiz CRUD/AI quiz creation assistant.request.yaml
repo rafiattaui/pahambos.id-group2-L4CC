@@ -2,6 +2,37 @@ $kind: http-request
 name: AI quiz creation assistant
 url: "{{baseUrl}}/api/ai-quiz-editor"
 method: POST
+body:
+  type: json
+  content: "{\r
+
+    \    \"messages\": [\r
+
+    \        {\r
+
+    \            \"role\": \"assistant\",\r
+
+    \            \"content\": \"Hi! I'm Bos, your quiz editor assistant. I can add, edit, remove, or reorder questions — just tell me what you'd like to change.\"\r
+
+    \        },\r
+
+    \        {\r
+
+    \            \"role\": \"user\",\r
+
+    \            \"content\": \"Add a true/false question\"\r
+
+    \        }\r
+
+    \    ],\r
+
+    \    \"questions\": [],\r
+
+    \    \"title\": \"zelda quiz\",\r
+
+    \    \"description\": \"quiz about breath of the wild\"\r
+
+    }"
 scripts:
   - type: afterResponse
     code: "const statusCode = pm.response.code;\r

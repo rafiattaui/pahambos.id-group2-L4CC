@@ -11,7 +11,7 @@ body:
   content: |-
     {
         "email":"test@gmail.com",
-        "password":"fabi1911"
+        "password":""
     }
 scripts:
   - type: afterResponse
@@ -21,5 +21,5 @@ settings:
   followRedirects: true
   disableUrlEncoding: false
   disableCookies: false
-examples: ./.resources/Log-In.resources/examples
-order: 784
+examples: .resources/Log-In.resources/examples
+order: 732386878663897

@@ -1,0 +1,80 @@
+$kind: http-request
+url: localhost:3000/api/session/next
+method: POST
+headers:
+  User-Agent: insomnia/12.6.0
+scripts:
+  - type: afterResponse
+    code: "const statusCode = pm.response.code;\r
+
+      \r
+
+      switch (statusCode) {\r
+
+      \    case 200:\r
+
+      \        pm.test(\"Status code is 200 (OK)\", () => {\r
+
+      \            pm.response.to.have.status(200);\r
+
+      \        });\r
+
+      \        \r
+
+      \        pm.test(\"Response contains correct data\", () => {\r
+
+      \            const jsonData = pm.response.json();\r
+
+      \            pm.expect(jsonData.success).to.be.equal(true);\r
+
+      \            pm.expect(jsonData.newStatus).to.be.equal(\"active\");\r
+
+      \        });\r
+
+      \        break;\r
+
+      \r
+
+      \    case 400:\r
+
+      \        pm.test(\"Invalid next stage\", () => {\r
+
+      \            const jsonData = pm.response.json();\r
+
+      \            pm.expect(jsonData.success).to.be.equal(false);\r
+
+      \            pm.expect(jsonData.message).to.be.equal(\"You have not answered the current question.\");\r
+
+      \        })\r
+
+      \        break;\r
+
+      \    \r
+
+      \    case 401:\r
+
+      \        pm.test(\"Status code is 401 (Unauthorized)\", () => {\r
+
+      \            pm.response.to.have.status(401);\r
+
+      \        });\r
+
+      \        break;\r
+
+      \r
+
+      \    default:\r
+
+      \        pm.test(`Unexpected Status Code: ${statusCode}`, () => {\r
+
+      \            pm.expect.fail(`Received an unhandled status code: ${statusCode}`);\r
+
+      \        });\r
+
+      }"
+    language: text/javascript
+settings:
+  followRedirects: true
+  disableUrlEncoding: false
+  disableCookies: false
+order: 4499011427449134

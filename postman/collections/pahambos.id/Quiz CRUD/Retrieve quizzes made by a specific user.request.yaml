@@ -1,4 +1,5 @@
 $kind: http-request
+name: Retrieve quizzes made by a specific user
 description: |-
   ## Retrieve Quizzes by User
 
@@ -37,7 +38,7 @@ description: |-
     "message": "No quizzes found for this user."
   }
   ```
-url: localhost:3000/api/quiz/user/f947b7e6-9b68-4f35-8334-4da308681d71
+url: "{{baseUrl}}/api/quiz/user/{{userId}}"
 method: GET
 headers:
   User-Agent: insomnia/12.6.0

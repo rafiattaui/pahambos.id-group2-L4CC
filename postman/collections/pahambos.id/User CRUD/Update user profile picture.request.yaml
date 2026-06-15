@@ -1,0 +1,80 @@
+$kind: http-request
+name: Update user profile picture
+url: "{{baseUrl}}/api/user"
+method: PUT
+body:
+  type: formdata
+  content: []
+scripts:
+  - type: afterResponse
+    code: "// Get the response status code\r
+
+      const statusCode = pm.response.code;\r
+
+      \r
+
+      switch (statusCode) {\r
+
+      \    case 200:\r
+
+      \        pm.test(\"Status code is 200 (OK)\", () => {\r
+
+      \            pm.response.to.have.status(200);\r
+
+      \        });\r
+
+      \        \r
+
+      \        pm.test(\"Response contains success data\", () => {\r
+
+      \            const jsonData = pm.response.json();\r
+
+      \            pm.expect(jsonData).to.have.property('status');\r
+
+      \            pm.expect(jsonData.status).to.be.true;\r
+
+      \        });\r
+
+      \        break;\r
+
+      \r
+
+      \    case 400:\r
+
+      \        pm.test(\"Correct error message\", () => {\r
+
+      \            const json = pm.response.json();\r
+
+      \            pm.expect(json.success).to.be.false;\r
+
+      \            pm.expect(json.message).to.be.equal(\"Invalid form data\")\r
+
+      \        });\r
+
+      \        break;\r
+
+      \    \r
+
+      \    case 401:\r
+
+      \        pm.test(\"Status code is 401 (Unauthorized)\", () => {\r
+
+      \            pm.response.to.have.status(401);\r
+
+      \        });\r
+
+      \        break;\r
+
+      \r
+
+      \    default:\r
+
+      \        pm.test(`Unexpected Status Code: ${statusCode}`, () => {\r
+
+      \            pm.expect.fail(`Received an unhandled status code: ${statusCode}`);\r
+
+      \        });\r
+
+      }"
+    language: text/javascript
+order: 4330598170864646

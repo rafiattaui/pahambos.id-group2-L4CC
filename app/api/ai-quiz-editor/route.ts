@@ -2,30 +2,90 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateText } from 'ai';
 import { createGroq } from '@ai-sdk/groq';
+import { z } from 'zod';
+import { handleError } from '@/lib/api/errors';
 
-// ── Types ─────────────────────────────────────────────────────────────────────
+// ── Zod Schemas ───────────────────────────────────────────────────────────────
 
-type QuestionType = 'multiple-choice' | 'multiple-select-choice';
+const QuestionTypeSchema = z.enum([
+  'multiple-choice',
+  'multiple-select-choice',
+]);
 
-type Question = {
-  order: number;
-  dbId?: string;
-  type: QuestionType;
-  time?: number;
-  question: string;
-  answer?: string[];
-  correctAnswers: number[];
-};
+const QuestionSchema = z.object({
+  order: z.number().int().nonnegative(),
+  dbId: z.string().optional(),
+  type: QuestionTypeSchema,
+  time: z.number().int().min(1).max(60).optional(),
+  question: z.string().min(1),
+  answer: z.array(z.string()).length(4).optional(),
+  correctAnswers: z.array(z.number().int().nonnegative()),
+});
 
-type ToolCall =
-  | { tool: 'add_question'; question: Omit<Question, 'order' | 'dbId'> }
-  | {
-      tool: 'edit_question';
-      order: number;
-      patch: Partial<Omit<Question, 'order' | 'dbId'>>;
-    }
-  | { tool: 'remove_question'; order: number }
-  | { tool: 'reorder_questions'; newOrder: number[] };
+// Request body schema
+const RequestBodySchema = z.object({
+  messages: z
+    .array(
+      z.object({
+        role: z.enum(['user', 'assistant', 'system']),
+        content: z.string(),
+      })
+    )
+    .min(1),
+  questions: z.array(QuestionSchema).optional().default([]),
+  title: z.string().optional().default(''),
+  description: z.string().optional().default(''),
+});
+
+// ── Tool Call Schemas ─────────────────────────────────────────────────────────
+
+const QuestionPayloadSchema = z.object({
+  type: QuestionTypeSchema,
+  time: z.number().int().min(1).max(60).optional().default(30),
+  question: z.string().min(1),
+  answer: z.array(z.string()).length(4),
+  correctAnswers: z.array(z.number().int().nonnegative()).min(1),
+});
+
+const AddQuestionToolSchema = z.object({
+  tool: z.literal('add_question'),
+  question: QuestionPayloadSchema,
+});
+
+const EditQuestionToolSchema = z.object({
+  tool: z.literal('edit_question'),
+  order: z.number().int().nonnegative(),
+  patch: QuestionPayloadSchema.partial(),
+});
+
+const RemoveQuestionToolSchema = z.object({
+  tool: z.literal('remove_question'),
+  order: z.number().int().nonnegative(),
+});
+
+const ReorderQuestionsToolSchema = z.object({
+  tool: z.literal('reorder_questions'),
+  newOrder: z.array(z.number().int().nonnegative()).min(1),
+});
+
+const ToolCallSchema = z.discriminatedUnion('tool', [
+  AddQuestionToolSchema,
+  EditQuestionToolSchema,
+  RemoveQuestionToolSchema,
+  ReorderQuestionsToolSchema,
+]);
+
+// AI response schema
+const AIResponseSchema = z.object({
+  message: z.string(),
+  toolCalls: z.array(ToolCallSchema).default([]),
+});
+
+// ── Inferred Types ────────────────────────────────────────────────────────────
+
+type Question = z.infer<typeof QuestionSchema>;
+type ToolCall = z.infer<typeof ToolCallSchema>;
+type AIResponse = z.infer<typeof AIResponseSchema>;
 
 // ── System prompt factory ─────────────────────────────────────────────────────
 
@@ -87,19 +147,14 @@ RULES:
 
 const groq = createGroq({ apiKey: process.env.GROQ_API_KEY });
 
-// improvements:
-// add fact checking by connecting to websearch via tavily
 export async function POST(req: NextRequest) {
   try {
-    const { messages, questions, title, description } = await req.json();
+    const body = RequestBodySchema.parse(await req.json());
+    const { messages, questions, title, description } = body;
 
     const { text: raw } = await generateText({
       model: groq('llama-3.3-70b-versatile'),
-      system: buildSystemPrompt(
-        questions ?? [],
-        title ?? '',
-        description ?? ''
-      ),
+      system: buildSystemPrompt(questions, title, description),
       messages,
       temperature: 0.3,
       maxOutputTokens: 1500,
@@ -108,28 +163,18 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    let parsed: { message?: string; toolCalls?: ToolCall[] };
-    try {
-      // Find the first { in case the model prepends plain text before the JSON
-      const jsonStart = raw.indexOf('{');
-      const clean = jsonStart !== -1 ? raw.slice(jsonStart) : raw;
-      parsed = JSON.parse(clean.replace(/```json|```/g, '').trim());
-    } catch {
-      parsed = {
-        message: raw.replace(/\{[\s\S]*\}/, '').trim() || raw,
-        toolCalls: [],
-      };
-    }
+    const jsonStart = raw.indexOf('{');
+    const clean = jsonStart !== -1 ? raw.slice(jsonStart) : raw;
+    const parsed: AIResponse = AIResponseSchema.parse(
+      JSON.parse(clean.replace(/```json|```/g, '').trim())
+    );
 
     return NextResponse.json({
-      message: parsed.message ?? '',
-      toolCalls: parsed.toolCalls ?? [],
+      success: true,
+      message: parsed.message,
+      toolCalls: parsed.toolCalls,
     });
   } catch (err) {
-    console.error('[ai-quiz-editor]', err);
-    return NextResponse.json(
-      { message: 'AI error. Please try again.', toolCalls: [] },
-      { status: 500 }
-    );
+    return handleError(err);
   }
 }

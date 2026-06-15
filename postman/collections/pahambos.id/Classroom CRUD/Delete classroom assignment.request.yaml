@@ -1,5 +1,24 @@
 $kind: http-request
 name: Delete classroom assignment
-url: localhost:3000/api/class/assignment/4be6786b-4990-40b1-af0c-fd480b95c407
+url: localhost:3000/api/class/assignment/{{assignmentId}}
 method: DELETE
-order: 3001892934256592
+body:
+  type: json
+  content: ""
+scripts:
+  - type: afterResponse
+    code: "pm.test(\"Status code is 200\", () => {\r
+
+      \    pm.response.to.have.status(200);\r
+
+      });\r
+
+      \r
+
+      pm.test(\"Assignment removed\", () => {\r
+
+      \    pm.expect(pm.response.json().message).to.eql(\"Quiz assignment removed from classroom successfully.\");\r
+
+      })"
+    language: text/javascript
+order: 10000

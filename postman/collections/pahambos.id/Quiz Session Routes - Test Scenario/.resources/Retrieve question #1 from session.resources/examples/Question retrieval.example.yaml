@@ -1,0 +1,41 @@
+$kind: http-example
+request:
+  url: localhost:3000/api/session/question
+  method: GET
+  headers:
+    User-Agent: insomnia/12.6.0
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    x-ratelimit-remaining: "99"
+    vary: rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch
+    content-type: application/json
+    date: Mon, 15 Jun 2026 19:26:06 GMT
+    connection: keep-alive
+    keep-alive: timeout=5
+    transfer-encoding: chunked
+  body:
+    type: json
+    content: |-
+      {
+        "success": true,
+        "question": {
+          "id": "053379b6-fa59-473c-8182-71eb2c5e7423",
+          "quizId": "29955e49-b640-4117-8d0c-d1f267a01215",
+          "order": 0,
+          "question": "What is the chemical symbol for water?",
+          "type": "SingleSelect",
+          "time": 30,
+          "imageUrl": "https://res.cloudinary.com/dbj2tvfzg/image/upload/v1778493470/landscape-placeholder_vrw20c.svg",
+          "imageKey": "landscape-placeholder_vrw20c",
+          "answers": [
+            "H2O",
+            "CO2",
+            "O2",
+            "NaCl"
+          ]
+        },
+        "questionStartTime": "2026-06-15T19:26:05.915Z"
+      }
+order: 1781551568691

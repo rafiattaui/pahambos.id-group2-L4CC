@@ -1,6 +1,6 @@
 $kind: http-request
 name: Retrieve a list of quizzes.
-url: localhost:3000/api/quiz
+url: "{{baseUrl}}/api/quiz"
 method: GET
 auth:
   type: noauth

@@ -1,0 +1,139 @@
+$kind: http-example
+request:
+  url: localhost:3000/api/quiz/
+  method: POST
+  body:
+    type: formdata
+    content:
+      - type: text
+        key: quiz.title
+        value: General Knowledge Blitz
+        description: ""
+        disabled: false
+      - type: text
+        key: quiz.description
+        value: A quick test quiz with 2 questions.
+        description: ""
+        disabled: false
+      - type: text
+        key: quiz.category
+        value: General
+        description: ""
+        disabled: false
+      - type: text
+        key: questions[0].order
+        value: "0"
+        description: ""
+        disabled: false
+      - type: text
+        key: questions[0].question
+        value: What is the capital of France?
+        description: ""
+        disabled: false
+      - type: text
+        key: questions[0].type
+        value: MultiSelect
+        description: ""
+        disabled: false
+      - type: text
+        key: questions[0].time
+        value: "3"
+        description: ""
+        disabled: false
+      - type: text
+        key: questions[0].answers[0]
+        value: London
+        description: ""
+        disabled: false
+      - type: text
+        key: questions[0].answers[1]
+        value: Paris
+        description: ""
+        disabled: false
+      - type: text
+        key: questions[0].answers[2]
+        value: Berlin
+        description: ""
+        disabled: false
+      - type: text
+        key: questions[0].correctAnswers[0]
+        value: "1"
+        description: ""
+        disabled: false
+      - type: text
+        key: questions[1].order
+        value: "1"
+        description: ""
+        disabled: false
+      - type: text
+        key: questions[1].question
+        value: Which of these are prime numbers?
+        description: ""
+        disabled: false
+      - type: text
+        key: questions[1].type
+        value: MultiSelect
+        description: ""
+        disabled: false
+      - type: text
+        key: questions[1].time
+        value: Testing
+        description: ""
+        disabled: false
+      - type: text
+        key: questions[1].answers[0]
+        value: "4"
+        description: ""
+        disabled: false
+      - type: text
+        key: questions[1].answers[1]
+        value: "7"
+        description: ""
+        disabled: false
+      - type: text
+        key: questions[1].answers[2]
+        value: "9"
+        description: ""
+        disabled: false
+      - type: text
+        key: questions[1].answers[3]
+        value: "11"
+        description: ""
+        disabled: false
+      - type: text
+        key: questions[1].correctAnswers[0]
+        value: "1"
+        description: ""
+        disabled: false
+      - type: text
+        key: questions[1].correctAnswers[1]
+        value: "3"
+        description: ""
+        disabled: false
+response:
+  statusCode: 400
+  statusText: Bad Request
+  headers:
+    x-ratelimit-remaining: "98"
+    vary: rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch
+    content-type: application/json
+    date: Mon, 15 Jun 2026 17:17:17 GMT
+    connection: keep-alive
+    keep-alive: timeout=5
+    transfer-encoding: chunked
+  body:
+    type: json
+    content: |-
+      {
+        "success": false,
+        "message": "Validation failed",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "questions": [
+              "Invalid input: expected number, received NaN"
+            ]
+          }
+        }
+      }
+order: 2259886748907970

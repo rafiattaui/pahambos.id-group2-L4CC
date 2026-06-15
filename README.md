@@ -210,6 +210,116 @@ export const GET = WithAuth(async (req, { user, params }) => {
 
 ## 10. Testing Documentation (VERY IMPORTANT)
 
+## Testing Approach
+
+### Create Page and Create Quiz Form Testing
+
+| Method                   | Coverage                                                                              | Test Cases     |
+| ------------------------ | ------------------------------------------------------------------------------------- | -------------- |
+| **Automated (Jest)**     | Pure logic functions — form validation, draft system, AI tool calls, API error states | FE-01 to FE-57 |
+| **Exploratory (Manual)** | UI rendering and interaction behaviour verified in a live browser                     | FE-58 to FE-76 |
+
+> **Why exploratory testing for UI?**
+> Jest uses `jsdom` — a simulated DOM that does not support CSS layout rendering, focus management, keyboard events across component boundaries, or third-party UI library animations (Radix UI, Sonner toasts, react-easy-crop). These test cases were verified manually by interacting with the running application at `localhost:3000` and confirming expected behaviour against the defined acceptance criteria. Exploratory testing is a recognised software testing methodology (James Bach, 1996; ISTQB) where the tester simultaneously designs and executes tests — particularly suited for UI behaviour validation where visual and interactive feedback is essential.
+
+---
+
+#### Test Case Table
+
+| Test Case | Scenario                                                                | Expected Result                                                | Actual Result                                     | Status    |
+| --------- | ----------------------------------------------------------------------- | -------------------------------------------------------------- | ------------------------------------------------- | --------- |
+| **FE-01** | No title error when title is present                                    | `errors.title` is undefined                                    | `errors.title` is undefined                       | ✅ Pass   |
+| **FE-02** | Title error when title is empty string                                  | `errors.title = "Quiz title is required"`                      | `errors.title = "Quiz title is required"`         | ✅ Pass   |
+| **FE-03** | Title error when title is whitespace only                               | `errors.title = "Quiz title is required"`                      | `errors.title = "Quiz title is required"`         | ✅ Pass   |
+| **FE-04** | No category error when category is selected                             | `errors.category` is undefined                                 | `errors.category` is undefined                    | ✅ Pass   |
+| **FE-05** | Category error when category is empty                                   | `errors.category = "Please select a category"`                 | `errors.category = "Please select a category"`    | ✅ Pass   |
+| **FE-06** | Passes with exactly two questions                                       | `errors.questionsError` is undefined                           | `errors.questionsError` is undefined              | ✅ Pass   |
+| **FE-07** | Fails with zero questions                                               | `errors.questionsError` matches `/at least two/i`              | Matches `/at least two/i`                         | ✅ Pass   |
+| **FE-08** | Fails with only one question                                            | `errors.questionsError` matches `/at least two/i`              | Matches `/at least two/i`                         | ✅ Pass   |
+| **FE-09** | Passes with three or more questions                                     | `errors.questionsError` is undefined                           | `errors.questionsError` is undefined              | ✅ Pass   |
+| **FE-10** | Flags empty question prompt                                             | `errors.questions[0].question = "Question prompt is required"` | Field error set correctly                         | ✅ Pass   |
+| **FE-11** | Flags whitespace-only prompt                                            | `errors.questions[0].question` matches `/required/i`           | Matches `/required/i`                             | ✅ Pass   |
+| **FE-12** | Does not flag a valid prompt                                            | `errors.questions[0].question` is undefined                    | `errors.questions[0].question` is undefined       | ✅ Pass   |
+| **FE-13** | Flags fewer than 2 filled answers                                       | `errors.questions[0].answer` matches `/at least 2/i`           | Matches `/at least 2/i`                           | ✅ Pass   |
+| **FE-14** | Flags empty answers array                                               | `errors.questions[0].answer` matches `/at least 2/i`           | Matches `/at least 2/i`                           | ✅ Pass   |
+| **FE-15** | Passes with 2 valid answers                                             | `errors.questions[0].answer` is undefined                      | `errors.questions[0].answer` is undefined         | ✅ Pass   |
+| **FE-16** | Ignores whitespace-only answers when counting filled ones               | `errors.questions[0].answer` matches `/at least 2/i`           | Matches `/at least 2/i`                           | ✅ Pass   |
+| **FE-17** | Passes with exactly one correct answer (SingleSelect)                   | `errors.questions[0].correctAnswers` is undefined              | `errors.questions[0].correctAnswers` is undefined | ✅ Pass   |
+| **FE-18** | Fails with no correct answer (SingleSelect)                             | `errors.questions[0].correctAnswers` matches `/exactly one/i`  | Matches `/exactly one/i`                          | ✅ Pass   |
+| **FE-19** | Fails with more than one correct answer (SingleSelect)                  | `errors.questions[0].correctAnswers` matches `/exactly one/i`  | Matches `/exactly one/i`                          | ✅ Pass   |
+| **FE-20** | Passes with at least one correct answer (MultiSelect)                   | `errors.questions[0].correctAnswers` is undefined              | `errors.questions[0].correctAnswers` is undefined | ✅ Pass   |
+| **FE-21** | Fails with zero correct answers (MultiSelect)                           | `errors.questions[0].correctAnswers` matches `/at least one/i` | Matches `/at least one/i`                         | ✅ Pass   |
+| **FE-22** | Allows multiple correct answers (MultiSelect)                           | `errors.questions[0].correctAnswers` is undefined              | `errors.questions[0].correctAnswers` is undefined | ✅ Pass   |
+| **FE-23** | Returns all top-level errors simultaneously                             | `title`, `category`, `questionsError` all defined              | All three errors present                          | ✅ Pass   |
+| **FE-24** | Per-question errors keyed by `question.order`                           | `errors.questions[0]` and `errors.questions[1]` both present   | Errors keyed by order correctly                   | ✅ Pass   |
+| **FE-25** | Identical fingerprints for equivalent forms                             | `fingerprint(a) === fingerprint(b)`                            | Fingerprints match                                | ✅ Pass   |
+| **FE-26** | Fingerprint is case-insensitive for title                               | `fingerprint("MY QUIZ") === fingerprint("my quiz")`            | Fingerprints match                                | ✅ Pass   |
+| **FE-27** | Fingerprint trims whitespace before comparing                           | `fingerprint("  Quiz  ") === fingerprint("Quiz")`              | Fingerprints match                                | ✅ Pass   |
+| **FE-28** | Different fingerprint when title differs                                | `fingerprint("Quiz A") !== fingerprint("Quiz B")`              | Fingerprints differ                               | ✅ Pass   |
+| **FE-29** | Different fingerprint when question prompt changes                      | `fingerprint(formA) !== fingerprint(formB)`                    | Fingerprints differ                               | ✅ Pass   |
+| **FE-30** | Saves draft and returns status `"saved"`                                | `result.status === "saved"`                                    | `result.status === "saved"`                       | ✅ Pass   |
+| **FE-31** | Persists draft in localStorage                                          | `getDrafts().length === 1`, `slotIndex === 0`                  | Draft found in localStorage                       | ✅ Pass   |
+| **FE-32** | Overwrites existing draft in the same slot                              | `getDrafts().length === 1`, `title === "Updated Title"`        | Slot overwritten correctly                        | ✅ Pass   |
+| **FE-33** | Detects duplicates in other slots                                       | `result.status === "duplicate"`                                | `result.status === "duplicate"`                   | ✅ Pass   |
+| **FE-34** | Returns error when all 3 slots are full                                 | `result.status === "error"`                                    | `result.status === "error"`                       | ✅ Pass   |
+| **FE-35** | Assigns unique `draftId` each time                                      | `r1.draft.draftId !== r2.draft.draftId`                        | IDs are unique                                    | ✅ Pass   |
+| **FE-36** | Records a `savedAt` ISO timestamp                                       | `new Date(result.draft.savedAt)` is valid                      | Valid date returned                               | ✅ Pass   |
+| **FE-37** | `deleteDraftBySlot` removes correct draft                               | `getDrafts().length === 1`, remaining `slotIndex === 1`        | Correct draft removed                             | ✅ Pass   |
+| **FE-38** | `deleteDraftBySlot` is no-op on empty slot                              | `getDrafts().length === 1` (slot 0 still present)              | No change to other slots                          | ✅ Pass   |
+| **FE-39** | `getDrafts` returns `[]` when storage is empty                          | `getDrafts() === []`                                           | Returns `[]`                                      | ✅ Pass   |
+| **FE-40** | `getDrafts` handles corrupted localStorage gracefully                   | Does not throw, returns `[]`                                   | Returns `[]` without throwing                     | ✅ Pass   |
+| **FE-41** | `add_question` appends question at end                                  | `result.length === 3`, `result[2].question === "Q3?"`          | Question appended correctly                       | ✅ Pass   |
+| **FE-42** | `add_question` pads answers to exactly 4 items                          | `result[2].answer.length === 4`, slots 2 and 3 are `""`        | Answers padded correctly                          | ✅ Pass   |
+| **FE-43** | `add_question` assigns `order` equal to list length                     | `result[2].order === 2`                                        | Order assigned correctly                          | ✅ Pass   |
+| **FE-44** | `edit_question` patches only targeted question                          | `result[0].question` updated, `result[1]` unchanged            | Patch applied correctly                           | ✅ Pass   |
+| **FE-45** | `edit_question` does not change question count                          | `result.length === 2`                                          | Count unchanged                                   | ✅ Pass   |
+| **FE-46** | `edit_question` is no-op when order does not exist                      | Both questions unchanged                                       | No change applied                                 | ✅ Pass   |
+| **FE-47** | `remove_question` removes targeted question                             | `result.length === 1`, `result[0].question === "Q2?"`          | Question removed                                  | ✅ Pass   |
+| **FE-48** | `remove_question` re-indexes remaining questions from 0                 | `result[0].order === 0`                                        | Re-indexed correctly                              | ✅ Pass   |
+| **FE-49** | `remove_question` is no-op when order does not exist                    | `result.length === 2`                                          | No change applied                                 | ✅ Pass   |
+| **FE-50** | `reorder_questions` reorders according to `newOrder`                    | `result[0].question === "Q2?"`, `result[1].question === "Q1?"` | Reordered correctly                               | ✅ Pass   |
+| **FE-51** | `reorder_questions` updates `order` property                            | `result[0].order === 0`, `result[1].order === 1`               | Order properties updated                          | ✅ Pass   |
+| **FE-52** | `reorder_questions` preserves question count                            | `result.length === 2`                                          | Count preserved                                   | ✅ Pass   |
+| **FE-53** | Multiple tool calls applied in sequence                                 | `result.length === 2`, `result[0].question === "Q2?"`          | Calls applied in order                            | ✅ Pass   |
+| **FE-54** | Shows error message when user API call fails                            | Error message rendered in DOM                                  | Error message shown                               | ✅ Pass   |
+| **FE-55** | Shows empty state when user has no quizzes                              | `"No quizzes yet"` text rendered                               | `"No quizzes yet"` visible                        | ✅ Pass   |
+| **FE-56** | Shows loading skeletons while fetching                                  | `animate-pulse` elements present in DOM                        | Skeleton elements found                           | ✅ Pass   |
+| **FE-57** | Navigates to `/create-quiz` on button click                             | `mockPush` called with `"/create-quiz"`                        | `mockPush("/create-quiz")` called                 | ✅ Pass   |
+| **FE-58** | DraftPopup renders all 3 draft slots                                    | Slot 1, Slot 2, Slot 3 labels visible                          | Verified in browser                               | 🔍 Manual |
+| **FE-59** | DraftPopup shows `"0 of 3 slots used"` with no drafts                   | Counter text visible                                           | Verified in browser                               | 🔍 Manual |
+| **FE-60** | DraftPopup closes on Escape key press                                   | Modal dismissed                                                | Verified in browser                               | 🔍 Manual |
+| **FE-61** | DraftPopup closes on × button click                                     | Modal dismissed                                                | Verified in browser                               | 🔍 Manual |
+| **FE-62** | DraftPopup closes on overlay backdrop click                             | Modal dismissed                                                | Verified in browser                               | 🔍 Manual |
+| **FE-63** | DraftPopup saves to empty slot and updates slot count                   | `"1 of 3 slots used"` rendered after save                      | Verified in browser                               | 🔍 Manual |
+| **FE-64** | DraftPopup shows duplicate warning when same content saved to two slots | `"Duplicate draft detected"` banner visible                    | Verified in browser                               | 🔍 Manual |
+| **FE-65** | DraftPopup dismisses duplicate warning on × click                       | Warning banner disappears                                      | Verified in browser                               | 🔍 Manual |
+| **FE-66** | DraftPopup loads draft and calls `onLoad` + `onClose`                   | Both callbacks fired once                                      | Verified in browser                               | 🔍 Manual |
+| **FE-67** | DraftPopup deletes draft on Delete button click                         | `"0 of 3 slots used"` after delete                             | Verified in browser                               | 🔍 Manual |
+| **FE-68** | DraftPopup shows draft title and question count in filled slot          | Title and `"2 questions"` visible in slot                      | Verified in browser                               | 🔍 Manual |
+| **FE-69** | CreatePage renders quiz cards when quizzes load successfully            | Quiz card with title renders in grid                           | Verified in browser                               | 🔍 Manual |
+| **FE-70** | MetricsModal shows `"Failed to load metrics"` on API failure            | Error text visible in modal                                    | Verified in browser                               | 🔍 Manual |
+| **FE-71** | MetricsModal shows `"No attempts yet"` on no data                       | Empty state text visible in modal                              | Verified in browser                               | 🔍 Manual |
+| **FE-72** | MetricsModal closes on × button click                                   | Modal disappears from page                                     | Verified in browser                               | 🔍 Manual |
+| **FE-73** | DeleteConfirmDialog appears on Delete Quiz button click                 | Dialog with quiz title and confirm button visible              | Verified in browser                               | 🔍 Manual |
+| **FE-74** | DeleteConfirmDialog dismisses on Cancel click                           | Dialog disappears                                              | Verified in browser                               | 🔍 Manual |
+| **FE-75** | DeleteConfirmDialog shows spinner and disables Cancel during delete     | Cancel disabled, `"Deleting…"` text visible                    | Verified in browser                               | 🔍 Manual |
+| **FE-76** | DeleteConfirmDialog removes quiz from list after successful delete      | Quiz card absent from grid, dialog closed                      | Verified in browser                               | 🔍 Manual |
+
+---
+
+#### Summary
+
+| Category                                                                              | Test Cases    | Count  | Result          |
+| ------------------------------------------------------------------------------------- | ------------- | ------ | --------------- |
+| Form Validation (`validateForm`)                                                      | FE-01 – FE-24 | 24     | ✅ All Pass     |
+| Draft System (`formFingerprint`, `saveDraftToSlot`, `deleteDraftBySlot`, `getDrafts`) | FE-25 – FE-40 | 16     | ✅ All Pass     |
+| AI Tool Calls (`applyToolCalls`)                                                      | FE-41 – FE-53 | 13     | ✅ All Pass     |
+| CreatePage API Error Handling                                                         | FE-54 – FE-57 | 4      | ✅ All Pass     |
+| UI Interaction — Exploratory (Manual)                                                 | FE-58 – FE-76 | 19     | 🔍 All Verified |
+| **Total**                                                                             |               | **76** | **76 / 76**     |
+
+> **Note on FE-58 to FE-76:** These tests were executed as exploratory tests in a live browser (`localhost:3000`) rather than in Jest. Jest's `jsdom` environment does not simulate CSS layout, Radix UI component behaviour, Sonner toast animations, or native keyboard event propagation — all of which are required for these test cases to execute correctly. The behaviour described in each scenario was confirmed by direct interaction with the running application.
+
 ## 11. Deployment & Production Setup
 
 ## 12. GitHub Contribution Summary (INDIVIDUAL)

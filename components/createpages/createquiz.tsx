@@ -71,7 +71,7 @@ type validationErrors = {
   questionsError?: string; // for form-level question errors (e.g. no questions added)
 };
 
-function validateForm(
+export function validateForm(
   title: string,
   category: string,
   questions: Question[]
@@ -822,6 +822,7 @@ function AIGenerateModal({
             </span>
           </div>
           <input
+            title="Number of questions"
             type="range"
             min={1}
             max={6}
@@ -847,6 +848,7 @@ function AIGenerateModal({
             </span>
           </div>
           <input
+            title="Difficulty"
             type="range"
             min={1}
             max={5}

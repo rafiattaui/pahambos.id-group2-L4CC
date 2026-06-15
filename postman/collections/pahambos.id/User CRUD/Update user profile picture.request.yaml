@@ -1,7 +1,10 @@
 $kind: http-request
-name: Retrieve user details
-url: localhost:3000/api/user
-method: GET
+name: Update user profile picture
+url: "{{baseUrl}}/api/user"
+method: PUT
+body:
+  type: formdata
+  content: []
 scripts:
   - type: afterResponse
     code: "// Get the response status code\r
@@ -26,19 +29,31 @@ scripts:
 
       \            const jsonData = pm.response.json();\r
 
-      \            pm.expect(jsonData).to.have.property('name');\r
+      \            pm.expect(jsonData).to.have.property('status');\r
 
-      \            pm.expect(jsonData).to.have.property('email');\r
-
-      \            pm.expect(jsonData).to.have.property('createdAt');\r
-
-      \            pm.expect(jsonData).to.have.property('id');\r
+      \            pm.expect(jsonData.status).to.be.true;\r
 
       \        });\r
 
       \        break;\r
 
       \r
+
+      \    case 400:\r
+
+      \        pm.test(\"Correct error message\", () => {\r
+
+      \            const json = pm.response.json();\r
+
+      \            pm.expect(json.success).to.be.false;\r
+
+      \            pm.expect(json.message).to.be.equal(\"Invalid form data\")\r
+
+      \        });\r
+
+      \        break;\r
+
+      \    \r
 
       \    case 401:\r
 
@@ -62,5 +77,4 @@ scripts:
 
       }"
     language: text/javascript
-examples: .resources/Retrieve user details.resources/examples
-order: 1781013659748
+order: 4330598170864646

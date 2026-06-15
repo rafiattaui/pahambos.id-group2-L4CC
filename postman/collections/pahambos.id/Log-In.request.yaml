@@ -9,12 +9,10 @@ body:
   type: json
   content: |-
     {
-      "email": "test@gmail.com",
-      "password": "12345678"
     }
 settings:
   followRedirects: true
   disableUrlEncoding: false
   disableCookies: false
 examples: ./.resources/Log-In.resources/examples
-order: 4000
+order: 3172572816069946

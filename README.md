@@ -65,14 +65,73 @@ Main features:
 
 ## 6. API Design (MANDATORY)
 
-| Endpoint   | Method | Description                                              |
-| ---------- | ------ | -------------------------------------------------------- |
-| /user/     | GET    | Retrieve user details using the session token cookie.    |
-| /user/     | PATCH  | Update user details.                                     |
-| /quiz/     | GET    | Retrieve a list of quizzes.                              |
-| /quiz/     | POST   | Create a new quiz.                                       |
-| /quiz/{id} | GET    | Retrieve a quiz's details and its questions and answers. |
-| /quiz/{id} | DELETE | Deletes a quiz if user is creator of the quiz.           |
+All API's begin with /api/.
+
+### Endpoints for User CRUD
+
+| Endpoint              | Method | Description                                           |
+| --------------------- | ------ | ----------------------------------------------------- |
+| /user/                | GET    | Retrieve user details using the session token cookie. |
+| /user/                | PATCH  | Update user details.                                  |
+| /user/                | PUT    | Update user's profile image.                          |
+| /user/change-password | PATCH  | Update user's password.                               |
+
+### Endpoints for Quiz CRUD
+
+| Endpoint                   | Method | Description                                                            |
+| -------------------------- | ------ | ---------------------------------------------------------------------- |
+| /quiz/                     | GET    | Retrieve a list of quizzes.                                            |
+| /quiz/                     | POST   | Create a new quiz.                                                     |
+| /quiz/ai                   | POST   | Request AI assistance in generating a quiz.                            |
+| /quiz/user/{userId}        | GET    | Retrieve quizzes made by a specific user.                              |
+| /quiz/user/performance/    | GET    | Retrieve all quiz performances of the user.                            |
+| /quiz/{quizId}             | GET    | Retrieve a quiz's details and its questions and answers.               |
+| /quiz/{quizId}             | DELETE | Deletes a quiz if user is creator of the quiz.                         |
+| /quiz/{quizId}/performance | GET    | Retrieve all performance records of the user for the specific quiz.    |
+| /quiz/{quizId}/metrics     | GET    | Retrieve all aggregate metrics of a quiz, only the creator may see it. |
+| /quiz/{quizId}/session/    | POST   | Start a new quiz session.                                              |
+
+### Endpoints for Quiz Sessions
+
+| Endpoint                 | Method | Description                                                                                   |
+| ------------------------ | ------ | --------------------------------------------------------------------------------------------- |
+| /session/                | GET    | Retrieves user's currently active session details                                             |
+| /session/                | DELETE | Deletes the user's currently active session                                                   |
+| /session/question/       | GET    | Retrieve the currently active questions, and its possible answers                             |
+| /session/question/       | POST   | Answer the currently active questions, and returns the score.                                 |
+| /session/next/           | POST   | Advances the session to the next question, only if the user has answered the current question |
+| /session/hint/           | GET    | Receive a hint for the current question, using AI                                             |
+| /session/finish/         | POST   | Finish and upload the score to the database, and delete the session.                          |
+| /session/[assignmentId]/ | POST   | Start a quiz session and link the current session to an assignment.                           |
+
+### Endpoints for Classroom Functionality
+
+| Endpoint                         | Method | Description                                                                                                                                                      |
+| -------------------------------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| /class/                          | GET    | Retrieves user's joined classrooms.                                                                                                                              |
+| /class/                          | POST   | Create a new classroom.                                                                                                                                          |
+| /class/                          | PATCH  | Edit a classroom's name.                                                                                                                                         |
+| /class/                          | DELETE | Delete an existing classroom that the user is an educator in.                                                                                                    |
+| /class/assignment/[classroomId]/ | GET    | Retrieve details regarding an assignment, educators receive a richer response consisting of submissions and scores, learners only see their personal submission. |
+| /class/assignment/[classroomId]/ | POST   | Assign a quiz to the classroom, educator only.                                                                                                                   |
+| /class/assignment/[classroomId]/ | DELETE | Delete an assignment from the classroom, educator only.                                                                                                          |
+
+### Endpoint for QuizQuestion CRUD
+
+| Endpoint               | Method | Description                                      |
+| ---------------------- | ------ | ------------------------------------------------ |
+| /question/             | POST   | Add a new question to an already existing quiz.  |
+| /question/{questionId} | GET    | Retrieve a specific question.                    |
+| /question/{questionId} | DELETE | Delete a specific question.                      |
+| /question/{questionId} | PATCH  | Edit a specific question.                        |
+| /question/{questionId} | PUT    | Add or remove the image for a specific question. |
+
+### Miscellaneous Endpoints
+
+| Endpoint               | Method | Description                                |
+| ---------------------- | ------ | ------------------------------------------ |
+| /leaderboard/{quizId}/ | GET    | Retrieve leaderboards for a specific quiz. |
+| /ai-quiz-editor/       | POST   | AI Chatbot for quiz creation assistance.   |
 
 ## 7. Database Design
 

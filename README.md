@@ -349,11 +349,11 @@ export const GET = WithAuth(async (req, { user, params }) => {
 
 ### 10.2 Backend Testing
 
-Because our data is highly intertwined and consists of many relations, the tests need to be done in order thoroughly so no inconsistencies occur.
-Tests were run on postman using postman scripts, postman folder available in repository.
+Because our data is highly intertwined and consists of many complex relations, tests must be executed in order and thoroughly to prevent data inconsistencies.
 
-Each test case was ran as part of a collection using `Postman Runners`, each route also has example responses for isolated test case.
-Test cases should be ran by **right-clicking the folder**, and clicking `run`, isolated test cases can also be ran.
+We use Postman for our API testing pipeline. All relevant collection and environment scripts are available in the [postman](/postman/) directory of this repository. Isolated test cases may also be ran, but collections may be ran using the Postman Runner by **right-clicking the parent folders and clicking** `run`.
+
+💡 Note: Because the application features an extensive number of API routes, a full endpoint reference is not listed directly in this README. Please refer to the Postman collection for a complete interactive documentation of all routes and their parameters.
 
 ### 10.3 Security Testing
 

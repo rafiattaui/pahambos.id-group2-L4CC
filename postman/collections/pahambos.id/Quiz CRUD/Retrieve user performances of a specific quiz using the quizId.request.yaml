@@ -1,5 +1,4 @@
 $kind: http-request
-name: Retrieve user performances of a specific quiz
 description: |-
   ## Retrieve Metrics of a Specific Quiz
 
@@ -155,5 +154,5 @@ settings:
   followRedirects: true
   disableUrlEncoding: false
   disableCookies: false
-examples: .resources/Retrieve user performances of a specific quiz.resources/examples
+examples: .resources/Retrieve user performances of a specific quiz using the quizId.resources/examples
 order: 3000

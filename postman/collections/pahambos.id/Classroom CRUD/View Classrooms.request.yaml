@@ -1,4 +1,5 @@
 $kind: http-request
+name: View Classrooms
 url: localhost:3000/api/class
 method: GET
 body:
@@ -8,5 +9,102 @@ body:
     \    \"name\": \"Test Classroom\"\r
 
     }"
+scripts:
+  - type: afterResponse
+    code: "const jsonData = pm.response.json();\r
+
+      const targetId = pm.collectionVariables.get(\"classroomId\");\r
+
+      \r
+
+      pm.test(\"Status code is 200\", () => {\r
+
+      \    pm.response.to.have.status(200);\r
+
+      });\r
+
+      \r
+
+      pm.test(\"Response is valid JSON\", () => {\r
+
+      \    pm.response.to.be.json;\r
+
+      });\r
+
+      \r
+
+      pm.test(\"Response has educatorClasses and learnerClasses\", () => {\r
+
+      \    pm.expect(jsonData).to.have.property(\"educatorClasses\");\r
+
+      \    pm.expect(jsonData).to.have.property(\"learnerClasses\");\r
+
+      \    pm.expect(jsonData.educatorClasses).to.be.an(\"array\");\r
+
+      \    pm.expect(jsonData.learnerClasses).to.be.an(\"array\");\r
+
+      });\r
+
+      \r
+
+      const foundClass = jsonData.educatorClasses.find(c => c.id ===
+      targetId);\r
+
+      \r
+
+      pm.test(`Classroom with id \"${targetId}\" exists in educatorClasses`, ()
+      => {\r
+
+      \    pm.expect(foundClass, `No classroom found with id
+      ${targetId}`).to.not.be.undefined;\r
+
+      });\r
+
+      \r
+
+      pm.test(\"Found classroom has required fields\", () => {\r
+
+      \    pm.expect(foundClass).to.have.property(\"id\");\r
+
+      \    pm.expect(foundClass).to.have.property(\"name\");\r
+
+      \    pm.expect(foundClass).to.have.property(\"owner\");\r
+
+      \    pm.expect(foundClass).to.have.property(\"members\");\r
+
+      });\r
+
+      \r
+
+      pm.test(\"Found classroom has correct name\", () => {\r
+
+      \    pm.expect(foundClass.name).to.eql(\"Test Classroom\");\r
+
+      });\r
+
+      \r
+
+      pm.test(\"Found classroom owner has correct fields and values\", () => {\r
+
+      \    pm.expect(foundClass.owner).to.have.property(\"id\");\r
+
+      \    pm.expect(foundClass.owner).to.have.property(\"name\");\r
+
+      \    pm.expect(foundClass.owner).to.have.property(\"email\");\r
+
+      \    pm.expect(foundClass.owner).to.have.property(\"image\");\r
+
+      \    pm.expect(foundClass.owner.email).to.eql(\"test@gmail.com\");\r
+
+      });\r
+
+      \r
+
+      pm.test(\"Found classroom members array is empty\", () => {\r
+
+      \    pm.expect(foundClass.members).to.be.an(\"array\").that.is.empty;\r
+
+      });"
+    language: text/javascript
 examples: ./.resources/View Classrooms.resources/examples
-order: 2000
+order: 3000

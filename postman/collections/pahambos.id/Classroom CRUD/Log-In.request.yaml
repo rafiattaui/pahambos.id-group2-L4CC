@@ -1,4 +1,5 @@
 $kind: http-request
+name: Log-In
 url: localhost:3000/api/auth/sign-in/email
 method: POST
 headers:
@@ -10,7 +11,7 @@ body:
   content: |-
     {
         "email":"test@gmail.com",
-        "password":"12345678"
+        "password":"fabi1911"
     }
 scripts:
   - type: afterResponse
@@ -21,4 +22,4 @@ settings:
   disableUrlEncoding: false
   disableCookies: false
 examples: ./.resources/Log-In.resources/examples
-order: 928
+order: 1000

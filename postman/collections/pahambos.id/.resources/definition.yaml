@@ -5,3 +5,6 @@ variables:
   userId: ""
   userEmail: ""
   sessionId: ""
+  classId: ""
+  classroomId: ""
+  assignmentId: ""

@@ -1,13 +1,21 @@
 $kind: http-request
-url: localhost:3000/api/class/8bf40f88-bea5-403c-a2d0-86b566e19ab4
+name: Join a classroom via its ID
+url: localhost:3000/api/class/{{classroomId}}
 method: POST
-body:
-  type: text
-  content: "{   \r
+scripts:
+  - type: afterResponse
+    code: "pm.test(\"Status code is 403\", () => {\r
 
-    \    \"classroomId\": \"8bf40f88-bea5-403c-a2d0-86b566e19ab4\",\r
+      \    pm.response.to.have.status(403);\r
 
-    \    \"name\": \"New Test Classroom\"\r
+      });\r
 
-    }"
-order: 2607239882797852
+      \r
+
+      pm.test(\"Educator cannot join their own class\", () => {\r
+
+      \    pm.expect(pm.response.json().message).to.eql(\"You are the educator of this class.\");\r
+
+      })"
+    language: text/javascript
+order: 9000

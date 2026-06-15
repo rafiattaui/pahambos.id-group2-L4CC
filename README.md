@@ -58,6 +58,8 @@ Main features:
 
 ## 5. System Architecture
 
+### 5.1 Architecture Diagram
+
 ![](./docs/1.png)
 ![](./docs/2.png)
 ![](./docs/3.png)
@@ -65,9 +67,53 @@ Main features:
 ![](./docs/5.png)
 ![](./docs/6.png)
 
+### 5.2 Architecture Explanation
+
+Our application is built on a **client-server architecture** utilizing the Next.js framework. The platform provides a dual-interface experience: Students can join real-time quizzes, compete, and track their rankings on live leaderboards, while Educators leverage the quiz gameplay system to assign coursework and monitor student submissions.
+
+**Authoritative Server Model**
+To ensure absolute data integrity and prevent exploitation during gameplay, the system implements an authoritative server model. Under this paradigm, the server remains the single source of truth regarding game states, validating and authorizing all incoming client actions before state transitions occur.
+
+A primary example of this architecture is the session timer mechanic:
+
+1. **Trigger**: When a client requests a new question, the server initiates an internal countdown specific to that question's parameters.
+
+2. **Validation**: Rather than relying on client-side timestamps—which are vulnerable to manipulation—the server independently logs the arrival time of the user's submission.
+
+3. **Enforcement**: If a response is received after the designated window has elapsed, the server automatically invalidates the submission, mitigating **client-side tampering** and ensuring a fair competitive environment.
+
+### 5.3 System Component Breakdown
+
+- **Frontend**
+  - Framework Ecosystem: Built on Next.js and React, utilizing industry-standard design patterns to deliver a highly responsive and interactive user interface.
+
+  - Dynamic Rendering: Utilizes dynamically rendered components to handle real-time state updates, such as live leaderboard shifts and active quiz countdowns.
+
+  - Isolation of Concerns: The frontend operates with strict isolation from the data layer. It holds zero direct access to the database, communicating exclusively with the backend via structured API endpoints.
+
+- **Backend & API Layer**
+  - API Architecture: Implemented via `Next.js` API Routes (Route Handlers), serving as the central orchestration layer for business logic.
+
+  - State Management: Manages the authoritative state for active quiz sessions, continuously tracking and caching session metadata to enforce runtime validation rules.
+
+  - Secure AI Integration: Orchestrates AI-driven features by constructing tested prompts and acting as a secure proxy to the external AI provider. Security is maintained by strictly decoupling the AI service from sensitive application infrastructure; the AI engine has no exposure to environment secrets, API keys, connection strings, or direct database access.
+
+- **Database & Infrastructure Layer**
+  - Persistence & Object-Relational Mapping: Employs a `PostgreSQL` relational database managed through the `Prisma ORM`. Prisma enforces type safety, streamlines migrations, and mitigates SQL injection risks.
+
+  - In-Memory Caching & Session Management: Integrates `Redis` to facilitate low-latency read and write operations. `Redis` handles high-throughput quiz session states, buffers real-time leaderboard computations, and enforces global API rate limiting to protect against Denial-of-Service (DoS) vectors.
+
+  - Identity & Access Management: Built on top of `BetterAuth`, providing a flexible, secure authentication layer that supports diverse multi-provider sign-in options while safeguarding user credentials.
+
+- **Security & Validation Architecture**
+  - Schema Validation: Implements strict runtime type-checking and payload sanitization utilizing `Zod` schemas. Every incoming request payload undergoes rigid JSON parsing to prevent malformed data injection and ensure backend type integrity.
+
+  - Middleware & Contextual Authentication:
+    All protected endpoints are intercepted by a higher-order handler, `WithAuth`. This middleware automatically verifies the session token, decodes the authentication context, and injects user credentials directly into the route context. This eliminates reliance on client-supplied identifiers (e.g., passing a vulnerable userId in the request body), strictly isolating data scope between users.
+
 ## 6. API Design (MANDATORY)
 
-All API's begin with /api/.
+**All API's begin with /api/.**
 
 ### Endpoints for User CRUD
 
@@ -104,19 +150,19 @@ All API's begin with /api/.
 | /session/next/           | POST   | Advances the session to the next question, only if the user has answered the current question |
 | /session/hint/           | GET    | Receive a hint for the current question, using AI                                             |
 | /session/finish/         | POST   | Finish and upload the score to the database, and delete the session.                          |
-| /session/[assignmentId]/ | POST   | Start a quiz session and link the current session to an assignment.                           |
+| /session/{assignmentId}/ | POST   | Start a quiz session and link the current session to an assignment.                           |
 
 ### Endpoints for Classroom Functionality
 
-| Endpoint                         | Method | Description                                                                                                                                                      |
-| -------------------------------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| /class/                          | GET    | Retrieves user's joined classrooms.                                                                                                                              |
-| /class/                          | POST   | Create a new classroom.                                                                                                                                          |
-| /class/                          | PATCH  | Edit a classroom's name.                                                                                                                                         |
-| /class/                          | DELETE | Delete an existing classroom that the user is an educator in.                                                                                                    |
-| /class/assignment/[classroomId]/ | GET    | Retrieve details regarding an assignment, educators receive a richer response consisting of submissions and scores, learners only see their personal submission. |
-| /class/assignment/[classroomId]/ | POST   | Assign a quiz to the classroom, educator only.                                                                                                                   |
-| /class/assignment/[classroomId]/ | DELETE | Delete an assignment from the classroom, educator only.                                                                                                          |
+| Endpoint                         | Method | Description                                                                                                                                                    |
+| -------------------------------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| /class/                          | GET    | Retrieves user's joined classrooms.                                                                                                                            |
+| /class/                          | POST   | Create a new classroom.                                                                                                                                        |
+| /class/                          | PATCH  | Edit a classroom's name.                                                                                                                                       |
+| /class/                          | DELETE | Delete an existing classroom that the user is an educator in.                                                                                                  |
+| /class/assignment/{classroomId}/ | GET    | Retrieve details regarding assignments, educators receive a richer response consisting of submissions and scores, learners only see their personal submission. |
+| /class/assignment/{classroomId}/ | POST   | Assign a quiz to the classroom, educator only.                                                                                                                 |
+| /class/assignment/{classroomId}/ | DELETE | Delete an assignment from the classroom, educator only.                                                                                                        |
 
 ### Endpoint for QuizQuestion CRUD
 
@@ -134,6 +180,28 @@ All API's begin with /api/.
 | ---------------------- | ------ | ------------------------------------------ |
 | /leaderboard/{quizId}/ | GET    | Retrieve leaderboards for a specific quiz. |
 | /ai-quiz-editor/       | POST   | AI Chatbot for quiz creation assistance.   |
+
+Example:
+**POST /api/session/question**
+
+- Request JSON
+
+```json
+{
+  "answer": [0, 1]
+}
+```
+
+- Response JSON
+
+```json
+{
+  "success": true,
+  "isCorrect": true,
+  "isTimedOut": false,
+  "points": 250
+}
+```
 
 ## 7. Database Design
 
@@ -413,11 +481,45 @@ REDIS_PASSWORD=
 GROQ_API_KEY=
 ```
 
+- Production secrets are handed using Github Secrets and is deployed within a Docker container which is automatically updated via Github Actions.
+
 ### 11.3 Live Application URL
 
 [e2526-wads-b4cc-03.csbihub.id](e2526-wads-b4cc-03.csbihub.id)
 
 ## 12. GitHub Contribution Summary (INDIVIDUAL)
+
+**Student Name: Muhammad Rafi Athallah**
+
+- Features Implemented:
+  - Backend API Routes for Quiz, QuizQuestion, User, Session
+  - Backend Logic for Quiz Gameplay
+  - Redis Cache (Rate Limiting, QuizQuestion Cache, Session Data Storage, Leaderboards)
+  - Database Schema and ORM
+  - Zod Schemas
+  - BetterAuth
+  - Linting Configuration for Development
+- Tests written:
+  - Postman manual testing scripts for Quiz, QuizQuestion, User, Session, Classroom
+- Security Work:
+  - Backend Testing using Postman
+  - AI Testing
+- AI-Related Work:
+  - Implemented AI Chatbot, End-of-Quiz feedback, and mid-hint within the backend.
+
+**Student Name: Athallah Raja Mustafa**
+
+- Features Implemented:
+- Tests written:
+- Security Work:
+- AI-Related Work:
+
+**Student Name: Christian Salomo Tasmaan**
+
+- Features Implemented:
+- Tests Written:
+- Security Work:
+- AI-Related Work:
 
 ## 13. AI Usage Disclosure (MANDATORY)
 
@@ -438,8 +540,12 @@ GROQ_API_KEY=
     - Improve by adding more types such as answer via text additionally supporting TTS.
   - Quiz gameplay is limited to one player.
     - Possible improvement in the future by implementing a secondary server using WebSockets for live multiplayer quiz gameplay with full synchronization between clients.
+  - Limited Sign-in / Sign-up Options:
+    - Should be easy to implement using BetterAuth.
 
 - AI Limitations:
+  - Limited tools for AI Chatbot during quiz creation
+    - Currently, the AI is limited on how they can help the user in creating a quiz, more tools could be implemented such as fact-checking, or difficulty adjustment however more testing would need to be done.
 
 ## 15. Final Declaration
 
@@ -456,4 +562,26 @@ We declare that:
 
 ## 16. SETUP
 
-## 17. DEPLOYMENT INSTRUCTIONS
+1. Clone and install modules.
+
+```bash
+git clone https://github.com/rafiattaui/pahambos.id-group2-L4CC
+cd pahambos.id-group2-L4CC
+pnpm install
+```
+
+2. Setup .env by copying .env.example and renaming it .env.production then insert the needed keys.
+
+3. Initialize database
+
+```bash
+pnpx prisma migrate dev
+```
+
+4. Run via Docker (Recommended)
+
+```bash
+docker-compose up --build
+```
+
+Webapp accessible at http://localhost:3017

@@ -117,69 +117,70 @@ A primary example of this architecture is the session timer mechanic:
 
 ### Endpoints for User CRUD
 
-| Endpoint              | Method | Description                                           |
-| --------------------- | ------ | ----------------------------------------------------- |
-| /user/                | GET    | Retrieve user details using the session token cookie. |
-| /user/                | PATCH  | Update user details.                                  |
-| /user/                | PUT    | Update user's profile image.                          |
-| /user/change-password | PATCH  | Update user's password.                               |
+| Endpoint              | Method | Description                                           | Auth Required |
+| --------------------- | ------ | ----------------------------------------------------- | ------------- |
+| /user/                | GET    | Retrieve user details using the session token cookie. | Yes           |
+| /user/                | PATCH  | Update user details.                                  | Yes           |
+| /user/                | PUT    | Update user's profile image.                          | Yes           |
+| /user/change-password | PATCH  | Update user's password.                               | Yes           |
+| /auth/sign-in/email   | POST   | Log-in                                                | No            |
 
 ### Endpoints for Quiz CRUD
 
-| Endpoint                   | Method | Description                                                            |
-| -------------------------- | ------ | ---------------------------------------------------------------------- |
-| /quiz/                     | GET    | Retrieve a list of quizzes.                                            |
-| /quiz/                     | POST   | Create a new quiz.                                                     |
-| /quiz/ai                   | POST   | Request AI assistance in generating a quiz.                            |
-| /quiz/user/{userId}        | GET    | Retrieve quizzes made by a specific user.                              |
-| /quiz/user/performance/    | GET    | Retrieve all quiz performances of the user.                            |
-| /quiz/{quizId}             | GET    | Retrieve a quiz's details and its questions and answers.               |
-| /quiz/{quizId}             | DELETE | Deletes a quiz if user is creator of the quiz.                         |
-| /quiz/{quizId}/performance | GET    | Retrieve all performance records of the user for the specific quiz.    |
-| /quiz/{quizId}/metrics     | GET    | Retrieve all aggregate metrics of a quiz, only the creator may see it. |
-| /quiz/{quizId}/session/    | POST   | Start a new quiz session.                                              |
+| Endpoint                   | Method | Description                                                            | Auth Required |
+| -------------------------- | ------ | ---------------------------------------------------------------------- | ------------- |
+| /quiz/                     | GET    | Retrieve a list of quizzes.                                            | No            |
+| /quiz/                     | POST   | Create a new quiz.                                                     | Yes           |
+| /quiz/ai                   | POST   | Request AI assistance in generating a quiz.                            | Yes           |
+| /quiz/user/{userId}        | GET    | Retrieve quizzes made by a specific user.                              | No            |
+| /quiz/user/performance/    | GET    | Retrieve all quiz performances of the user.                            | Yes           |
+| /quiz/{quizId}             | GET    | Retrieve a quiz's details and its questions and answers.               | No            |
+| /quiz/{quizId}             | DELETE | Deletes a quiz if user is creator of the quiz.                         | Yes           |
+| /quiz/{quizId}/performance | GET    | Retrieve all performance records of the user for the specific quiz.    | Yes           |
+| /quiz/{quizId}/metrics     | GET    | Retrieve all aggregate metrics of a quiz, only the creator may see it. | Yes           |
+| /quiz/{quizId}/session/    | POST   | Start a new quiz session.                                              | Yes           |
 
 ### Endpoints for Quiz Sessions
 
-| Endpoint                 | Method | Description                                                                                   |
-| ------------------------ | ------ | --------------------------------------------------------------------------------------------- |
-| /session/                | GET    | Retrieves user's currently active session details                                             |
-| /session/                | DELETE | Deletes the user's currently active session                                                   |
-| /session/question/       | GET    | Retrieve the currently active questions, and its possible answers                             |
-| /session/question/       | POST   | Answer the currently active questions, and returns the score.                                 |
-| /session/next/           | POST   | Advances the session to the next question, only if the user has answered the current question |
-| /session/hint/           | GET    | Receive a hint for the current question, using AI                                             |
-| /session/finish/         | POST   | Finish and upload the score to the database, and delete the session.                          |
-| /session/{assignmentId}/ | POST   | Start a quiz session and link the current session to an assignment.                           |
+| Endpoint                 | Method | Description                                                                                   | Auth Required |
+| ------------------------ | ------ | --------------------------------------------------------------------------------------------- | ------------- |
+| /session/                | GET    | Retrieves user's currently active session details                                             | Yes           |
+| /session/                | DELETE | Deletes the user's currently active session                                                   | Yes           |
+| /session/question/       | GET    | Retrieve the currently active questions, and its possible answers                             | Yes           |
+| /session/question/       | POST   | Answer the currently active questions, and returns the score.                                 | Yes           |
+| /session/next/           | POST   | Advances the session to the next question, only if the user has answered the current question | Yes           |
+| /session/hint/           | GET    | Receive a hint for the current question, using AI                                             | Yes           |
+| /session/finish/         | POST   | Finish and upload the score to the database, and delete the session.                          | Yes           |
+| /session/{assignmentId}/ | POST   | Start a quiz session and link the current session to an assignment.                           | Yes           |
 
 ### Endpoints for Classroom Functionality
 
-| Endpoint                         | Method | Description                                                                                                                                                    |
-| -------------------------------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| /class/                          | GET    | Retrieves user's joined classrooms.                                                                                                                            |
-| /class/                          | POST   | Create a new classroom.                                                                                                                                        |
-| /class/                          | PATCH  | Edit a classroom's name.                                                                                                                                       |
-| /class/                          | DELETE | Delete an existing classroom that the user is an educator in.                                                                                                  |
-| /class/assignment/{classroomId}/ | GET    | Retrieve details regarding assignments, educators receive a richer response consisting of submissions and scores, learners only see their personal submission. |
-| /class/assignment/{classroomId}/ | POST   | Assign a quiz to the classroom, educator only.                                                                                                                 |
-| /class/assignment/{classroomId}/ | DELETE | Delete an assignment from the classroom, educator only.                                                                                                        |
+| Endpoint                         | Method | Description                                                                                                                                                    | Auth Required |
+| -------------------------------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------- |
+| /class/                          | GET    | Retrieves user's joined classrooms.                                                                                                                            | Yes           |
+| /class/                          | POST   | Create a new classroom.                                                                                                                                        | Yes           |
+| /class/                          | PATCH  | Edit a classroom's name.                                                                                                                                       | Yes           |
+| /class/                          | DELETE | Delete an existing classroom that the user is an educator in.                                                                                                  | Yes           |
+| /class/assignment/{classroomId}/ | GET    | Retrieve details regarding assignments, educators receive a richer response consisting of submissions and scores, learners only see their personal submission. | Yes           |
+| /class/assignment/{classroomId}/ | POST   | Assign a quiz to the classroom, educator only.                                                                                                                 | Yes           |
+| /class/assignment/{classroomId}/ | DELETE | Delete an assignment from the classroom, educator only.                                                                                                        | Yes           |
 
 ### Endpoint for QuizQuestion CRUD
 
-| Endpoint               | Method | Description                                      |
-| ---------------------- | ------ | ------------------------------------------------ |
-| /question/             | POST   | Add a new question to an already existing quiz.  |
-| /question/{questionId} | GET    | Retrieve a specific question.                    |
-| /question/{questionId} | DELETE | Delete a specific question.                      |
-| /question/{questionId} | PATCH  | Edit a specific question.                        |
-| /question/{questionId} | PUT    | Add or remove the image for a specific question. |
+| Endpoint               | Method | Description                                      | Auth Required |
+| ---------------------- | ------ | ------------------------------------------------ | ------------- |
+| /question/             | POST   | Add a new question to an already existing quiz.  | Yes           |
+| /question/{questionId} | GET    | Retrieve a specific question.                    | No            |
+| /question/{questionId} | DELETE | Delete a specific question.                      | Yes           |
+| /question/{questionId} | PATCH  | Edit a specific question.                        | Yes           |
+| /question/{questionId} | PUT    | Add or remove the image for a specific question. | Yes           |
 
 ### Miscellaneous Endpoints
 
-| Endpoint               | Method | Description                                |
-| ---------------------- | ------ | ------------------------------------------ |
-| /leaderboard/{quizId}/ | GET    | Retrieve leaderboards for a specific quiz. |
-| /ai-quiz-editor/       | POST   | AI Chatbot for quiz creation assistance.   |
+| Endpoint               | Method | Description                                | Auth Required |
+| ---------------------- | ------ | ------------------------------------------ | ------------- |
+| /leaderboard/{quizId}/ | GET    | Retrieve leaderboards for a specific quiz. | No            |
+| /ai-quiz-editor/       | POST   | AI Chatbot for quiz creation assistance.   | Yes           |
 
 Example:
 **POST /api/session/question**
@@ -346,13 +347,51 @@ export const GET = WithAuth(async (req, { user, params }) => {
 
 ## 10. Testing Documentation (VERY IMPORTANT)
 
+### 10.2 Backend Testing
+
+Because our data is highly intertwined and consists of many relations, the tests need to be done in order thoroughly so no inconsistencies occur.
+Tests were run on postman using postman scripts, postman folder available in repository.
+
+Each test case was ran as part of a collection using `Postman Runners`, each route also has example responses for isolated test case.
+Test cases should be ran by **right-clicking the folder**, and clicking `run`, isolated test cases can also be ran.
+
+### 10.3 Security Testing
+
+Security tests were run using Postman modifying JSON and HTML Form-Data to purposely test scenarios.
+
+| Test Case | Attack Type        | Expected Behaviour                                                         | Result                                                       |
+| --------- | ------------------ | -------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| SEC-01    | SQL Injection      |                                                                            | Sanitised by Zod & Prisma ORM                                |
+| SEC-02    | XSS                |                                                                            | Sanitised by Zod                                             |
+| SEC-03    | IDOR / Auth Bypass | Grabbing another user's session data by inserting id to `GET /api/session` | Only shows results for the current user, the id is not used. |
+
+### 10.4 AI Functionality Testing
+
+Tests AI-01 and AI-02 were done by using Postman to send faulty JSON's to the AI quiz editor API route.
+
+Tests AI-03 was done by creating a random quiz with faulty, illogical answers and questions then playing said quiz.
+
+Screenshots for additional proof can be found in [/docs/ai/](/docs/ai/)
+
+| Test Case | Input                                              | Expected Output                            | Actual Result                     | Status |
+| --------- | -------------------------------------------------- | ------------------------------------------ | --------------------------------- | ------ |
+| AI-01     | Invalid Input (empty messages)                     | Generic error message                      | Handled by `handleError` function | PASS   |
+| AI-02     | Valid Input (messages, quizzes)                    | Returns a JSON with a list of questions    | <-------                          | PASS   |
+| AI-03     | Playing a faulty quiz to trigger a faulty feedback | AI generates a generic feedback or timeout | Returns generic feedback          | PASS   |
+| AI-04     | Playing a faulty quiz to trigger a faulty hint     | AI generates a generic hint or timeout     | Returns generic feedback          | PASS   |
+
+Failure Handling:
+
+- If AI is unavailable, `handleError` will convert the error to a generic error we can show our users, rather than the error message from `vercel-ai-sdk`
+- Timeout is handled by `vercel-ai-sdk` by setting `maxTimeout` when calling `generateText` function.
+
 ## 11. Deployment & Production Setup
 
 ### 11.1 Docker Setup
 
 dockerfile:
 
-```
+```docker
 FROM node:22-bookworm-slim AS base
 WORKDIR /app
 
@@ -424,7 +463,7 @@ CMD ["node", "server.js"]
 
 docker-compose.yml:
 
-```
+```yaml
 name: pahambos.id
 
 services:
@@ -440,18 +479,18 @@ services:
     env_file:
       - .env.production
     ports:
-      - "3017:3017"
+      - '3017:3017'
     restart: unless-stopped
 
   db-schema-sync:
-    profiles: ["migrate"]
+    profiles: ['migrate']
     build:
       context: .
       dockerfile: Dockerfile
       target: migrator
     env_file:
       - .env.production
-    restart: "no"
+    restart: 'no'
 ```
 
 ### 11.2 Production Environment

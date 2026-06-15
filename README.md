@@ -208,16 +208,28 @@ Example:
 
 ## 8. AI Features (MANDATORY)
 
+### 8.1 AI Features List
+
 - **AI Dependencies:**
   - Groq (AI Provider)
   - Vercel AI SDK
-- AI Usage:
-  - Mid-Quiz Session Hints:
-    - If the player is struggling with question, they can request for a hint generated with AI, however if they answer the question successfully after, it will reward them with less points than if they were to answer without AI.
-  - End of Quiz Feedback:
-    - At the end of the quiz, the player will receive feedback generated with AI and tailored with their results during the quiz. The feedback will consist of ways for the player to improve and recommend material to study for improvement.
-  - AI Quiz Creation Assistant:
-    - When a user is creating a quiz, they can ask for help from an AI assistant in the form of a chatbot or instant generation using the title and description of the quiz.
+
+| AI Feature                 | Purpose                                                                                                                                                                                                                                  | AI Type |
+| -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| Mid-Quiz Session Hints     | If the player is struggling with question, they can request for a hint generated with AI, however if they answer the question successfully after, it will reward them with less points than if they were to answer without AI.           | NLP     |
+| End of Quiz Feedback       | At the end of the quiz, the player will receive feedback generated with AI and tailored with their results during the quiz. The feedback will consist of ways for the player to improve and recommend material to study for improvement. | NLP     |
+| AI Quiz Creation Assistant | When a user is creating a quiz, they can ask for help from an AI assistant in the form of a chatbot or instant generation using the title and description of the quiz.                                                                   | NLP     |
+
+### 8.2 AI Integration Flow
+
+- End of Quiz Feedback
+  - Input is automatically provided by the metrics stored in the Redis cache, so no user input is directly injected in the prompt. This input is then processed along with details of the questions of the quiz, its title, genre and etc. Feedback is then generated and passed back to the user.
+
+- Mid-Quiz Session Hints
+  - The current question and possible answers are sent to the backend route resposible for hints. These are then sent along with a prompt to the AI, and a response is sent back to the user of the AI's response.
+
+- AI Quiz Creation Assistant
+  - The AI is provided tools that, **do not interact with the database**, but rather the front-end quiz form maintaing data security should prompt injection attempts occur. As the user chats with the AI, the AI can decide whether to use the tools provided that allows the AI to add, edit, remove, re-order questions on the form.
 
 ## 9. Security Implementation (MANDATORY)
 
@@ -364,17 +376,20 @@ Isolated test cases may also be ran, but collections may be ran using the Postma
 
 Don't forget to register on our frontend, and then insert your credentials in the Log-in route on the body section for testing to work.
 
+| Test Case     | Endpoint       | Input                                        | Expected Output                                   | Status |
+| ------------- | -------------- | -------------------------------------------- | ------------------------------------------------- | ------ |
+| Quiz Gameplay | /api/session/~ | User's answers, ID of quiz they want to play | User is able to play a quiz from start to finish. | PASS   |
+
 💡 Note: Because the application features an extensive number of API routes, a full endpoint reference is not listed directly in this README. Please refer to the Postman collection for a complete interactive documentation of all routes and their parameters.
 
 ### 10.3 Security Testing
 
 Security tests were run using Postman modifying JSON and HTML Form-Data to purposely test scenarios.
 
-| Test Case | Attack Type        | Expected Behaviour                                                         | Result                                                       |
-| --------- | ------------------ | -------------------------------------------------------------------------- | ------------------------------------------------------------ |
-| SEC-01    | SQL Injection      |                                                                            | Sanitised by Zod & Prisma ORM                                |
-| SEC-02    | XSS                |                                                                            | Sanitised by Zod                                             |
-| SEC-03    | IDOR / Auth Bypass | Grabbing another user's session data by inserting id to `GET /api/session` | Only shows results for the current user, the id is not used. |
+| Test Case | Attack Type        | Expected Behaviour                                                                                                                                | Result                                                       |
+| --------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| SEC-01    | XSS                | Inserting `<script>alert(1)</script>` into the title when creating a quiz, an alert should pop up in the user's browser everytime the quiz loads. | Sanitised by Zod, no alert pop up.                           |
+| SEC-02    | IDOR / Auth Bypass | Grabbing another user's session data by inserting id to `GET /api/session`                                                                        | Only shows results for the current user, the id is not used. |
 
 ### 10.4 AI Functionality Testing
 

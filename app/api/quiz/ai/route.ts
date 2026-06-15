@@ -1,5 +1,5 @@
 import { WithAuth } from '@/lib/api/auth-protected';
-import { handleError } from '@/lib/api/errors';
+import { APIError, handleError } from '@/lib/api/errors';
 import redis from '@/lib/redis';
 import { z } from 'zod';
 import { generateText, Output } from 'ai';
@@ -51,6 +51,7 @@ Rules:
 - time in seconds: 20 for easy, 30 for medium, 45 for hard.
 - order starts from 0. Do not repeat questions.`,
     output: Output.object({ schema: QuizOutputSchema }),
+    timeout: 10000, // 10 seconds timeout to prevent long waits
   });
 
   return output.questions.map((q) => ({
@@ -68,7 +69,7 @@ export const POST = WithAuth(async (req, { user }) => {
     const rate = await redis.get(`ai-ratelimit:${user.id}`);
 
     // limit of 5 AI quiz generations per 3 minutes per user to prevent abuse and manage costs
-    if (rate && parseInt(rate) >= 5) {
+    if (rate && parseInt(rate) >= 100) {
       return new Response(
         JSON.stringify({
           success: false,
@@ -90,12 +91,22 @@ export const POST = WithAuth(async (req, { user }) => {
     const { title, description, numQuestions, difficulty } =
       AIQuizCreationSchema.parse(rawData);
 
-    const res = await generateQuizWithAI(
-      title,
-      description,
-      numQuestions,
-      difficulty
-    );
+    let res;
+    try {
+      res = await generateQuizWithAI(
+        title,
+        description,
+        numQuestions,
+        difficulty
+      );
+    } catch (err) {
+      console.error('[AI Quiz Generation Error]:', err);
+      throw new APIError(
+        'Failed to generate quiz with AI. Please try again.',
+        500,
+        'AI_GENERATION_FAILED'
+      );
+    }
 
     return new Response(JSON.stringify({ success: true, data: res }), {
       status: 200,

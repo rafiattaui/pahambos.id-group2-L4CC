@@ -14,7 +14,7 @@ scripts:
 
       \    case 200:\r
 
-      \        pm.test(\"Status code is 200 (OK)\", () => {\r
+      \        pm.test(\"Status is 200 (OK)\", () => {\r
 
       \            pm.response.to.have.status(200);\r
 

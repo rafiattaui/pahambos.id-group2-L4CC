@@ -1,4 +1,3 @@
-// QuizInterface.test.tsx
 import {
   render,
   screen,

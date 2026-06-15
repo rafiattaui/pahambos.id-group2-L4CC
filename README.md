@@ -351,7 +351,16 @@ export const GET = WithAuth(async (req, { user, params }) => {
 
 Because our data is highly intertwined and consists of many complex relations, tests must be executed in order and thoroughly to prevent data inconsistencies.
 
-We use Postman for our API testing pipeline. All relevant collection and environment scripts are available in the [postman](/postman/) directory of this repository. Isolated test cases may also be ran, but collections may be ran using the Postman Runner by **right-clicking the parent folders and clicking** `run`.
+We use Postman for our API testing pipeline. All relevant collection and environment scripts are available in the [postman](/postman/) directory of this repository.
+
+#### In Postman:
+
+1. Click Import (top left).
+2. Select Folder.
+3. Navigate to and select the postman root folder in the repo.
+4. **Postman** will scan and import everything — collections, environments, globals, mocks, etc.
+
+Isolated test cases may also be ran, but collections may be ran using the Postman Runner by **right-clicking the parent folders and clicking** `run`.
 
 💡 Note: Because the application features an extensive number of API routes, a full endpoint reference is not listed directly in this README. Please refer to the Postman collection for a complete interactive documentation of all routes and their parameters.
 

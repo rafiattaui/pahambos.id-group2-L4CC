@@ -42,7 +42,7 @@ response:
     content: |-
       {
           "redirect": false,
-          "token": "",
+          "token": "Cgk38HrNWqx6SJkOqoYx0yBXDQjbopSw",
           "user": {
               "name": "atta",
               "email": "test@gmail.com",

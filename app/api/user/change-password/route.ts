@@ -18,7 +18,10 @@ export async function PATCH(request: NextRequest) {
       headers: await headers(),
     });
 
-    return Response.json({ ...res }, { status: 200 });
+    return Response.json(
+      { success: true, message: 'Password changed successfully' },
+      { status: 200 }
+    );
   } catch (error) {
     return handleError(error);
   }

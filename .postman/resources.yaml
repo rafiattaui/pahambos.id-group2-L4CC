@@ -9,6 +9,6 @@ localResources:
 cloudResources:
   collections:
     ..\postman\collections\pahambos.id: f8d8cdf9-97f9-4a39-8376-4b17b5ff269c
-    ../postman/collections/pahambos.id: 44146836-f11d31a0-0eec-4c7a-a474-383431b9f2b4
+    ../postman/collections/pahambos.id: 44146836-9278c13c-63f2-4139-9008-5ce7794966fb
   environments:
     ../postman/environments/Local Dev.environment.yaml: 44146836-249f9bc7-93f8-4b7f-a61f-dafc0015f88a

@@ -519,14 +519,17 @@ export const GET = WithAuth(async (req, { user, params }) => {
 
 ### 10.1 Frontend Testing
 
-Documentation for frontend testing can be founded in a separate file callled Front.md i will provide the summary of the testing below
+Documentation for frontend testing can be founded in a separate file called Front.md and Front2.md. The summary of the testing can be found below:
 | File | Focus Area | Test Case Range | Total Cases |
 |---|---|---|---|
-| `landing_test.tsx` | Hero, navbar, marketing sections, scroll-reveal animation, logo | FE-001 – FE-063 | 63 |
-| `createquiz_test.tsx` | Form validation, draft persistence, AI tool calls, create/delete UI | FE-064 – FE-141 | 78 |
-| `dashboardComp_test.tsx` | Navigation, performance summary, quiz carousel, grid items | FE-142 – FE-209 | 68 |
-| `searchpage_test.tsx` | Search/filter validation, fetch error handling, pagination | FE-210 – FE-230 | 21 |
-| **Total** | | | **230** |
+| `landing.test.tsx` | Hero, navbar, marketing sections, scroll-reveal animation, logo | FE-001 – FE-063 | 63 |
+| `createquiz.test.tsx` | Form validation, draft persistence, AI tool calls, create/delete UI | FE-064 – FE-141 | 78 |
+| `dashboardComp.test.tsx` | Navigation, performance summary, quiz carousel, grid items | FE-142 – FE-209 | 68 |
+| `searchpage.test.tsx` | Search/filter validation, fetch error handling, pagination | FE-210 – FE-230 | 21 |
+| `profileCard.test.tsx` | Account tabs, username/password editing, password strength, avatar upload/crop, performance history | PC-01 – PC-33 | 33 |
+| `ClassPage.test.tsx` | Class creation/join, educator/learner overlays, member management, quiz assignment | CP-01 – CP-36 | 36 |
+| `QuizInterface.test.tsx` | Session init, splash/countdown, answer submission, timer, hints, results, leaderboard | QI-01 – QI-53 | 53 |
+| **Total** | | | **352** |
 
 ### 10.2 Backend Testing
 

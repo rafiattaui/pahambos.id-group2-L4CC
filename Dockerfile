@@ -19,7 +19,7 @@ COPY . .
 
 # prisma generate does not open a DB connection; fixed placeholder satisfies prisma.config.ts only.
 ENV DATABASE_URL=postgresql://build:build@127.0.0.1:5432/build?sslmode=disable
-RUN pnpm dlx prisma generate
+RUN pnpm exec prisma generate
 
 # Values come from compose `build.args` — single source: .env.production + compose defaults.
 ARG NEXT_PUBLIC_APP_URL

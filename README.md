@@ -235,7 +235,7 @@ Represents a registered user of the platform.
 ---
 
 **Account**
-Stores authentication provider credentials linked to a User. Managed by BetterAuth; supports multiple providers per user (e.g., email/password, OAuth).
+Stores authentication provider credentials linked to a User.
 
 | Field                          | Type             | Description                                         |
 | ------------------------------ | ---------------- | --------------------------------------------------- |

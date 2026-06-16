@@ -206,6 +206,153 @@ Example:
 
 ## 7. Database Design
 
+### 7.1 Database Choice
+
+We chose **PostgreSQL**, managed via **Prisma ORM**, as our primary database for the following reasons:
+
+- **Relational Structure:** PahamBos.id requires well-defined relationships between entities — a User owns many Quizzes, a Quiz has many Questions, a Classroom has many members and assignments, and so on. PostgreSQL's relational model handles these constraints robustly and predictably.
+
+- **Data Integrity & Security:** Prisma provides compile-time type safety and automatically sanitizes all inputs passed to its query methods, effectively mitigating SQL injection risks without requiring manual escaping. It also enforces schema-level constraints (unique fields, cascading deletes, required relations) that keep data consistent across all operations.
+
+### 7.2 Schema / Data Structure
+
+![ERD](public/prisma-erd.svg)
+
+The database consists of the following tables:
+
+**User**
+
+| Field                     | Type            |
+| ------------------------- | --------------- |
+| `id`                      | UUID (PK)       |
+| `name`                    | String          |
+| `email`                   | String (unique) |
+| `emailVerified`           | Boolean         |
+| `image` / `imageKey`      | String?         |
+| `createdAt` / `updatedAt` | DateTime        |
+
+---
+
+**Account**
+
+| Field                          | Type             |
+| ------------------------------ | ---------------- |
+| `id`                           | UUID (PK)        |
+| `userId`                       | UUID (FK → User) |
+| `providerId`                   | String           |
+| `accountId`                    | String           |
+| `password`                     | String?          |
+| `accessToken` / `refreshToken` | String?          |
+| `createdAt` / `updatedAt`      | DateTime         |
+
+---
+
+**Session**
+
+| Field                     | Type             |
+| ------------------------- | ---------------- |
+| `id`                      | UUID (PK)        |
+| `userId`                  | UUID (FK → User) |
+| `token`                   | String (unique)  |
+| `expiresAt`               | DateTime         |
+| `ipAddress` / `userAgent` | String?          |
+
+---
+
+**Quiz**
+
+| Field                   | Type             |
+| ----------------------- | ---------------- |
+| `id`                    | UUID (PK)        |
+| `createdBy`             | UUID (FK → User) |
+| `title`                 | String           |
+| `description`           | String?          |
+| `category`              | Enum (Category)  |
+| `numQuestions`          | Int              |
+| `imageKey` / `imageUrl` | String?          |
+| `createdAt`             | DateTime         |
+
+---
+
+**QuizQuestion**
+
+| Field                   | Type                |
+| ----------------------- | ------------------- |
+| `id`                    | UUID (PK)           |
+| `quizId`                | UUID (FK → Quiz)    |
+| `order`                 | Int                 |
+| `question`              | String              |
+| `type`                  | Enum (QuestionType) |
+| `answers`               | String[]            |
+| `correctAnswers`        | Int[]               |
+| `time`                  | Int                 |
+| `imageKey` / `imageUrl` | String?             |
+
+---
+
+**UserPerformance**
+
+| Field             | Type                       |
+| ----------------- | -------------------------- |
+| `id`              | UUID (PK)                  |
+| `userId`          | UUID (FK → User)           |
+| `quizId`          | UUID (FK → Quiz)           |
+| `classroomQuizId` | UUID? (FK → ClassroomQuiz) |
+| `finalScore`      | Int                        |
+| `accuracyRate`    | Decimal                    |
+| `timeTaken`       | Int                        |
+| `longestStreak`   | Int                        |
+| `hintsUsed`       | Int                        |
+| `completedAt`     | DateTime                   |
+
+---
+
+**QuizMetrics**
+
+| Field          | Type                    |
+| -------------- | ----------------------- |
+| `id`           | UUID (PK)               |
+| `quizId`       | UUID (unique FK → Quiz) |
+| `attempts`     | Int                     |
+| `uniqueUsers`  | Int                     |
+| `avgAccuracy`  | Decimal                 |
+| `avgScore`     | Decimal                 |
+| `avgTimeTaken` | Int                     |
+| `updatedAt`    | DateTime                |
+
+---
+
+**Classroom**
+
+| Field                     | Type             |
+| ------------------------- | ---------------- |
+| `id`                      | UUID (PK)        |
+| `ownerId`                 | UUID (FK → User) |
+| `name`                    | String           |
+| `createdAt` / `updatedAt` | DateTime         |
+
+---
+
+**UserClassroom**
+
+| Field         | Type                  |
+| ------------- | --------------------- |
+| `userId`      | UUID (FK → User)      |
+| `classroomId` | UUID (FK → Classroom) |
+| `role`        | Enum (Role)           |
+
+---
+
+**ClassroomQuiz**
+
+| Field          | Type                  |
+| -------------- | --------------------- |
+| `id`           | UUID (PK)             |
+| `classroomId`  | UUID (FK → Classroom) |
+| `quizId`       | UUID (FK → Quiz)      |
+| `assignedDate` | DateTime              |
+| `dueDate`      | DateTime              |
+
 ## 8. AI Features (MANDATORY)
 
 ### 8.1 AI Features List

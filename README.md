@@ -210,7 +210,7 @@ Example:
 
 We chose **PostgreSQL**, managed via **Prisma ORM**, as our primary database for the following reasons:
 
-- **Relational Structure:** PahamBos.id requires well-defined relationships between entities — a User owns many Quizzes, a Quiz has many Questions, a Classroom has many members and assignments, and so on. PostgreSQL's relational model handles these constraints robustly and predictably.
+- **Relational Structure:** PahamBos.id requires well-defined relationships between entities — a User owns many Quizzes, a Quiz has many Questions, a Classroom has many members and assignments, and so on. PostgreSQL's relational model and foreign key enforcement handles these constraints robustly and predictably.
 
 - **Data Integrity & Security:** Prisma provides compile-time type safety and automatically sanitizes all inputs passed to its query methods, effectively mitigating SQL injection risks without requiring manual escaping. It also enforces schema-level constraints (unique fields, cascading deletes, required relations) that keep data consistent across all operations.
 
@@ -221,137 +221,152 @@ We chose **PostgreSQL**, managed via **Prisma ORM**, as our primary database for
 The database consists of the following tables:
 
 **User**
+Represents a registered user of the platform.
 
-| Field                     | Type            |
-| ------------------------- | --------------- |
-| `id`                      | UUID (PK)       |
-| `name`                    | String          |
-| `email`                   | String (unique) |
-| `emailVerified`           | Boolean         |
-| `image` / `imageKey`      | String?         |
-| `createdAt` / `updatedAt` | DateTime        |
+| Field                     | Type            | Description                                    |
+| ------------------------- | --------------- | ---------------------------------------------- |
+| `id`                      | UUID (PK)       | Unique identifier for the user                 |
+| `name`                    | String          | Display name                                   |
+| `email`                   | String (unique) | Login email address                            |
+| `emailVerified`           | Boolean         | Whether the email has been verified            |
+| `image` / `imageKey`      | String?         | Profile picture URL and Cloudinary storage key |
+| `createdAt` / `updatedAt` | DateTime        | Record timestamps                              |
 
 ---
 
 **Account**
+Stores authentication provider credentials linked to a User. Managed by BetterAuth; supports multiple providers per user (e.g., email/password, OAuth).
 
-| Field                          | Type             |
-| ------------------------------ | ---------------- |
-| `id`                           | UUID (PK)        |
-| `userId`                       | UUID (FK → User) |
-| `providerId`                   | String           |
-| `accountId`                    | String           |
-| `password`                     | String?          |
-| `accessToken` / `refreshToken` | String?          |
-| `createdAt` / `updatedAt`      | DateTime         |
+| Field                          | Type             | Description                                         |
+| ------------------------------ | ---------------- | --------------------------------------------------- |
+| `id`                           | UUID (PK)        | Unique identifier                                   |
+| `userId`                       | UUID (FK → User) | The owning user                                     |
+| `providerId`                   | String           | Auth provider name (e.g., `credential`)             |
+| `accountId`                    | String           | The user's ID within that provider                  |
+| `password`                     | String?          | Hashed password (for credential-based accounts)     |
+| `accessToken` / `refreshToken` | String?          | OAuth tokens                                        |
+| `accessTokenExpiresAt`         | DateTime?        | Expiry timestamp for the access token               |
+| `refreshTokenExpiresAt`        | DateTime?        | Expiry timestamp for the refresh token              |
+| `idToken`                      | String?          | OpenID Connect identity token (for OAuth providers) |
+| `scope`                        | String?          | OAuth permission scopes granted                     |
+| `createdAt` / `updatedAt`      | DateTime         | Record timestamps                                   |
 
 ---
 
 **Session**
+Tracks active authentication sessions issued by BetterAuth.
 
-| Field                     | Type             |
-| ------------------------- | ---------------- |
-| `id`                      | UUID (PK)        |
-| `userId`                  | UUID (FK → User) |
-| `token`                   | String (unique)  |
-| `expiresAt`               | DateTime         |
-| `ipAddress` / `userAgent` | String?          |
+| Field                     | Type             | Description                                    |
+| ------------------------- | ---------------- | ---------------------------------------------- |
+| `id`                      | UUID (PK)        | Unique session identifier                      |
+| `userId`                  | UUID (FK → User) | The authenticated user                         |
+| `token`                   | String (unique)  | Opaque session token stored in the HTTP cookie |
+| `expiresAt`               | DateTime         | Expiry timestamp for the session               |
+| `ipAddress` / `userAgent` | String?          | Client metadata for security auditing          |
+| `createdAt` / `updatedAt` | DateTime         | Record timestamps                              |
 
 ---
 
 **Quiz**
+Represents a quiz created by a user, containing metadata such as category, description, and cover image.
 
-| Field                   | Type             |
-| ----------------------- | ---------------- |
-| `id`                    | UUID (PK)        |
-| `createdBy`             | UUID (FK → User) |
-| `title`                 | String           |
-| `description`           | String?          |
-| `category`              | Enum (Category)  |
-| `numQuestions`          | Int              |
-| `imageKey` / `imageUrl` | String?          |
-| `createdAt`             | DateTime         |
+| Field                   | Type             | Description                                   |
+| ----------------------- | ---------------- | --------------------------------------------- |
+| `id`                    | UUID (PK)        | Unique identifier                             |
+| `createdBy`             | UUID (FK → User) | The quiz creator                              |
+| `title`                 | String           | Quiz title (max 255 chars)                    |
+| `description`           | String?          | Optional description                          |
+| `category`              | Enum (Category)  | Subject category (e.g., Mathematics, Science) |
+| `numQuestions`          | Int              | Total number of questions in the quiz         |
+| `imageKey` / `imageUrl` | String?          | Cover image stored in Cloudinary              |
+| `createdAt`             | DateTime         | Creation timestamp                            |
 
 ---
 
 **QuizQuestion**
+Represents an individual question within a quiz, including its answer choices and correct answer indices.
 
-| Field                   | Type                |
-| ----------------------- | ------------------- |
-| `id`                    | UUID (PK)           |
-| `quizId`                | UUID (FK → Quiz)    |
-| `order`                 | Int                 |
-| `question`              | String              |
-| `type`                  | Enum (QuestionType) |
-| `answers`               | String[]            |
-| `correctAnswers`        | Int[]               |
-| `time`                  | Int                 |
-| `imageKey` / `imageUrl` | String?             |
+| Field                   | Type                | Description                                   |
+| ----------------------- | ------------------- | --------------------------------------------- |
+| `id`                    | UUID (PK)           | Unique identifier                             |
+| `quizId`                | UUID (FK → Quiz)    | The parent quiz                               |
+| `order`                 | Int                 | Position of the question in the quiz sequence |
+| `question`              | String              | The question text                             |
+| `type`                  | Enum (QuestionType) | `SingleSelect` or `MultiSelect`               |
+| `answers`               | String[]            | Array of answer option strings                |
+| `correctAnswers`        | Int[]               | Indices of the correct answer(s)              |
+| `time`                  | Int                 | Time limit in seconds (default: 30)           |
+| `imageKey` / `imageUrl` | String?             | Optional question image via Cloudinary        |
 
 ---
 
 **UserPerformance**
+Records the result of a completed quiz session for a user. Optionally linked to a classroom assignment.
 
-| Field             | Type                       |
-| ----------------- | -------------------------- |
-| `id`              | UUID (PK)                  |
-| `userId`          | UUID (FK → User)           |
-| `quizId`          | UUID (FK → Quiz)           |
-| `classroomQuizId` | UUID? (FK → ClassroomQuiz) |
-| `finalScore`      | Int                        |
-| `accuracyRate`    | Decimal                    |
-| `timeTaken`       | Int                        |
-| `longestStreak`   | Int                        |
-| `hintsUsed`       | Int                        |
-| `completedAt`     | DateTime                   |
+| Field             | Type                       | Description                                |
+| ----------------- | -------------------------- | ------------------------------------------ |
+| `id`              | UUID (PK)                  | Unique identifier                          |
+| `userId`          | UUID (FK → User)           | The player                                 |
+| `quizId`          | UUID (FK → Quiz)           | The quiz attempted                         |
+| `classroomQuizId` | UUID? (FK → ClassroomQuiz) | Linked assignment, if applicable           |
+| `finalScore`      | Int                        | Total points earned                        |
+| `accuracyRate`    | Decimal                    | Percentage of correct answers              |
+| `timeTaken`       | Int                        | Total time taken in seconds                |
+| `longestStreak`   | Int                        | Longest consecutive correct answer streak  |
+| `hintsUsed`       | Int                        | Number of AI hints used during the session |
+| `completedAt`     | DateTime                   | Timestamp of quiz completion               |
 
 ---
 
 **QuizMetrics**
+Stores aggregate statistics for a quiz, updated each time a user completes it. One-to-one with Quiz.
 
-| Field          | Type                    |
-| -------------- | ----------------------- |
-| `id`           | UUID (PK)               |
-| `quizId`       | UUID (unique FK → Quiz) |
-| `attempts`     | Int                     |
-| `uniqueUsers`  | Int                     |
-| `avgAccuracy`  | Decimal                 |
-| `avgScore`     | Decimal                 |
-| `avgTimeTaken` | Int                     |
-| `updatedAt`    | DateTime                |
+| Field          | Type                    | Description                               |
+| -------------- | ----------------------- | ----------------------------------------- |
+| `id`           | UUID (PK)               | Unique identifier                         |
+| `quizId`       | UUID (unique FK → Quiz) | The associated quiz                       |
+| `attempts`     | Int                     | Total number of attempts                  |
+| `uniqueUsers`  | Int                     | Number of distinct users who attempted it |
+| `avgAccuracy`  | Decimal                 | Average accuracy rate across all attempts |
+| `avgScore`     | Decimal                 | Average final score across all attempts   |
+| `avgTimeTaken` | Int                     | Average time taken in seconds             |
+| `updatedAt`    | DateTime                | Last updated timestamp                    |
 
 ---
 
 **Classroom**
+Represents a classroom created and owned by an Educator. A classroom groups users together and can have quizzes assigned to it as homework.
 
-| Field                     | Type             |
-| ------------------------- | ---------------- |
-| `id`                      | UUID (PK)        |
-| `ownerId`                 | UUID (FK → User) |
-| `name`                    | String           |
-| `createdAt` / `updatedAt` | DateTime         |
+| Field                     | Type             | Description                         |
+| ------------------------- | ---------------- | ----------------------------------- |
+| `id`                      | UUID (PK)        | Unique identifier                   |
+| `ownerId`                 | UUID (FK → User) | The Educator who owns the classroom |
+| `name`                    | String           | Classroom name (max 100 chars)      |
+| `createdAt` / `updatedAt` | DateTime         | Record timestamps                   |
 
 ---
 
 **UserClassroom**
+Junction table representing the many-to-many relationship between Users and Classrooms, with a role distinguishing Educators from Learners.
 
-| Field         | Type                  |
-| ------------- | --------------------- |
-| `userId`      | UUID (FK → User)      |
-| `classroomId` | UUID (FK → Classroom) |
-| `role`        | Enum (Role)           |
+| Field         | Type                  | Description             |
+| ------------- | --------------------- | ----------------------- |
+| `userId`      | UUID (FK → User)      | The user                |
+| `classroomId` | UUID (FK → Classroom) | The classroom           |
+| `role`        | Enum (Role)           | `Educator` or `Learner` |
 
 ---
 
 **ClassroomQuiz**
+Represents a quiz assigned to a classroom as an assignment, with a due date. Acts as a junction between Classroom and Quiz, and is referenced by UserPerformance when a submission is tied to an assignment.
 
-| Field          | Type                  |
-| -------------- | --------------------- |
-| `id`           | UUID (PK)             |
-| `classroomId`  | UUID (FK → Classroom) |
-| `quizId`       | UUID (FK → Quiz)      |
-| `assignedDate` | DateTime              |
-| `dueDate`      | DateTime              |
+| Field          | Type                  | Description                       |
+| -------------- | --------------------- | --------------------------------- |
+| `id`           | UUID (PK)             | Unique identifier                 |
+| `classroomId`  | UUID (FK → Classroom) | The classroom this is assigned to |
+| `quizId`       | UUID (FK → Quiz)      | The quiz being assigned           |
+| `assignedDate` | DateTime              | When the assignment was created   |
+| `dueDate`      | DateTime              | Submission deadline               |
 
 ## 8. AI Features (MANDATORY)
 

@@ -244,11 +244,11 @@ Stores authentication provider credentials linked to a User.
 | `providerId`                   | String           | Auth provider name (e.g., `credential`)             |
 | `accountId`                    | String           | The user's ID within that provider                  |
 | `password`                     | String?          | Hashed password (for credential-based accounts)     |
-| `accessToken` / `refreshToken` | String?          | OAuth tokens                                        |
+| `accessToken` / `refreshToken` | String?          | Access tokens                                       |
 | `accessTokenExpiresAt`         | DateTime?        | Expiry timestamp for the access token               |
 | `refreshTokenExpiresAt`        | DateTime?        | Expiry timestamp for the refresh token              |
 | `idToken`                      | String?          | OpenID Connect identity token (for OAuth providers) |
-| `scope`                        | String?          | OAuth permission scopes granted                     |
+| `scope`                        | String?          | Permission scopes granted                           |
 | `createdAt` / `updatedAt`      | DateTime         | Record timestamps                                   |
 
 ---

@@ -1,5 +1,4 @@
 $kind: http-request
-name: AI quiz creation assistant
 url: "{{baseUrl}}/api/ai-quiz-editor"
 method: POST
 body:
@@ -287,4 +286,4 @@ scripts:
 
       }"
     language: text/javascript
-order: 4502722107932372
+order: 11000

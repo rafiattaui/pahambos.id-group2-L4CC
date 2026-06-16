@@ -1,5 +1,4 @@
 $kind: http-request
-name: Delete classroom assignment
 url: localhost:3000/api/class/assignment/{{assignmentId}}
 method: DELETE
 body:
@@ -21,4 +20,4 @@ scripts:
 
       })"
     language: text/javascript
-order: 10000
+order: 8000

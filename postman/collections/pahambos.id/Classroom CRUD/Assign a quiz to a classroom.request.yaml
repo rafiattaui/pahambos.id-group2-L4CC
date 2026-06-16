@@ -1,5 +1,4 @@
 $kind: http-request
-name: Assign a quiz to a classroom
 url: localhost:3000/api/class/assignment/{{classroomId}}
 method: POST
 body:
@@ -43,4 +42,4 @@ scripts:
 
       pm.collectionVariables.set(\"assignmentId\", jsonData.data.id);"
     language: text/javascript
-order: 7000
+order: 5000

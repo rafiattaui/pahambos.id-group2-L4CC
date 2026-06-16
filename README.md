@@ -537,13 +537,10 @@ We use Postman for our API testing pipeline. All relevant collection and environ
 #### In Postman:
 
 1. Click Import (top left).
-2. Select Folder.
-3. Navigate to and select the postman root folder in the repo.
-4. **Postman** will scan and import everything — collections, environments, globals, mocks, etc.
+2. Select the [postman collections file](pahambos.id.postman_collection.json).
+3. **Postman** will scan and import the collections, make sure to set an environment and setup a baseUrl, as well as inserting your credentials in the Log-in Route of each sub-collection.
 
 Isolated test cases may also be ran, but collections may be ran using the Postman Runner by **right-clicking the parent folders and clicking** `run`.
-
-Don't forget to register on our frontend, and then insert your credentials in the Log-in route on the body section for testing to work.
 
 | Test Case     | Endpoint       | Input                                        | Expected Output                                   | Status |
 | ------------- | -------------- | -------------------------------------------- | ------------------------------------------------- | ------ |

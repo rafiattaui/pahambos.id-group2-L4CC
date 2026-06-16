@@ -1,5 +1,4 @@
 $kind: http-request
-name: Update classroom details
 url: localhost:3000/api/class
 method: PATCH
 body:
@@ -32,4 +31,4 @@ scripts:
       });"
     language: text/javascript
 examples: ./.resources/Update classroom details.resources/examples
-order: 6000
+order: 4000

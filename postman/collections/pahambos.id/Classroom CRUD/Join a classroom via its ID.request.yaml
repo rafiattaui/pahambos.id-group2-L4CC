@@ -1,5 +1,4 @@
 $kind: http-request
-name: Join a classroom via its ID
 url: localhost:3000/api/class/{{classroomId}}
 method: POST
 scripts:
@@ -18,4 +17,4 @@ scripts:
 
       })"
     language: text/javascript
-order: 9000
+order: 7000

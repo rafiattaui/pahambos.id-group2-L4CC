@@ -1,5 +1,4 @@
 $kind: http-request
-name: Retrieve a user's summary of performances within the month
 url: "{{baseUrl}}/api/performance"
 method: GET
 scripts:
@@ -68,5 +67,5 @@ scripts:
 
       }"
     language: text/javascript
-examples: .resources/Retrieve a user's summary of performances within the month.resources/examples
-order: 2990269797323266
+examples: ./.resources/Retrieve a user's summary of performances within the month.resources/examples
+order: 4000

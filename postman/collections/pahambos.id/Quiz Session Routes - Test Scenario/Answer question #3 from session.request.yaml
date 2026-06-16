@@ -88,5 +88,5 @@ settings:
   followRedirects: true
   disableUrlEncoding: false
   disableCookies: false
-examples: ".resources/Answer question #3 from session.resources/examples"
-order: 4503590467814264
+examples: "./.resources/Answer question #3 from session.resources/examples"
+order: 11000

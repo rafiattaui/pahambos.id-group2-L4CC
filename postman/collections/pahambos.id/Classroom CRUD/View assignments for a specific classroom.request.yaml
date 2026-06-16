@@ -1,5 +1,4 @@
 $kind: http-request
-name: View assignments for a specific classroom
 url: localhost:3000/api/class/assignment/{{classroomId}}
 method: GET
 scripts:
@@ -164,4 +163,4 @@ scripts:
 
       });"
     language: text/javascript
-order: 8000
+order: 6000

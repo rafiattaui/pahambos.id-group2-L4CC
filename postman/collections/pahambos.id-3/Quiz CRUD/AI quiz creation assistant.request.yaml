@@ -1,0 +1,258 @@
+$kind: http-request
+url: "{{baseUrl}}/api/ai-quiz-editor"
+method: POST
+scripts:
+  - type: afterResponse
+    code: "const statusCode = pm.response.code;\r
+
+      \r
+
+      switch (statusCode) {\r
+
+      \    case 200:\r
+
+      \        const json = pm.response.json();\r
+
+      \        pm.test(\"Status code is 200 (OK)\", () => {\r
+
+      \            pm.response.to.have.status(200);\r
+
+      \        });\r
+
+      \r
+
+      \        pm.test(\"Contains success bool\", () => {\r
+
+      \            pm.expect(json).to.have.property('success');\r
+
+      \r
+
+      \            if (json.success === false) {\r
+
+      \                pm.test(\"Contains error message\", () => {\r
+
+      \                    pm.expect(json).to.have.property('message');\r
+
+      \                });\r
+
+      \            } else {\r
+
+      \                pm.test(\"Contains message string\", () => {\r
+
+      \                    pm.expect(json).to.have.property('message');\r
+
+      \                    pm.expect(json.message).to.be.a('string');\r
+
+      \                });\r
+
+      \r
+
+      \                pm.test(\"Contains toolCalls array\", () => {\r
+
+      \                    pm.expect(json).to.have.property('toolCalls');\r
+
+      \                    pm.expect(json.toolCalls).to.be.an('array');\r
+
+      \                });\r
+
+      \r
+
+      \                if (json.toolCalls.length > 0) {\r
+
+      \                    pm.test(\"Each tool call has a valid tool type\", () => {\r
+
+      \                        const validTools = ['add_question', 'edit_question', 'remove_question', 'reorder_questions'];\r
+
+      \                        json.toolCalls.forEach((call, i) => {\r
+
+      \                            pm.expect(call, `toolCalls[${i}]`).to.have.property('tool');\r
+
+      \                            pm.expect(validTools, `toolCalls[${i}].tool`).to.include(call.tool);\r
+
+      \                        });\r
+
+      \                    });\r
+
+      \r
+
+      \                    pm.test(\"add_question tool calls have valid shape\", () => {\r
+
+      \                        json.toolCalls\r
+
+      \                            .filter(c => c.tool === 'add_question')\r
+
+      \                            .forEach((call, i) => {\r
+
+      \                                pm.expect(call, `add_question[${i}]`).to.have.property('question');\r
+
+      \                                pm.expect(call.question.type).to.be.oneOf(['multiple-choice', 'multiple-select-choice']);\r
+
+      \                                pm.expect(call.question.question).to.be.a('string').and.not.empty;\r
+
+      \                                pm.expect(call.question.answer).to.be.an('array').with.lengthOf(4);\r
+
+      \                                pm.expect(call.question.correctAnswers).to.be.an('array').with.length.above(0);\r
+
+      \                                if (call.question.time !== undefined) {\r
+
+      \                                    pm.expect(call.question.time).to.be.within(1, 60);\r
+
+      \                                }\r
+
+      \                            });\r
+
+      \                    });\r
+
+      \r
+
+      \                    pm.test(\"edit_question tool calls have valid shape\", () => {\r
+
+      \                        json.toolCalls\r
+
+      \                            .filter(c => c.tool === 'edit_question')\r
+
+      \                            .forEach((call, i) => {\r
+
+      \                                pm.expect(call, `edit_question[${i}]`).to.have.property('order');\r
+
+      \                                pm.expect(call.order).to.be.a('number').and.least(0);\r
+
+      \                                pm.expect(call, `edit_question[${i}]`).to.have.property('patch');\r
+
+      \                                pm.expect(call.patch).to.be.an('object');\r
+
+      \                            });\r
+
+      \                    });\r
+
+      \r
+
+      \                    pm.test(\"remove_question tool calls have valid shape\", () => {\r
+
+      \                        json.toolCalls\r
+
+      \                            .filter(c => c.tool === 'remove_question')\r
+
+      \                            .forEach((call, i) => {\r
+
+      \                                pm.expect(call, `remove_question[${i}]`).to.have.property('order');\r
+
+      \                                pm.expect(call.order).to.be.a('number').and.least(0);\r
+
+      \                            });\r
+
+      \                    });\r
+
+      \r
+
+      \                    pm.test(\"reorder_questions tool calls have valid shape\", () => {\r
+
+      \                        json.toolCalls\r
+
+      \                            .filter(c => c.tool === 'reorder_questions')\r
+
+      \                            .forEach((call, i) => {\r
+
+      \                                pm.expect(call, `reorder_questions[${i}]`).to.have.property('newOrder');\r
+
+      \                                pm.expect(call.newOrder).to.be.an('array').with.length.above(0);\r
+
+      \                                call.newOrder.forEach((idx, j) => {\r
+
+      \                                    pm.expect(idx, `newOrder[${j}]`).to.be.a('number').and.least(0);\r
+
+      \                                });\r
+
+      \                            });\r
+
+      \                    });\r
+
+      \                }\r
+
+      \            }\r
+
+      \        });\r
+
+      \        break;\r
+
+      \r
+
+      \    case 400:\r
+
+      \        pm.test(\"Status code is 400 (Bad Request)\", () => {\r
+
+      \            pm.response.to.have.status(400);\r
+
+      \        });\r
+
+      \r
+
+      \        pm.test(\"Contains false success and validation details\", () => {\r
+
+      \            const json = pm.response.json();\r
+
+      \            pm.expect(json.success).to.equal(false);\r
+
+      \            pm.expect(json).to.have.property('message');\r
+
+      \            pm.expect(json.message).to.equal('Invalid JSON format');\r
+
+      \        });\r
+
+      \        break;\r
+
+      \r
+
+      \    case 401:\r
+
+      \        pm.test(\"Status code is 401 (Unauthorized)\", () => {\r
+
+      \            pm.response.to.have.status(401);\r
+
+      \        });\r
+
+      \        break;\r
+
+      \r
+
+      \    case 500:\r
+
+      \        pm.test(\"Status code is 500 (Server/AI Error)\", () => {\r
+
+      \            pm.response.to.have.status(500);\r
+
+      \        });\r
+
+      \r
+
+      \        pm.test(\"Contains false success, AI_ERROR code, and details\", () => {\r
+
+      \            const json = pm.response.json();\r
+
+      \            pm.expect(json.success).to.equal(false);\r
+
+      \            pm.expect(json).to.have.property('message');\r
+
+      \            pm.expect(json).to.have.property('code');\r
+
+      \            pm.expect(json.code).to.equal('AI_ERROR');\r
+
+      \            pm.expect(json).to.have.property('details');\r
+
+      \        });\r
+
+      \        break;\r
+
+      \r
+
+      \    default:\r
+
+      \        pm.test(`Unexpected Status Code: ${statusCode}`, () => {\r
+
+      \            pm.expect.fail(`Received an unhandled status code: ${statusCode}`);\r
+
+      \        });\r
+
+      }"
+    language: text/javascript
+order: 11000

@@ -1,5 +1,4 @@
 $kind: http-request
-name: "Answer question #2 from session"
 url: localhost:3000/api/session/question
 method: POST
 headers:
@@ -90,5 +89,5 @@ settings:
   followRedirects: true
   disableUrlEncoding: false
   disableCookies: false
-examples: ".resources/Answer question #2 from session.resources/examples"
-order: 4503100555093633
+examples: "./.resources/Answer question #2 from session.resources/examples"
+order: 8000

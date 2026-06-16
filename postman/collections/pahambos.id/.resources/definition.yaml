@@ -1,5 +1,4 @@
 $kind: collection
-name: pahambos.id
 variables:
   latestPerformanceId: ""
   userId: ""

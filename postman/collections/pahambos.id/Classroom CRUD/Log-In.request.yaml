@@ -1,5 +1,4 @@
 $kind: http-request
-name: Log-In
 url: localhost:3000/api/auth/sign-in/email
 method: POST
 headers:

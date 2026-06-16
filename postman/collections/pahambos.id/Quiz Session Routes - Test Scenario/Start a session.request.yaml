@@ -63,5 +63,5 @@ settings:
   followRedirects: true
   disableUrlEncoding: false
   disableCookies: false
-examples: .resources/Start a session.resources/examples
-order: 1489514901990790
+examples: ./.resources/Start a session.resources/examples
+order: 2000

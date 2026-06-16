@@ -1,0 +1,119 @@
+$kind: http-request
+description: |-
+  ## Retrieve Quizzes by User
+
+  Retrieves all quizzes created by a specific user, identified by their unique user ID.
+
+  ### Method & URL
+
+  ```
+  GET /api/quiz/user/:userId
+  ```
+
+  ### Path Parameters
+
+  | Parameter | Type   | Required | Description                          |
+  |-----------|--------|----------|--------------------------------------|
+  | `userId`  | string (UUID) | Yes | The unique identifier of the user whose quizzes are to be retrieved. |
+
+  ### Responses
+
+  | Status | Description |
+  |--------|-------------|
+  | `200 OK` | Successfully retrieved the list of quizzes made by the user. |
+  | `404 Not Found` | No quizzes were found for the given user ID. Returns `{ "success": false, "message": "No quizzes found for this user." }` |
+
+  ### Example Request
+
+  ```
+  GET /api/quiz/user/f947b7e6-9b68-4f35-8334-4da308681d71
+  ```
+
+  ### Example Error Response (404)
+
+  ```json
+  {
+    "success": false,
+    "message": "No quizzes found for this user."
+  }
+  ```
+url: localhost:3000/api/quiz/user/f947b7e6-9b68-4f35-8334-4da308681d71
+method: GET
+headers:
+  User-Agent: insomnia/12.6.0
+scripts:
+  - type: afterResponse
+    code: "const json = pm.response.json();\r
+
+      const status = pm.response.code;\r
+
+      \r
+
+      pm.test(\"Content-Type is application/json\", () => {\r
+
+      \  pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");\r
+
+      });\r
+
+      \r
+
+      if (status === 200) {\r
+
+      \  pm.test(\"Status is 200\", () => pm.response.to.have.status(200));\r
+
+      \  pm.test(\"success is true\", () => pm.expect(json.success).to.be.true);\r
+
+      \  pm.test(\"quizzes is a non-empty array\", () => {\r
+
+      \    pm.expect(json.quizzes).to.be.an(\"array\").and.not.empty;\r
+
+      \  });\r
+
+      \  pm.test(\"count matches quizzes length\", () => {\r
+
+      \    pm.expect(json.count).to.eql(json.quizzes.length);\r
+
+      \  });\r
+
+      \  pm.test(\"creator is a non-empty string\", () => {\r
+
+      \    pm.expect(json.creator).to.be.a(\"string\").and.not.empty;\r
+
+      \  });\r
+
+      \r
+
+      } else if (status === 404) {\r
+
+      \  pm.test(\"Status is 404\", () => pm.response.to.have.status(404));\r
+
+      \  pm.test(\"success is false\", () => pm.expect(json.success).to.be.false);\r
+
+      \  pm.test(\"message is a non-empty string\", () => {\r
+
+      \    pm.expect(json.message).to.be.a(\"string\").and.not.empty;\r
+
+      \  });\r
+
+      \  pm.test(\"message is one of the known 404 messages\", () => {\r
+
+      \    const known = [\"No quizzes found for this user.\", \"User not found.\"];\r
+
+      \    pm.expect(known).to.include(json.message);\r
+
+      \  });\r
+
+      \r
+
+      } else {\r
+
+      \  pm.test(`Unexpected status ${status}`, () => { pm.expect.fail(`Got status ${status}`); });\r
+
+      }"
+    language: text/javascript
+settings:
+  followRedirects: true
+  disableUrlEncoding: false
+  disableCookies: false
+examples: ./.resources/Retrieve quizzes made by a specific user.resources/examples
+order: 2000

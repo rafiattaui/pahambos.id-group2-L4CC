@@ -1,5 +1,4 @@
 $kind: http-request
-name: Delete session
 url: localhost:3000/api/session
 method: DELETE
 headers:
@@ -20,4 +19,4 @@ settings:
   followRedirects: true
   disableUrlEncoding: false
   disableCookies: false
-order: 2102513774241757
+order: 3000

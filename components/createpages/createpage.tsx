@@ -120,6 +120,7 @@ function MetricsModal({
         {/* Header */}
         <div className="bg-gradient-to-br from-blue-600 to-blue-500 px-6 pt-6 pb-8">
           <button
+            title="Close metrics"
             onClick={onClose}
             className="absolute top-4 right-4 flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-white transition-colors hover:bg-white/30"
           >
@@ -319,6 +320,7 @@ function CreatePageItem({
       <Card className="relative flex aspect-6/7 flex-col overflow-hidden rounded-2xl border-2 border-gray-300 shadow-xl sm:aspect-3/4">
         <div className="absolute top-2 right-2 z-10 flex flex-row gap-2">
           <Button
+            title="View metrics"
             variant="outline"
             onClick={() => onMetricsClick(quiz)}
             aria-label="View Metrics"
@@ -384,6 +386,7 @@ function CreatePageItemSkeleton() {
     <div className="w-full">
       <Card className="relative flex aspect-6/9 flex-col overflow-hidden rounded-2xl border-2 border-gray-300 shadow-xl sm:aspect-3/4">
         <div className="absolute top-2 right-2 z-10 flex flex-row gap-2">
+          <Skeleton className="h-9 w-9" />
           <Skeleton className="h-9 w-9" />
           <Skeleton className="h-9 w-9" />
         </div>

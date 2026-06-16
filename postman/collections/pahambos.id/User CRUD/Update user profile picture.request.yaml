@@ -1,5 +1,4 @@
 $kind: http-request
-name: Update user profile picture
 url: "{{baseUrl}}/api/user"
 method: PUT
 body:
@@ -77,4 +76,4 @@ scripts:
 
       }"
     language: text/javascript
-order: 4330598170864646
+order: 6000

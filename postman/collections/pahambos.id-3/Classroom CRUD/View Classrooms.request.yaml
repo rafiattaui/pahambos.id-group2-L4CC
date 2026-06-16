@@ -1,0 +1,12 @@
+$kind: http-request
+url: localhost:3000/api/class
+method: GET
+body:
+  type: text
+  content: "{\r
+
+    \    \"name\": \"Test Classroom\"\r
+
+    }"
+examples: ./.resources/View Classrooms.resources/examples
+order: 2000

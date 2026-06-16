@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
+import NextImage from 'next/image';
 import Cropper, { type Area } from 'react-easy-crop';
 import { toast } from 'sonner';
 import {
@@ -274,7 +275,12 @@ function AvatarCropModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Adjust profile photo"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+    >
       <div className="flex w-full max-w-sm flex-col gap-4 rounded-2xl bg-white p-5 shadow-2xl ring-1 ring-black/5">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -570,18 +576,6 @@ function ActivityHeatmap({ data }: { data: PerformanceRecord[] }) {
       </h3>
 
       <div className="relative rounded-xl bg-gray-50 p-3 ring-1 ring-gray-100">
-        {/* Day-of-week header (x-axis) */}
-        <div className="font-body mb-1 grid grid-cols-7 gap-1 px-4">
-          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d) => (
-            <div
-              key={d}
-              className="text-center text-[9px] font-bold text-gray-400"
-            >
-              {d}
-            </div>
-          ))}
-        </div>
-
         {/* Grid with week labels (y-axis) */}
         <div className="flex gap-1.5">
           <div className="font-body flex flex-col gap-1.5">
@@ -1007,9 +1001,7 @@ function AccountCardInner({ user }: { user: User }) {
   const [email, setEmail] = useState(user.email);
   const [editingUsername, setEditingUsername] = useState(false);
   const [draftUsername, setDraftUsername] = useState('');
-  const [avatarSrc, setAvatarSrc] = useState<string | null>(
-    user.image ?? '/avatar_placeholder.jpg'
-  );
+  const [avatarSrc, setAvatarSrc] = useState<string | null>(user.image || null);
   const [rawAvatarUrl, setRawAvatarUrl] = useState<string | null>(null);
   const [avatarUploading, setAvatarUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -1138,7 +1130,10 @@ function AccountCardInner({ user }: { user: User }) {
   return (
     <div className="w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-xl ring-1 shadow-blue-900/10 ring-black/5">
       {/* ── tab bar ── */}
-      <div className="flex border-b border-gray-100 bg-gray-50/60">
+      <div
+        role="tablist"
+        className="flex border-b border-gray-100 bg-gray-50/60"
+      >
         {(['profile', 'security', 'performance'] as Tab[]).map((t) => (
           <button
             key={t}
@@ -1168,12 +1163,13 @@ function AccountCardInner({ user }: { user: User }) {
           {/* avatar */}
           <div className="flex flex-col items-center gap-3">
             <div className="relative">
-              <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-blue-400 to-blue-500 ring-4 ring-blue-100">
+              <div className="relative flex h-24 w-24 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-blue-400 to-blue-500 ring-4 ring-blue-100">
                 {avatarSrc ? (
-                  <img
+                  <NextImage
                     src={avatarSrc}
-                    alt="avatar"
-                    className="h-full w-full object-cover"
+                    alt="User avatar"
+                    fill
+                    className="object-cover"
                   />
                 ) : (
                   <span className="text-2xl font-bold text-white">

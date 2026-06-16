@@ -1,5 +1,4 @@
 $kind: http-request
-name: View Classrooms
 url: localhost:3000/api/class
 method: GET
 body:
@@ -47,16 +46,13 @@ scripts:
 
       \r
 
-      const foundClass = jsonData.educatorClasses.find(c => c.id ===
-      targetId);\r
+      const foundClass = jsonData.educatorClasses.find(c => c.id === targetId);\r
 
       \r
 
-      pm.test(`Classroom with id \"${targetId}\" exists in educatorClasses`, ()
-      => {\r
+      pm.test(`Classroom with id \"${targetId}\" exists in educatorClasses`, () => {\r
 
-      \    pm.expect(foundClass, `No classroom found with id
-      ${targetId}`).to.not.be.undefined;\r
+      \    pm.expect(foundClass, `No classroom found with id ${targetId}`).to.not.be.undefined;\r
 
       });\r
 

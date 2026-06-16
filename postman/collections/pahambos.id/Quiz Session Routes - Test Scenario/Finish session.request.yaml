@@ -1,5 +1,4 @@
 $kind: http-request
-name: Finish session
 url: localhost:3000/api/session/finish
 method: POST
 headers:
@@ -83,4 +82,4 @@ settings:
   followRedirects: true
   disableUrlEncoding: false
   disableCookies: false
-order: 4503598139123367
+order: 13000

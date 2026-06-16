@@ -1,0 +1,14 @@
+$kind: http-request
+url: localhost:3000/api/class
+method: PATCH
+body:
+  type: json
+  content: "{   \r
+
+    \    \"classroomId\": \"8bf40f88-bea5-403c-a2d0-86b566e19ab4\",\r
+
+    \    \"name\": \"New Test Classroom\"\r
+
+    }"
+examples: ./.resources/Update classroom details.resources/examples
+order: 3000

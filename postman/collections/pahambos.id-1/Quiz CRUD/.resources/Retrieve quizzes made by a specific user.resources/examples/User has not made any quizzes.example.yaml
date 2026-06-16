@@ -1,0 +1,25 @@
+$kind: http-example
+request:
+  url: localhost:3000/api/quiz/user/f947b7e6-9b68-4f35-8334-4da308681d71
+  method: GET
+  headers:
+    User-Agent: insomnia/12.6.0
+response:
+  statusCode: 404
+  statusText: Not Found
+  headers:
+    x-ratelimit-remaining: "99"
+    vary: rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch
+    content-type: application/json
+    Date: Mon, 08 Jun 2026 13:25:01 GMT
+    Connection: keep-alive
+    Keep-Alive: timeout=5
+    Transfer-Encoding: chunked
+  body:
+    type: text
+    content: |-
+      {
+          "success": false,
+          "message": "No quizzes found for this user."
+      }
+order: 3000

@@ -87,11 +87,17 @@ export default function DashNavbar({ user }: NavbarProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [query, setQuery] = useState(searchParams.get('q') ?? '');
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   const handleSearchSubmit = (e: React.FormEvent<HTMLElement>) => {
     e.preventDefault();
 
     const q = query.trim();
+    if (q.length > 0 && q.length < 3) {
+      setValidationError('Search query must be at least 3 characters long.');
+      return;
+    }
+    setValidationError(null);
     const href = q
       ? dashboardHref(`search?q=${encodeURIComponent(q)}`)
       : dashboardHref('search?q=');
@@ -135,7 +141,9 @@ export default function DashNavbar({ user }: NavbarProps) {
         </div>
         <div className="hidden flex-1 justify-end md:flex">
           <form onSubmit={handleSearchSubmit} className="w-full max-w-md">
-            <InputGroup className="w-full max-w-sm">
+            <InputGroup
+              className={`w-full max-w-sm ${validationError ? 'rounded-xl ring-2 ring-red-500' : ''}`}
+            >
               <InputGroupAddon align={'inline-start'}>
                 <Search className="h-4 w-4" />
               </InputGroupAddon>
@@ -144,10 +152,16 @@ export default function DashNavbar({ user }: NavbarProps) {
                 value={query}
                 onChange={(e) => {
                   setQuery(e.target.value);
+                  setValidationError(null);
                 }}
                 className="font-body font-bold"
               />
             </InputGroup>
+            {validationError && (
+              <p className="font-body mt-1.5 text-xs text-red-500">
+                {validationError}
+              </p>
+            )}
           </form>
         </div>
         <div className="ml-auto flex items-center gap-2">

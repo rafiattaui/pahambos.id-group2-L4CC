@@ -1,0 +1,4 @@
+$kind: http-request
+url: "{{baseUrl}}/api/quiz/user/performance"
+method: GET
+order: 2000

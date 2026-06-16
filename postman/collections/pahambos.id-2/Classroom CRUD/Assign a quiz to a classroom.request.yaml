@@ -1,0 +1,13 @@
+$kind: http-request
+url: localhost:3000/api/class/assignment/42c6c1f4-fbc3-4bb4-a883-b323038d16de
+method: POST
+body:
+  type: json
+  content: "{   \r
+
+    \    \"quizId\": \"29955e49-b640-4117-8d0c-d1f267a01215\",\r
+
+    \    \"dueDate\": \"2027-06-09T12:48:06.000Z\"\r
+
+    }"
+order: 5000

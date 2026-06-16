@@ -1,5 +1,4 @@
 $kind: http-request
-name: Update user name
 url: "{{baseUrl}}/api/user"
 method: PATCH
 body:
@@ -75,4 +74,4 @@ scripts:
 
       }"
     language: text/javascript
-order: 4138162824383155
+order: 5000

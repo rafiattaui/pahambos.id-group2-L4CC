@@ -1,0 +1,134 @@
+$kind: http-example
+request:
+  url: localhost:3000/api/quiz
+  method: GET
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    x-ratelimit-remaining: "99"
+    vary: rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch
+    content-type: application/json
+    Date: Mon, 08 Jun 2026 13:35:26 GMT
+    Connection: keep-alive
+    Keep-Alive: timeout=5
+    Transfer-Encoding: chunked
+  body:
+    type: text
+    content: |-
+      {
+          "data": [
+              {
+                  "id": "28ae3d1f-dab1-46a6-92ff-1a56f500247c",
+                  "createdBy": "8515bf93-6e47-45a5-8f95-2cf8013af977",
+                  "createdAt": "2026-05-24T13:54:58.265Z",
+                  "title": "Controversial Quiz",
+                  "imageUrl": "https://res.cloudinary.com/dbj2tvfzg/image/upload/v1779630898/quiz-app/covers/rzjtfnwuaeorc272me3g.jpg",
+                  "imageKey": "quiz-app/covers/rzjtfnwuaeorc272me3g",
+                  "description": "Although critics argued that the ambitious project was entirely unfeasible given the tight timeline, the engineering team spent months meticulously refining the structural blueprints, running thousands of digital simulations, and testing advanced composite materials until they finally successfully built a fully operational, zero-emission hyperloop prototype that completely redefined the future of high-speed public transportation.",
+                  "numQuestions": 2,
+                  "category": "History"
+              },
+              {
+                  "id": "29955e49-b640-4117-8d0c-d1f267a01215",
+                  "createdBy": "f0ec9f5a-3d7b-4623-9249-1501261b47b8",
+                  "createdAt": "2026-05-24T11:25:30.346Z",
+                  "title": "My Science Quiz",
+                  "imageUrl": "https://res.cloudinary.com/dbj2tvfzg/image/upload/v1778493470/landscape-placeholder_vrw20c.svg",
+                  "imageKey": "landscape-placeholder_vrw20c",
+                  "description": "A fun quiz about basic science",
+                  "numQuestions": 3,
+                  "category": "Science"
+              },
+              {
+                  "id": "934afea1-d8a6-4aa2-9803-75166cc376d4",
+                  "createdBy": "8515bf93-6e47-45a5-8f95-2cf8013af977",
+                  "createdAt": "2026-06-01T10:36:47.217Z",
+                  "title": "Quiz about Car",
+                  "imageUrl": "https://res.cloudinary.com/dbj2tvfzg/image/upload/v1780310206/quiz-app/covers/lhawycokhhypmhgxxkbg.jpg",
+                  "imageKey": "quiz-app/covers/lhawycokhhypmhgxxkbg",
+                  "description": "SUPAAACAAAAA",
+                  "numQuestions": 2,
+                  "category": "Technology"
+              },
+              {
+                  "id": "ae4d32bb-f39c-4d49-b73c-dff3a8e018de",
+                  "createdBy": "f0ec9f5a-3d7b-4623-9249-1501261b47b8",
+                  "createdAt": "2026-05-24T12:37:51.347Z",
+                  "title": "World Geography",
+                  "imageUrl": "https://res.cloudinary.com/dbj2tvfzg/image/upload/v1778493470/landscape-placeholder_vrw20c.svg",
+                  "imageKey": "landscape-placeholder_vrw20c",
+                  "description": "Countries, capitals, and physical geography",
+                  "numQuestions": 8,
+                  "category": "Geography"
+              },
+              {
+                  "id": "bb007189-86db-4ada-b8ea-61024a86965a",
+                  "createdBy": "f0ec9f5a-3d7b-4623-9249-1501261b47b8",
+                  "createdAt": "2026-05-24T12:37:50.462Z",
+                  "title": "World History Milestones",
+                  "imageUrl": "https://res.cloudinary.com/dbj2tvfzg/image/upload/v1778493470/landscape-placeholder_vrw20c.svg",
+                  "imageKey": "landscape-placeholder_vrw20c",
+                  "description": "Key events and figures that shaped the modern world",
+                  "numQuestions": 8,
+                  "category": "History"
+              },
+              {
+                  "id": "be877606-e50b-42e5-9dc3-0efa476acdb7",
+                  "createdBy": "f0ec9f5a-3d7b-4623-9249-1501261b47b8",
+                  "createdAt": "2026-05-24T12:37:50.181Z",
+                  "title": "English Language Challenge",
+                  "imageUrl": "https://res.cloudinary.com/dbj2tvfzg/image/upload/v1778493470/landscape-placeholder_vrw20c.svg",
+                  "imageKey": "landscape-placeholder_vrw20c",
+                  "description": "Grammar, vocabulary, and language knowledge",
+                  "numQuestions": 8,
+                  "category": "Language"
+              },
+              {
+                  "id": "c174a68e-61cb-41fd-959a-e4481fa5e5b1",
+                  "createdBy": "f0ec9f5a-3d7b-4623-9249-1501261b47b8",
+                  "createdAt": "2026-05-24T12:37:51.641Z",
+                  "title": "General Knowledge Trivia",
+                  "imageUrl": "https://res.cloudinary.com/dbj2tvfzg/image/upload/v1778493470/landscape-placeholder_vrw20c.svg",
+                  "imageKey": "landscape-placeholder_vrw20c",
+                  "description": "A mixed bag of trivia across all topics",
+                  "numQuestions": 8,
+                  "category": "General"
+              },
+              {
+                  "id": "c5db1a93-ccba-4b04-8e50-b38e528222fc",
+                  "createdBy": "8515bf93-6e47-45a5-8f95-2cf8013af977",
+                  "createdAt": "2026-05-24T12:02:36.701Z",
+                  "title": "Test Quiz",
+                  "imageUrl": "https://res.cloudinary.com/dbj2tvfzg/image/upload/v1779624154/quiz-app/covers/lwzyrnpy1jzjdtupxw7u.jpg",
+                  "imageKey": "quiz-app/covers/lwzyrnpy1jzjdtupxw7u",
+                  "description": "this is a test quiz to test whether the API call succeed or no",
+                  "numQuestions": 2,
+                  "category": "Technology"
+              },
+              {
+                  "id": "e9579fd7-3554-4759-8251-0105a24687c0",
+                  "createdBy": "f0ec9f5a-3d7b-4623-9249-1501261b47b8",
+                  "createdAt": "2026-05-24T12:37:51.051Z",
+                  "title": "Mathematics Fundamentals",
+                  "imageUrl": "https://res.cloudinary.com/dbj2tvfzg/image/upload/v1778493470/landscape-placeholder_vrw20c.svg",
+                  "imageKey": "landscape-placeholder_vrw20c",
+                  "description": "Arithmetic, algebra, and number theory",
+                  "numQuestions": 8,
+                  "category": "Mathematics"
+              },
+              {
+                  "id": "fa2f7eb3-4870-4eb1-a748-b82400a25125",
+                  "createdBy": "f0ec9f5a-3d7b-4623-9249-1501261b47b8",
+                  "createdAt": "2026-05-24T12:37:49.883Z",
+                  "title": "Tech Fundamentals",
+                  "imageUrl": "https://res.cloudinary.com/dbj2tvfzg/image/upload/v1778493470/landscape-placeholder_vrw20c.svg",
+                  "imageKey": "landscape-placeholder_vrw20c",
+                  "description": "Test your knowledge of core technology concepts",
+                  "numQuestions": 8,
+                  "category": "Technology"
+              }
+          ],
+          "nextCursor": "fe5b0df2-4f60-4143-89bd-4c41c57042eb"
+      }
+order: 1000

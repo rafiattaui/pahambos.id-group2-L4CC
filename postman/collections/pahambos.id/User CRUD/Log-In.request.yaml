@@ -1,5 +1,4 @@
 $kind: http-request
-name: Log-In
 url: localhost:3000/api/auth/sign-in/email
 method: POST
 headers:
@@ -21,5 +20,5 @@ settings:
   followRedirects: true
   disableUrlEncoding: false
   disableCookies: false
-examples: .resources/Log-In.resources/examples
-order: 1073899331396
+examples: ./.resources/Log-In.resources/examples
+order: 1000

@@ -14,8 +14,8 @@ Group Members:
 | Name | ID | Role | GitHub Username |
 |------|----|------|-----------------|
 |Muhammad Rafi Athallah | 2802505891 | Backend Programmer | rafiattaui|
-|Christian Salomo Tasmaan | 2802546065 | Frontend Programmer | salmon11062006 |
-|Athallah Raja Mustafa | 2802537552 | Fullstack Programmer | talahanakrajin |
+|Christian Salomo Tasmaan | 2802546065 | Fullstack Programmer | salmon11062006 |
+|Athallah Raja Mustafa | 2802537552 | Frontend Programmer | talahanakrajin |
 
 ## 2. Instructor & Repository Access
 
@@ -60,12 +60,9 @@ Main features:
 
 ### 5.1 Architecture Diagram
 
-![](./docs/1.png)
-![](./docs/2.png)
-![](./docs/3.png)
-![](./docs/4.png)
-![](./docs/5.png)
 ![](./docs/6.png)
+![](./docs/data.png)
+![](./docs/session.png)
 
 ### 5.2 Architecture Explanation
 
@@ -205,6 +202,167 @@ Example:
 ```
 
 ## 7. Database Design
+
+### 7.1 Database Choice
+
+We chose **PostgreSQL**, managed via **Prisma ORM**, as our primary database for the following reasons:
+
+- **Relational Structure:** PahamBos.id requires well-defined relationships between entities — a User owns many Quizzes, a Quiz has many Questions, a Classroom has many members and assignments, and so on. PostgreSQL's relational model and foreign key enforcement handles these constraints robustly and predictably.
+
+- **Data Integrity & Security:** Prisma provides compile-time type safety and automatically sanitizes all inputs passed to its query methods, effectively mitigating SQL injection risks without requiring manual escaping. It also enforces schema-level constraints (unique fields, cascading deletes, required relations) that keep data consistent across all operations.
+
+### 7.2 Schema / Data Structure
+
+![ERD](public/erd.png)
+
+The database consists of the following tables:
+
+**User**
+Represents a registered user of the platform.
+
+| Field                     | Type            | Description                                    |
+| ------------------------- | --------------- | ---------------------------------------------- |
+| `id`                      | UUID (PK)       | Unique identifier for the user                 |
+| `name`                    | String          | Display name                                   |
+| `email`                   | String (unique) | Login email address                            |
+| `emailVerified`           | Boolean         | Whether the email has been verified            |
+| `image` / `imageKey`      | String?         | Profile picture URL and Cloudinary storage key |
+| `createdAt` / `updatedAt` | DateTime        | Record timestamps                              |
+
+---
+
+**Account**
+Stores authentication credentials for a User, managed by BetterAuth.
+
+| Field                                            | Type             | Description                                                         |
+| ------------------------------------------------ | ---------------- | ------------------------------------------------------------------- |
+| `id`                                             | UUID (PK)        | Unique identifier                                                   |
+| `userId`                                         | UUID (FK → User) | The owning user                                                     |
+| `providerId`                                     | String           | The auth provider identifier (e.g. `credential`)                    |
+| `accountId`                                      | String           | The user's ID as recognized by the auth provider                    |
+| `password`                                       | String?          | Hashed password for the account                                     |
+| `accessToken` / `refreshToken`                   | String?          | Provider-issued tokens, populated if supported by the auth provider |
+| `accessTokenExpiresAt` / `refreshTokenExpiresAt` | DateTime?        | Expiry timestamps for the respective tokens                         |
+| `idToken`                                        | String?          | Identity token issued by the auth provider                          |
+| `scope`                                          | String?          | Permission scopes granted to the account                            |
+| `createdAt` / `updatedAt`                        | DateTime         | Record timestamps                                                   |
+
+---
+
+**Session**
+Tracks active authentication sessions issued by BetterAuth.
+
+| Field                     | Type             | Description                                    |
+| ------------------------- | ---------------- | ---------------------------------------------- |
+| `id`                      | UUID (PK)        | Unique session identifier                      |
+| `userId`                  | UUID (FK → User) | The authenticated user                         |
+| `token`                   | String (unique)  | Opaque session token stored in the HTTP cookie |
+| `expiresAt`               | DateTime         | Expiry timestamp for the session               |
+| `ipAddress` / `userAgent` | String?          | Client metadata for security auditing          |
+| `createdAt` / `updatedAt` | DateTime         | Record timestamps                              |
+
+---
+
+**Quiz**
+Represents a quiz created by a user, containing metadata such as category, description, and cover image.
+
+| Field                   | Type             | Description                                   |
+| ----------------------- | ---------------- | --------------------------------------------- |
+| `id`                    | UUID (PK)        | Unique identifier                             |
+| `createdBy`             | UUID (FK → User) | The quiz creator                              |
+| `title`                 | String           | Quiz title (max 255 chars)                    |
+| `description`           | String?          | Optional description                          |
+| `category`              | Enum (Category)  | Subject category (e.g., Mathematics, Science) |
+| `numQuestions`          | Int              | Total number of questions in the quiz         |
+| `imageKey` / `imageUrl` | String?          | Cover image stored in Cloudinary              |
+| `createdAt`             | DateTime         | Creation timestamp                            |
+
+---
+
+**QuizQuestion**
+Represents an individual question within a quiz, including its answer choices and correct answer indices.
+
+| Field                   | Type                | Description                                   |
+| ----------------------- | ------------------- | --------------------------------------------- |
+| `id`                    | UUID (PK)           | Unique identifier                             |
+| `quizId`                | UUID (FK → Quiz)    | The parent quiz                               |
+| `order`                 | Int                 | Position of the question in the quiz sequence |
+| `question`              | String              | The question text                             |
+| `type`                  | Enum (QuestionType) | `SingleSelect` or `MultiSelect`               |
+| `answers`               | String[]            | Array of answer option strings                |
+| `correctAnswers`        | Int[]               | Indices of the correct answer(s)              |
+| `time`                  | Int                 | Time limit in seconds (default: 30)           |
+| `imageKey` / `imageUrl` | String?             | Optional question image via Cloudinary        |
+
+---
+
+**UserPerformance**
+Records the result of a completed quiz session for a user. Optionally linked to a classroom assignment.
+
+| Field             | Type                       | Description                                |
+| ----------------- | -------------------------- | ------------------------------------------ |
+| `id`              | UUID (PK)                  | Unique identifier                          |
+| `userId`          | UUID (FK → User)           | The player                                 |
+| `quizId`          | UUID (FK → Quiz)           | The quiz attempted                         |
+| `classroomQuizId` | UUID? (FK → ClassroomQuiz) | Linked assignment, if applicable           |
+| `finalScore`      | Int                        | Total points earned                        |
+| `accuracyRate`    | Decimal                    | Percentage of correct answers              |
+| `timeTaken`       | Int                        | Total time taken in seconds                |
+| `longestStreak`   | Int                        | Longest consecutive correct answer streak  |
+| `hintsUsed`       | Int                        | Number of AI hints used during the session |
+| `completedAt`     | DateTime                   | Timestamp of quiz completion               |
+
+---
+
+**QuizMetrics**
+Stores aggregate statistics for a quiz, updated each time a user completes it. One-to-one with Quiz.
+
+| Field          | Type                    | Description                               |
+| -------------- | ----------------------- | ----------------------------------------- |
+| `id`           | UUID (PK)               | Unique identifier                         |
+| `quizId`       | UUID (unique FK → Quiz) | The associated quiz                       |
+| `attempts`     | Int                     | Total number of attempts                  |
+| `uniqueUsers`  | Int                     | Number of distinct users who attempted it |
+| `avgAccuracy`  | Decimal                 | Average accuracy rate across all attempts |
+| `avgScore`     | Decimal                 | Average final score across all attempts   |
+| `avgTimeTaken` | Int                     | Average time taken in seconds             |
+| `updatedAt`    | DateTime                | Last updated timestamp                    |
+
+---
+
+**Classroom**
+Represents a classroom created and owned by an Educator. A classroom groups users together and can have quizzes assigned to it as homework.
+
+| Field                     | Type             | Description                         |
+| ------------------------- | ---------------- | ----------------------------------- |
+| `id`                      | UUID (PK)        | Unique identifier                   |
+| `ownerId`                 | UUID (FK → User) | The Educator who owns the classroom |
+| `name`                    | String           | Classroom name (max 100 chars)      |
+| `createdAt` / `updatedAt` | DateTime         | Record timestamps                   |
+
+---
+
+**UserClassroom**
+Junction table representing the many-to-many relationship between Users and Classrooms, with a role distinguishing Educators from Learners.
+
+| Field         | Type                  | Description             |
+| ------------- | --------------------- | ----------------------- |
+| `userId`      | UUID (FK → User)      | The user                |
+| `classroomId` | UUID (FK → Classroom) | The classroom           |
+| `role`        | Enum (Role)           | `Educator` or `Learner` |
+
+---
+
+**ClassroomQuiz**
+Represents a quiz assigned to a classroom as an assignment, with a due date. Acts as a junction between Classroom and Quiz, and is referenced by UserPerformance when a submission is tied to an assignment.
+
+| Field          | Type                  | Description                       |
+| -------------- | --------------------- | --------------------------------- |
+| `id`           | UUID (PK)             | Unique identifier                 |
+| `classroomId`  | UUID (FK → Classroom) | The classroom this is assigned to |
+| `quizId`       | UUID (FK → Quiz)      | The quiz being assigned           |
+| `assignedDate` | DateTime              | When the assignment was created   |
+| `dueDate`      | DateTime              | Submission deadline               |
 
 ## 8. AI Features (MANDATORY)
 
@@ -359,6 +517,20 @@ export const GET = WithAuth(async (req, { user, params }) => {
 
 ## 10. Testing Documentation (VERY IMPORTANT)
 
+### 10.1 Frontend Testing
+
+Documentation for frontend testing can be founded in a separate file called Front.md and Front2.md. The summary of the testing can be found below:
+| File | Focus Area | Test Case Range | Total Cases |
+|---|---|---|---|
+| `landing.test.tsx` | Hero, navbar, marketing sections, scroll-reveal animation, logo | FE-001 – FE-063 | 63 |
+| `createquiz.test.tsx` | Form validation, draft persistence, AI tool calls, create/delete UI | FE-064 – FE-141 | 78 |
+| `dashboardComp.test.tsx` | Navigation, performance summary, quiz carousel, grid items | FE-142 – FE-209 | 68 |
+| `searchpage.test.tsx` | Search/filter validation, fetch error handling, pagination | FE-210 – FE-230 | 21 |
+| `profileCard.test.tsx` | Account tabs, username/password editing, password strength, avatar upload/crop, performance history | PC-01 – PC-33 | 33 |
+| `ClassPage.test.tsx` | Class creation/join, educator/learner overlays, member management, quiz assignment | CP-01 – CP-36 | 36 |
+| `QuizInterface.test.tsx` | Session init, splash/countdown, answer submission, timer, hints, results, leaderboard | QI-01 – QI-53 | 53 |
+| **Total** | | | **352** |
+
 ### 10.2 Backend Testing
 
 Because our data is highly intertwined and consists of many complex relations, tests must be executed in order and thoroughly to prevent data inconsistencies.
@@ -368,13 +540,10 @@ We use Postman for our API testing pipeline. All relevant collection and environ
 #### In Postman:
 
 1. Click Import (top left).
-2. Select Folder.
-3. Navigate to and select the postman root folder in the repo.
-4. **Postman** will scan and import everything — collections, environments, globals, mocks, etc.
+2. Select the [postman collections file](pahambos.id.postman_collection.json).
+3. **Postman** will scan and import the collections, make sure to set an environment and setup a baseUrl, as well as inserting your credentials in the Log-in Route of each sub-collection.
 
 Isolated test cases may also be ran, but collections may be ran using the Postman Runner by **right-clicking the parent folders and clicking** `run`.
-
-Don't forget to register on our frontend, and then insert your credentials in the Log-in route on the body section for testing to work.
 
 | Test Case     | Endpoint       | Input                                        | Expected Output                                   | Status |
 | ------------- | -------------- | -------------------------------------------- | ------------------------------------------------- | ------ |
@@ -575,17 +744,17 @@ GROQ_API_KEY=
 
 **Student Name: Athallah Raja Mustafa**
 
-- Features Implemented:
-- Tests written:
-- Security Work:
-- AI-Related Work:
+- Features Implemented: Landing page, home page, search page, create page, create quiz form including edit page, user performance visualization inisde profile
+- Tests written: quiz creation related pages, dashboard components, landing components
+- Security Work: -
+- AI-Related Work: UI improvement, API calls and helper functions
 
 **Student Name: Christian Salomo Tasmaan**
 
-- Features Implemented:
-- Tests Written:
-- Security Work:
-- AI-Related Work:
+- Features Implemented: Quiz interface, classroom page, profile card, quiz results page, leaderboard page, quiz metrics on quiz creation page, quiz preview card on dashboard
+- Tests Written: quiz gameplay component, profile card component, classroom component
+- Security Work: -
+- AI-Related Work: AI hints in gameplay, AI feedback in results page
 
 ## 13. AI Usage Disclosure (MANDATORY)
 
@@ -596,6 +765,7 @@ GROQ_API_KEY=
   - Specific usage:
     - Quiz Session Flow and API Design
     - Classroom Implementation
+    - Used to write automatic tests in Jest, Postman, and Playwright.
 
 ## 14. Known Limitations & Future Improvements
 

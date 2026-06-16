@@ -216,7 +216,7 @@ We chose **PostgreSQL**, managed via **Prisma ORM**, as our primary database for
 
 ### 7.2 Schema / Data Structure
 
-![ERD](public/prisma-erd.svg)
+![ERD](public/erd.png)
 
 The database consists of the following tables:
 

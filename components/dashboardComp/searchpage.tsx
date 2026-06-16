@@ -132,6 +132,7 @@ export default function SearchPage({ query: initialQuery = '' }: SearchQuery) {
   const [inputValue, setInputValue] = useState(query);
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [status, setStatus] = useState<FetchStatus>('idle');
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   // ── URL mutation helper ───────────────────────────────────────────────────
   // Merges new params onto the current URL without losing existing ones.
@@ -173,6 +174,11 @@ export default function SearchPage({ query: initialQuery = '' }: SearchQuery) {
   // ── Search submit ─────────────────────────────────────────────────────────
   function submitSearch() {
     const trimmed = inputValue.trim();
+    if (trimmed.length > 0 && trimmed.length < 3) {
+      setValidationError('Search query must be at least 3 characters long.');
+      return;
+    }
+    setValidationError(null);
     router.push(
       buildUrl({ [PARAM_QUERY]: trimmed.length > 0 ? trimmed : null })
     );
@@ -272,9 +278,8 @@ export default function SearchPage({ query: initialQuery = '' }: SearchQuery) {
 
   // ── Derived display states ────────────────────────────────────────────────
   const isLoading = status === 'loading';
-  const errorMessage = queryTooShort
-    ? 'Search query must be at least 3 characters long.'
-    : status === 'error'
+  const errorMessage =
+    status === 'error'
       ? 'Failed to fetch quizzes. Sorry about the inconvenience!'
       : null;
   const emptySearch =
@@ -286,19 +291,31 @@ export default function SearchPage({ query: initialQuery = '' }: SearchQuery) {
   return (
     <div className="mt-4 items-stretch rounded-2xl bg-linear-to-b from-white to-orange-50 p-4 shadow">
       {/* Search input (mobile) */}
-      <InputGroup className="font-body mb-4 font-bold md:hidden">
-        <InputGroupAddon align="inline-start">
-          <Search className="h-4 w-4" />
-        </InputGroupAddon>
-        <InputGroupInput
-          placeholder="Search..."
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') submitSearch();
-          }}
-        />
-      </InputGroup>
+      <div className="mb-4 md:hidden">
+        <InputGroup
+          className={`font-body font-bold ${validationError ? 'rounded-xl ring-2 ring-red-500' : ''}`}
+        >
+          <InputGroupAddon align="inline-start">
+            <Search className="h-4 w-4" />
+          </InputGroupAddon>
+          <InputGroupInput
+            placeholder="Search..."
+            value={inputValue}
+            onChange={(e) => {
+              setInputValue(e.target.value);
+              setValidationError(null);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') submitSearch();
+            }}
+          />
+        </InputGroup>
+        {validationError && (
+          <p className="font-body mt-1.5 text-sm text-red-500">
+            {validationError}
+          </p>
+        )}
+      </div>
 
       {/* Category filter pills */}
       <div className="mb-4">

@@ -14,8 +14,8 @@ Group Members:
 | Name | ID | Role | GitHub Username |
 |------|----|------|-----------------|
 |Muhammad Rafi Athallah | 2802505891 | Backend Programmer | rafiattaui|
-|Christian Salomo Tasmaan | 2802546065 | Frontend Programmer | salmon11062006 |
-|Athallah Raja Mustafa | 2802537552 | Fullstack Programmer | talahanakrajin |
+|Christian Salomo Tasmaan | 2802546065 | Fullstack Programmer | salmon11062006 |
+|Athallah Raja Mustafa | 2802537552 | Frontend Programmer | talahanakrajin |
 
 ## 2. Instructor & Repository Access
 

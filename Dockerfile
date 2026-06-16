@@ -37,7 +37,7 @@ RUN pnpm build
 # Uses DATABASE_URL from `.env.production` (or compose environment).
 FROM base AS migrator
 COPY package.json pnpm-lock.yaml ./
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --frozen-lockfile --prod
 COPY prisma ./prisma
 COPY prisma.config.ts ./
 ENV DATABASE_URL=postgresql://migrate:migrate@127.0.0.1:5432/migrate?sslmode=disable

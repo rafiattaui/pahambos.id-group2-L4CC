@@ -57,7 +57,8 @@ export default function DashboardMain({
   const router = useRouter();
   const { performance, loading } = usePerformance(userId);
   const userAvatarImage = userAvatar ?? '/avatar_placeholder.jpg';
-  const accuracyRate = toPercent(performance?.accuracyRate ?? '0%');
+  const accuracyRate =
+    performance != null ? toPercent(performance.accuracyRate) : '—';
   return (
     <section className="space-y-6">
       <div className="grid gap-4 md:grid-cols-3">
@@ -543,7 +544,7 @@ export default function DashboardMain({
                     },
                     {
                       label: 'Average Accuracy',
-                      value: accuracyRate ?? '—',
+                      value: accuracyRate,
                       icon: <ChartNoAxesCombined className="h-5 w-5" />,
                     },
                     {

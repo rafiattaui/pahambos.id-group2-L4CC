@@ -517,6 +517,8 @@ export const GET = WithAuth(async (req, { user, params }) => {
 
 ## 10. Testing Documentation (VERY IMPORTANT)
 
+### 10.1 Frontend Testing
+
 ### 10.2 Backend Testing
 
 Because our data is highly intertwined and consists of many complex relations, tests must be executed in order and thoroughly to prevent data inconsistencies.

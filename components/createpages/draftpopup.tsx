@@ -42,7 +42,7 @@ const DRAFTS_KEY = 'quiz-drafts';
  * Produces a stable fingerprint of the form content (ignores metadata like
  * draftId, slotIndex, savedAt so we compare only the actual quiz data).
  */
-function formFingerprint(form: QuizFormState): string {
+export function formFingerprint(form: QuizFormState): string {
   const normalized = {
     title: form.title.trim().toLowerCase(),
     description: form.description.trim().toLowerCase(),

@@ -41,8 +41,8 @@ RUN pnpm install --frozen-lockfile
 COPY prisma ./prisma
 COPY prisma.config.ts ./
 ENV DATABASE_URL=postgresql://migrate:migrate@127.0.0.1:5432/migrate?sslmode=disable
-RUN pnpm dlx prisma generate
-CMD ["pnpm", "dlx", "prisma", "migrate", "deploy"]
+RUN pnpm exec prisma generate
+CMD ["pnpm", "exec", "prisma", "migrate", "deploy"]
 
 FROM base AS runner
 

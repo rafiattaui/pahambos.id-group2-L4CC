@@ -576,18 +576,6 @@ function ActivityHeatmap({ data }: { data: PerformanceRecord[] }) {
       </h3>
 
       <div className="relative rounded-xl bg-gray-50 p-3 ring-1 ring-gray-100">
-        {/* Day-of-week header (x-axis) */}
-        <div className="font-body mb-1 grid grid-cols-7 gap-1 px-4">
-          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d) => (
-            <div
-              key={d}
-              className="text-center text-[9px] font-bold text-gray-400"
-            >
-              {d}
-            </div>
-          ))}
-        </div>
-
         {/* Grid with week labels (y-axis) */}
         <div className="flex gap-1.5">
           <div className="font-body flex flex-col gap-1.5">

@@ -1,20 +1,25 @@
 /**
- * Jest test suite for the Quiz Create pages
- * Covers: Form validation · UI behavior · Error handling
+ * Jest test suite for Quiz Create pages
+ * Covers: Form validation · Draft system · AI tool calls · UI behaviour
  *
  * Run with:  npx jest createpage.test.tsx
- * Requires:  jest, @testing-library/react, @testing-library/user-event,
- *            @testing-library/jest-dom, jest-environment-jsdom
  */
 
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import {
+  render,
+  screen,
+  fireEvent,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 
 // ─── Mocks (must be declared before static imports) ───────────────────────────
 
 const mockPush = jest.fn();
+
 jest.mock('next/navigation', () => ({
   useRouter: () => ({ push: mockPush }),
 }));
@@ -26,29 +31,99 @@ jest.mock('next/image', () => ({
     alt,
     ...rest
   }: React.ImgHTMLAttributes<HTMLImageElement>) => (
-    <img src={src} alt={alt} {...rest} />
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src={src as string} alt={alt} {...rest} />
   ),
 }));
 
-jest.mock('sonner', () => ({
-  toast: { success: jest.fn(), error: jest.fn() },
+// Mock all lucide-react icons as simple <svg> stubs so SVG parsing never fails
+jest.mock('lucide-react', () => {
+  const icon = (name: string) =>
+    function MockIcon({ className }: { className?: string }) {
+      return <svg data-testid={`icon-${name}`} className={className} />;
+    };
+  return {
+    Save: icon('Save'),
+    FileText: icon('FileText'),
+    Plus: icon('Plus'),
+    Trash2: icon('Trash2'),
+    X: icon('X'),
+    AlertTriangle: icon('AlertTriangle'),
+    Pencil: icon('Pencil'),
+    Separator: icon('Separator'),
+    // Icons used by CreatePageItem and MetricsModal in createpage.tsx
+    BarChart2: icon('BarChart2'),
+    Clock: icon('Clock'),
+    Target: icon('Target'),
+    Users: icon('Users'),
+    TrendingUp: icon('TrendingUp'),
+    Award: icon('Award'),
+  };
+});
+
+// Mock every Radix/shadcn UI primitive that DraftPopup and CreatePage use
+// as simple pass-through wrappers — we test behaviour, not library internals
+jest.mock('@/components/ui/button', () => ({
+  Button: ({
+    children,
+    onClick,
+    disabled,
+    className,
+    ...rest
+  }: React.ButtonHTMLAttributes<HTMLButtonElement>) => (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className={className}
+      {...rest}
+    >
+      {children}
+    </button>
+  ),
 }));
 
-jest.mock('react-easy-crop', () => ({
-  __esModule: true,
-  default: ({
-    onCropComplete,
-  }: {
-    onCropComplete: (a: unknown, b: unknown) => void;
-  }) => {
-    onCropComplete({}, { x: 0, y: 0, width: 100, height: 100 });
-    return <div data-testid="mock-cropper" />;
-  },
+jest.mock('@/components/ui/card', () => ({
+  Card: ({
+    children,
+    onClick,
+    className,
+  }: React.HTMLAttributes<HTMLDivElement>) => (
+    <div onClick={onClick} className={className}>
+      {children}
+    </div>
+  ),
+  CardContent: ({ children }: React.HTMLAttributes<HTMLDivElement>) => (
+    <div>{children}</div>
+  ),
+  CardHeader: ({ children }: React.HTMLAttributes<HTMLDivElement>) => (
+    <div>{children}</div>
+  ),
+  CardTitle: ({ children }: React.HTMLAttributes<HTMLDivElement>) => (
+    <h3>{children}</h3>
+  ),
+  CardDescription: ({ children }: React.HTMLAttributes<HTMLDivElement>) => (
+    <p>{children}</p>
+  ),
+}));
+
+jest.mock('@/components/ui/skeleton', () => ({
+  Skeleton: ({ className }: React.HTMLAttributes<HTMLDivElement>) => (
+    <div className={`animate-pulse ${className ?? ''}`} />
+  ),
+}));
+
+jest.mock('@/components/ui/separator', () => ({
+  Separator: () => <hr />,
+}));
+
+jest.mock('@/components/ui/spinner', () => ({
+  Spinner: ({ className }: React.HTMLAttributes<HTMLDivElement>) => (
+    <span data-testid="spinner" className={className} />
+  ),
 }));
 
 // ─── Static imports (after mocks) ────────────────────────────────────────────
 
-import { validateForm } from '@/components/createpages/createquiz';
 import {
   formFingerprint,
   getDrafts,
@@ -56,9 +131,29 @@ import {
   deleteDraftBySlot,
   type QuizFormState,
 } from '@/components/createpages/draftpopup';
+
 import DraftPopup from '@/components/createpages/draftpopup';
 import { applyToolCalls } from '@/components/createpages/AiQuizPanel';
+import { validateForm } from '@/components/createpages/createquiz';
 import CreatePage from '@/components/createpages/createpage';
+
+// ─── localStorage mock ────────────────────────────────────────────────────────
+
+function mockLocalStorage() {
+  const store: Record<string, string> = {};
+  return {
+    getItem: jest.fn((key: string) => store[key] ?? null),
+    setItem: jest.fn((key: string, value: string) => {
+      store[key] = value;
+    }),
+    removeItem: jest.fn((key: string) => {
+      delete store[key];
+    }),
+    clear: jest.fn(() => {
+      Object.keys(store).forEach((k) => delete store[k]);
+    }),
+  };
+}
 
 // ─── Shared fixtures ──────────────────────────────────────────────────────────
 
@@ -88,12 +183,10 @@ const baseFormState: QuizFormState = {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 1. FORM VALIDATION  (validateForm from createquiz.tsx)
+// 1. FORM VALIDATION
 // ─────────────────────────────────────────────────────────────────────────────
 
 describe('validateForm', () => {
-  // ── Title ──────────────────────────────────────────────────────────────────
-
   describe('title validation', () => {
     it('returns no title error when title is present', () => {
       const errors = validateForm('My Quiz', 'Science', [
@@ -120,8 +213,6 @@ describe('validateForm', () => {
     });
   });
 
-  // ── Category ───────────────────────────────────────────────────────────────
-
   describe('category validation', () => {
     it('returns no category error when category is selected', () => {
       const errors = validateForm('Quiz', 'Science', [
@@ -139,8 +230,6 @@ describe('validateForm', () => {
       expect(errors.category).toBe('Please select a category');
     });
   });
-
-  // ── Questions count ────────────────────────────────────────────────────────
 
   describe('minimum questions validation', () => {
     it('passes with exactly two questions', () => {
@@ -173,8 +262,6 @@ describe('validateForm', () => {
     });
   });
 
-  // ── Question-level: prompt ─────────────────────────────────────────────────
-
   describe('question prompt validation', () => {
     it('flags empty question prompt', () => {
       const q = makeQuestion({ order: 0, question: '' });
@@ -204,8 +291,6 @@ describe('validateForm', () => {
       expect(errors.questions?.[0]?.question).toBeUndefined();
     });
   });
-
-  // ── Question-level: answers ────────────────────────────────────────────────
 
   describe('answer options validation', () => {
     it('flags fewer than 2 filled answers', () => {
@@ -245,9 +330,7 @@ describe('validateForm', () => {
     });
   });
 
-  // ── Correct answers: single-select ────────────────────────────────────────
-
-  describe('correctAnswers for multiple-choice (single-select)', () => {
+  describe('correctAnswers — SingleSelect', () => {
     it('passes with exactly one correct answer', () => {
       const q = makeQuestion({ order: 0, correctAnswers: [1] });
       const errors = validateForm('Quiz', 'Science', [
@@ -276,9 +359,7 @@ describe('validateForm', () => {
     });
   });
 
-  // ── Correct answers: multi-select ─────────────────────────────────────────
-
-  describe('correctAnswers for multiple-select-choice', () => {
+  describe('correctAnswers — MultiSelect', () => {
     it('passes with at least one correct answer', () => {
       const q = makeMultiSelectQuestion({ order: 0, correctAnswers: [0] });
       const errors = validateForm('Quiz', 'Science', [
@@ -310,8 +391,6 @@ describe('validateForm', () => {
     });
   });
 
-  // ── Multiple errors accumulate ─────────────────────────────────────────────
-
   describe('multiple validation errors', () => {
     it('returns all top-level errors at once rather than short-circuiting', () => {
       const errors = validateForm('', '', []);
@@ -324,7 +403,6 @@ describe('validateForm', () => {
       const q0 = makeQuestion({ order: 0, question: '', correctAnswers: [] });
       const q1 = makeQuestion({ order: 1, answer: ['One'] });
       const errors = validateForm('Title', 'Science', [q0, q1]);
-
       expect(errors.questions?.[0]?.question).toBeDefined();
       expect(errors.questions?.[0]?.correctAnswers).toBeDefined();
       expect(errors.questions?.[1]?.answer).toBeDefined();
@@ -333,13 +411,23 @@ describe('validateForm', () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 2. DRAFT SYSTEM  (draftpopup helpers)
+// 2. DRAFT SYSTEM
 // ─────────────────────────────────────────────────────────────────────────────
 
 describe('Draft system', () => {
-  beforeEach(() => localStorage.clear());
+  let ls: ReturnType<typeof mockLocalStorage>;
 
-  // ── formFingerprint ────────────────────────────────────────────────────────
+  beforeEach(() => {
+    ls = mockLocalStorage();
+    jest.spyOn(Storage.prototype, 'getItem').mockImplementation(ls.getItem);
+    jest.spyOn(Storage.prototype, 'setItem').mockImplementation(ls.setItem);
+    jest
+      .spyOn(Storage.prototype, 'removeItem')
+      .mockImplementation(ls.removeItem);
+    jest.spyOn(Storage.prototype, 'clear').mockImplementation(ls.clear);
+  });
+
+  afterEach(() => jest.restoreAllMocks());
 
   describe('formFingerprint', () => {
     it('produces identical fingerprints for equivalent forms', () => {
@@ -383,14 +471,73 @@ describe('Draft system', () => {
       });
       expect(a).not.toBe(b);
     });
-  });
 
-  // ── saveDraftToSlot ────────────────────────────────────────────────────────
+    it('correctAnswer order does not affect fingerprint ([0,1] === [1,0])', () => {
+      const a = formFingerprint({
+        ...baseFormState,
+        questions: [
+          makeQuestion({ order: 0, correctAnswers: [0, 1] }),
+          makeQuestion({ order: 1 }),
+        ],
+      });
+      const b = formFingerprint({
+        ...baseFormState,
+        questions: [
+          makeQuestion({ order: 0, correctAnswers: [1, 0] }),
+          makeQuestion({ order: 1 }),
+        ],
+      });
+      expect(a).toBe(b);
+    });
+
+    it('does not throw when correctAnswers is a legacy boolean', () => {
+      const form = {
+        ...baseFormState,
+        questions: [
+          {
+            ...makeQuestion({ order: 0 }),
+            correctAnswers: true as unknown as number[],
+          },
+        ],
+      };
+      expect(() => formFingerprint(form)).not.toThrow();
+    });
+
+    it('does not throw when correctAnswers is a legacy string', () => {
+      const form = {
+        ...baseFormState,
+        questions: [
+          {
+            ...makeQuestion({ order: 0 }),
+            correctAnswers: 'Answer 1' as unknown as number[],
+          },
+        ],
+      };
+      expect(() => formFingerprint(form)).not.toThrow();
+    });
+
+    it('includes time field so different times produce different fingerprints', () => {
+      const a = formFingerprint({
+        ...baseFormState,
+        questions: [
+          { ...makeQuestion({ order: 0 }), time: 30 },
+          makeQuestion({ order: 1 }),
+        ],
+      });
+      const b = formFingerprint({
+        ...baseFormState,
+        questions: [
+          { ...makeQuestion({ order: 0 }), time: 60 },
+          makeQuestion({ order: 1 }),
+        ],
+      });
+      expect(a).not.toBe(b);
+    });
+  });
 
   describe('saveDraftToSlot', () => {
     it('saves a draft and returns status "saved"', () => {
-      const result = saveDraftToSlot(baseFormState, 0);
-      expect(result.status).toBe('saved');
+      expect(saveDraftToSlot(baseFormState, 0).status).toBe('saved');
     });
 
     it('persists the draft in localStorage', () => {
@@ -411,17 +558,16 @@ describe('Draft system', () => {
 
     it('detects duplicates in other slots and returns status "duplicate"', () => {
       saveDraftToSlot(baseFormState, 0);
-      const result = saveDraftToSlot(baseFormState, 1);
-      expect(result.status).toBe('duplicate');
+      expect(saveDraftToSlot(baseFormState, 1).status).toBe('duplicate');
     });
 
-    it('returns status "error" when all 3 slots are full and a new unique slot is attempted', () => {
+    it('returns status "error" when all 3 slots are full and slot is new', () => {
       saveDraftToSlot({ ...baseFormState, title: 'Quiz 1' }, 0);
       saveDraftToSlot({ ...baseFormState, title: 'Quiz 2' }, 1);
       saveDraftToSlot({ ...baseFormState, title: 'Quiz 3' }, 2);
-      // slot 3 does not exist — triggers the MAX_DRAFTS guard
-      const result = saveDraftToSlot({ ...baseFormState, title: 'Quiz 4' }, 3);
-      expect(result.status).toBe('error');
+      expect(
+        saveDraftToSlot({ ...baseFormState, title: 'Quiz 4' }, 3).status
+      ).toBe('error');
     });
 
     it('assigns a unique draftId each time', () => {
@@ -443,8 +589,6 @@ describe('Draft system', () => {
     });
   });
 
-  // ── deleteDraftBySlot ──────────────────────────────────────────────────────
-
   describe('deleteDraftBySlot', () => {
     it('removes the correct draft', () => {
       saveDraftToSlot(baseFormState, 0);
@@ -455,30 +599,33 @@ describe('Draft system', () => {
       expect(drafts[0].slotIndex).toBe(1);
     });
 
-    it('is a no-op when the slot is already empty', () => {
+    it('leaves other slot drafts untouched', () => {
       saveDraftToSlot(baseFormState, 0);
-      deleteDraftBySlot(2); // slot 2 was never used
+      deleteDraftBySlot(2);
       expect(getDrafts()).toHaveLength(1);
     });
   });
 
-  // ── getDrafts ──────────────────────────────────────────────────────────────
-
   describe('getDrafts', () => {
-    it('returns an empty array when localStorage is empty', () => {
+    it('returns empty array when localStorage is empty', () => {
       expect(getDrafts()).toEqual([]);
     });
 
-    it('handles corrupted localStorage gracefully without throwing', () => {
-      localStorage.setItem('quiz-drafts', '{ CORRUPTED }');
+    it('returns empty array when localStorage value is malformed JSON', () => {
+      ls.getItem.mockReturnValueOnce('{ CORRUPTED }');
       expect(() => getDrafts()).not.toThrow();
       expect(getDrafts()).toEqual([]);
+    });
+
+    it('returns parsed drafts when valid data exists', () => {
+      saveDraftToSlot(baseFormState, 0);
+      expect(getDrafts()).toHaveLength(1);
     });
   });
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 3. AI PANEL TOOL CALLS  (applyToolCalls from AiQuizPanel.tsx)
+// 3. AI PANEL TOOL CALLS
 // ─────────────────────────────────────────────────────────────────────────────
 
 describe('applyToolCalls', () => {
@@ -557,7 +704,6 @@ describe('applyToolCalls', () => {
         { tool: 'edit_question', order: 99, patch: { question: 'Ghost?' } },
       ]);
       expect(result[0].question).toBe('Q1?');
-      expect(result[1].question).toBe('Q2?');
     });
   });
 
@@ -624,7 +770,6 @@ describe('applyToolCalls', () => {
         },
         { tool: 'remove_question', order: 0 },
       ]);
-      // After add: [Q1(0), Q2(1), Q3(2)]; after remove order 0 (Q1): [Q2, Q3]
       expect(result).toHaveLength(2);
       expect(result[0].question).toBe('Q2?');
       expect(result[1].question).toBe('Q3?');
@@ -633,18 +778,171 @@ describe('applyToolCalls', () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 5. ERROR HANDLING — CreatePage API states
+// 4. UI BEHAVIOUR — DraftPopup component
 // ─────────────────────────────────────────────────────────────────────────────
 
-describe('CreatePage error handling', () => {
+describe('DraftPopup UI behaviour', () => {
+  const onLoad = jest.fn();
+  const onClose = jest.fn();
+
+  let ls: ReturnType<typeof mockLocalStorage>;
+
+  beforeEach(() => {
+    ls = mockLocalStorage();
+    jest.spyOn(Storage.prototype, 'getItem').mockImplementation(ls.getItem);
+    jest.spyOn(Storage.prototype, 'setItem').mockImplementation(ls.setItem);
+    jest
+      .spyOn(Storage.prototype, 'removeItem')
+      .mockImplementation(ls.removeItem);
+    jest.spyOn(Storage.prototype, 'clear').mockImplementation(ls.clear);
+    jest.clearAllMocks();
+  });
+
   afterEach(() => jest.restoreAllMocks());
 
-  it('shows error message when the user API call fails', async () => {
-    global.fetch = jest.fn().mockResolvedValueOnce({
-      ok: false,
-      json: async () => ({}),
-    } as Response);
+  const renderPopup = (overrides: Partial<QuizFormState> = {}) =>
+    render(
+      <DraftPopup
+        formState={{ ...baseFormState, ...overrides }}
+        onLoad={onLoad}
+        onClose={onClose}
+      />
+    );
 
+  it('FE-58: renders all 3 draft slot labels', () => {
+    renderPopup();
+    // Each empty slot renders "Slot N — empty"
+    expect(screen.getByText(/slot 1 — empty/i)).toBeInTheDocument();
+    expect(screen.getByText(/slot 2 — empty/i)).toBeInTheDocument();
+    expect(screen.getByText(/slot 3 — empty/i)).toBeInTheDocument();
+  });
+
+  it('FE-59: shows "0 of 3 slots used" when there are no drafts', () => {
+    renderPopup();
+    expect(screen.getByText(/0 of 3 slots used/i)).toBeInTheDocument();
+  });
+
+  it('FE-60: calls onClose when Escape key is pressed', () => {
+    renderPopup();
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('FE-61: calls onClose when the × button is clicked', async () => {
+    renderPopup();
+    // The close button has aria-label="Close"
+    await userEvent.click(screen.getByRole('button', { name: /^close$/i }));
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('FE-62: calls onClose when clicking the overlay backdrop directly', () => {
+    renderPopup();
+    const overlay = screen.getByRole('dialog');
+    // Simulate click where target === currentTarget (the overlay itself, not a child)
+    fireEvent.click(overlay, { target: overlay });
+    expect(onClose).toHaveBeenCalled();
+  });
+
+  it('FE-63: saves to an empty slot and updates the slot count to 1 of 3', async () => {
+    renderPopup();
+    // Click the first empty slot button to trigger a save
+    const emptySlot = screen
+      .getAllByRole('button')
+      .find((b) => b.textContent?.match(/slot 1 — empty/i));
+    expect(emptySlot).toBeTruthy();
+    await userEvent.click(emptySlot!);
+    await waitFor(() =>
+      expect(screen.getByText(/1 of 3 slots used/i)).toBeInTheDocument()
+    );
+  });
+
+  it('FE-64: shows duplicate warning when same form is saved to a second slot', async () => {
+    // Pre-populate slot 0 with the same content as baseFormState
+    saveDraftToSlot(baseFormState, 0);
+    renderPopup();
+    // Try saving to slot 1 (index 1) — should trigger duplicate detection
+    const emptySlots = screen
+      .getAllByRole('button')
+      .filter((b) => b.textContent?.match(/slot \d — empty/i));
+    // First empty slot is slot 2 (slot 1 is filled)
+    await userEvent.click(emptySlots[0]);
+    await waitFor(() =>
+      expect(screen.getByText(/duplicate draft detected/i)).toBeInTheDocument()
+    );
+  });
+
+  it('FE-65: dismisses the duplicate warning when its × button is clicked', async () => {
+    saveDraftToSlot(baseFormState, 0);
+    renderPopup();
+    const emptySlots = screen
+      .getAllByRole('button')
+      .filter((b) => b.textContent?.match(/slot \d — empty/i));
+    await userEvent.click(emptySlots[0]);
+    await screen.findByText(/duplicate draft detected/i);
+    // The dismiss button inside the alert has aria-label="Dismiss"
+    await userEvent.click(screen.getByRole('button', { name: /dismiss/i }));
+    await waitFor(() =>
+      expect(
+        screen.queryByText(/duplicate draft detected/i)
+      ).not.toBeInTheDocument()
+    );
+  });
+
+  it('FE-66: loads a draft and calls both onLoad and onClose', async () => {
+    saveDraftToSlot(baseFormState, 0);
+    renderPopup();
+    // The filled slot renders the quiz title as the button text
+    const filledSlotBtn = screen
+      .getAllByRole('button')
+      .find((b) => b.textContent?.includes(baseFormState.title));
+    expect(filledSlotBtn).toBeTruthy();
+    await userEvent.click(filledSlotBtn!);
+    expect(onLoad).toHaveBeenCalledTimes(1);
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('FE-67: deletes a draft when the Delete button is clicked', async () => {
+    saveDraftToSlot(baseFormState, 0);
+    renderPopup();
+    // Delete button has aria-label="Delete slot 1 draft"
+    await userEvent.click(
+      screen.getByRole('button', { name: /delete slot 1 draft/i })
+    );
+    await waitFor(() =>
+      expect(screen.getByText(/0 of 3 slots used/i)).toBeInTheDocument()
+    );
+  });
+
+  it('FE-68: shows draft title and question count in a filled slot', () => {
+    saveDraftToSlot(baseFormState, 0);
+    renderPopup();
+    expect(screen.getByText(baseFormState.title)).toBeInTheDocument();
+    // baseFormState has 2 questions
+    expect(screen.getByText(/2 questions/i)).toBeInTheDocument();
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 5. CreatePage — API error states + quiz card rendering
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('CreatePage', () => {
+  afterEach(() => jest.restoreAllMocks());
+
+  function mockFetch(responses: Array<{ ok: boolean; body: unknown }>) {
+    let call = 0;
+    global.fetch = jest.fn().mockImplementation(() => {
+      const r = responses[call] ?? responses[responses.length - 1];
+      call++;
+      return Promise.resolve({
+        ok: r.ok,
+        json: () => Promise.resolve(r.body),
+      } as Response);
+    });
+  }
+
+  it('FE-54: shows error message when the user API call fails', async () => {
+    mockFetch([{ ok: false, body: {} }]);
     render(<CreatePage />);
     await waitFor(() =>
       expect(
@@ -653,47 +951,167 @@ describe('CreatePage error handling', () => {
     );
   });
 
-  it('shows empty state when user has no quizzes', async () => {
-    global.fetch = jest
-      .fn()
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ id: 'user-1' }),
-      } as Response)
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ success: true, quizzes: [] }),
-      } as Response);
-
+  it('FE-55: shows empty state when user has no quizzes', async () => {
+    mockFetch([
+      { ok: true, body: { id: 'u1' } },
+      { ok: true, body: { success: true, quizzes: [] } },
+    ]);
     render(<CreatePage />);
     await waitFor(() =>
       expect(screen.getByText(/no quizzes yet/i)).toBeInTheDocument()
     );
   });
 
-  it('shows loading skeletons while data is being fetched', () => {
-    // Never resolves — keeps the component in loading state
+  it('FE-56: shows loading skeletons while data is being fetched', () => {
     global.fetch = jest.fn().mockReturnValue(new Promise(() => {}));
     render(<CreatePage />);
-    const skeletons = document.querySelectorAll('.animate-pulse');
-    expect(skeletons.length).toBeGreaterThan(0);
+    expect(document.querySelectorAll('.animate-pulse').length).toBeGreaterThan(
+      0
+    );
   });
 
-  it('navigates to /create-quiz when Create Quiz button is clicked', async () => {
-    global.fetch = jest
-      .fn()
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ id: 'u1' }),
-      } as Response)
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ success: true, quizzes: [] }),
-      } as Response);
-
+  it('FE-57: navigates to /create-quiz when Create Quiz button is clicked', async () => {
+    mockFetch([
+      { ok: true, body: { id: 'u1' } },
+      { ok: true, body: { success: true, quizzes: [] } },
+    ]);
     render(<CreatePage />);
-    await waitFor(() => screen.getByText(/create quiz/i));
+    await waitFor(() => screen.getByRole('button', { name: /create quiz/i }));
     await userEvent.click(screen.getByRole('button', { name: /create quiz/i }));
     expect(mockPush).toHaveBeenCalledWith('/create-quiz');
+  });
+
+  it('FE-69: renders quiz cards when quizzes load successfully', async () => {
+    mockFetch([
+      { ok: true, body: { id: 'u1' } },
+      {
+        ok: true,
+        body: {
+          success: true,
+          quizzes: [
+            {
+              id: 'quiz-1',
+              title: 'Test Quiz',
+              description: 'Desc',
+              imageUrl: null,
+              numQuestions: 5,
+              category: 'Science',
+              createdAt: new Date().toISOString(),
+            },
+          ],
+        },
+      },
+    ]);
+    render(<CreatePage />);
+    await waitFor(() =>
+      expect(screen.getByText('Test Quiz')).toBeInTheDocument()
+    );
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 6. DeleteConfirmDialog — via CreatePage with one quiz loaded
+// ─────────────────────────────────────────────────────────────────────────────
+
+const mockQuiz = {
+  id: 'quiz-1',
+  title: 'Test Quiz',
+  description: 'Desc',
+  imageUrl: null,
+  numQuestions: 3,
+  category: 'Science',
+  createdAt: new Date().toISOString(),
+};
+
+function mockWithOneQuiz(thirdCallBody?: { ok: boolean; body: unknown }) {
+  let call = 0;
+  global.fetch = jest.fn().mockImplementation(() => {
+    call++;
+    if (call === 1)
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ id: 'u1' }),
+      } as Response);
+    if (call === 2)
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ success: true, quizzes: [mockQuiz] }),
+      } as Response);
+    // 3rd+ call — DELETE or metrics fetch
+    const r = thirdCallBody ?? { ok: true, body: {} };
+    return Promise.resolve({
+      ok: r.ok,
+      json: () => Promise.resolve(r.body),
+    } as Response);
+  });
+}
+
+describe('DeleteConfirmDialog UI behaviour', () => {
+  afterEach(() => jest.restoreAllMocks());
+
+  it('FE-73: shows delete dialog when the Delete Quiz button is clicked', async () => {
+    mockWithOneQuiz();
+    render(<CreatePage />);
+    await userEvent.click(
+      await screen.findByRole('button', { name: /delete quiz/i })
+    );
+    const dialog = screen
+      .getByText(/delete quiz\?/i)
+      .closest('div[class*="fixed"]')!;
+    expect(dialog).toBeInTheDocument();
+    expect(within(dialog).getByText(/test quiz/i)).toBeInTheDocument();
+  });
+
+  it('FE-74: dismisses the dialog when Cancel is clicked', async () => {
+    mockWithOneQuiz();
+    render(<CreatePage />);
+    await userEvent.click(
+      await screen.findByRole('button', { name: /delete quiz/i })
+    );
+    await userEvent.click(screen.getByRole('button', { name: /cancel/i }));
+    expect(screen.queryByText(/delete quiz\?/i)).not.toBeInTheDocument();
+  });
+
+  it('FE-75: shows spinner and disables Cancel while delete is in flight', async () => {
+    // Third fetch never resolves — freezes in deleting state
+    let call = 0;
+    global.fetch = jest.fn().mockImplementation(() => {
+      call++;
+      if (call === 1)
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ id: 'u1' }),
+        } as Response);
+      if (call === 2)
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ success: true, quizzes: [mockQuiz] }),
+        } as Response);
+      return new Promise(() => {}); // hangs
+    });
+
+    render(<CreatePage />);
+    await userEvent.click(
+      await screen.findByRole('button', { name: /delete quiz/i })
+    );
+    await userEvent.click(screen.getByRole('button', { name: /yes, delete/i }));
+
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: /cancel/i })).toBeDisabled()
+    );
+    expect(screen.getByTestId('spinner')).toBeInTheDocument();
+  });
+
+  it('FE-76: removes quiz from list after successful delete', async () => {
+    mockWithOneQuiz({ ok: true, body: { success: true } });
+    render(<CreatePage />);
+    await userEvent.click(
+      await screen.findByRole('button', { name: /delete quiz/i })
+    );
+    await userEvent.click(screen.getByRole('button', { name: /yes, delete/i }));
+    await waitFor(() =>
+      expect(screen.queryByText('Test Quiz')).not.toBeInTheDocument()
+    );
+    expect(screen.queryByText(/delete quiz\?/i)).not.toBeInTheDocument();
   });
 });

@@ -235,21 +235,20 @@ Represents a registered user of the platform.
 ---
 
 **Account**
-Stores authentication provider credentials linked to a User.
+Stores authentication credentials for a User, managed by BetterAuth.
 
-| Field                          | Type             | Description                                         |
-| ------------------------------ | ---------------- | --------------------------------------------------- |
-| `id`                           | UUID (PK)        | Unique identifier                                   |
-| `userId`                       | UUID (FK → User) | The owning user                                     |
-| `providerId`                   | String           | Auth provider name (e.g., `credential`)             |
-| `accountId`                    | String           | The user's ID within that provider                  |
-| `password`                     | String?          | Hashed password (for credential-based accounts)     |
-| `accessToken` / `refreshToken` | String?          | Access tokens                                       |
-| `accessTokenExpiresAt`         | DateTime?        | Expiry timestamp for the access token               |
-| `refreshTokenExpiresAt`        | DateTime?        | Expiry timestamp for the refresh token              |
-| `idToken`                      | String?          | OpenID Connect identity token (for OAuth providers) |
-| `scope`                        | String?          | Permission scopes granted                           |
-| `createdAt` / `updatedAt`      | DateTime         | Record timestamps                                   |
+| Field                                            | Type             | Description                                                         |
+| ------------------------------------------------ | ---------------- | ------------------------------------------------------------------- |
+| `id`                                             | UUID (PK)        | Unique identifier                                                   |
+| `userId`                                         | UUID (FK → User) | The owning user                                                     |
+| `providerId`                                     | String           | The auth provider identifier (e.g. `credential`)                    |
+| `accountId`                                      | String           | The user's ID as recognized by the auth provider                    |
+| `password`                                       | String?          | Hashed password for the account                                     |
+| `accessToken` / `refreshToken`                   | String?          | Provider-issued tokens, populated if supported by the auth provider |
+| `accessTokenExpiresAt` / `refreshTokenExpiresAt` | DateTime?        | Expiry timestamps for the respective tokens                         |
+| `idToken`                                        | String?          | Identity token issued by the auth provider                          |
+| `scope`                                          | String?          | Permission scopes granted to the account                            |
+| `createdAt` / `updatedAt`                        | DateTime         | Record timestamps                                                   |
 
 ---
 

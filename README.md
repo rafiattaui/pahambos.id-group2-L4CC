@@ -737,17 +737,17 @@ GROQ_API_KEY=
 
 **Student Name: Athallah Raja Mustafa**
 
-- Features Implemented:
-- Tests written:
-- Security Work:
-- AI-Related Work:
+- Features Implemented: Landing page, home page, search page, create page, create quiz form including edit page, user performance visualization inisde profile
+- Tests written: quiz creation related pages, dashboard components, landing components
+- Security Work: -
+- AI-Related Work: UI improvement, API calls and helper functions
 
 **Student Name: Christian Salomo Tasmaan**
 
-- Features Implemented:
-- Tests Written:
-- Security Work:
-- AI-Related Work:
+- Features Implemented: Quiz interface, classroom page, profile card, quiz results page, leaderboard page, quiz metrics on quiz creation page, quiz preview card on dashboard
+- Tests Written: quiz gameplay component, profile card component, classroom component
+- Security Work: -
+- AI-Related Work: AI hints in gameplay, AI feedback in results page
 
 ## 13. AI Usage Disclosure (MANDATORY)
 
@@ -758,6 +758,7 @@ GROQ_API_KEY=
   - Specific usage:
     - Quiz Session Flow and API Design
     - Classroom Implementation
+    - Used to write automatic tests in Jest, Postman, and Playwright.
 
 ## 14. Known Limitations & Future Improvements
 

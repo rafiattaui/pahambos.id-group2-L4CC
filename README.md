@@ -519,6 +519,15 @@ export const GET = WithAuth(async (req, { user, params }) => {
 
 ### 10.1 Frontend Testing
 
+Documentation for frontend testing can be founded in a separate file callled Front.md i will provide the summary of the testing below
+| File | Focus Area | Test Case Range | Total Cases |
+|---|---|---|---|
+| `landing_test.tsx` | Hero, navbar, marketing sections, scroll-reveal animation, logo | FE-001 – FE-063 | 63 |
+| `createquiz_test.tsx` | Form validation, draft persistence, AI tool calls, create/delete UI | FE-064 – FE-141 | 78 |
+| `dashboardComp_test.tsx` | Navigation, performance summary, quiz carousel, grid items | FE-142 – FE-209 | 68 |
+| `searchpage_test.tsx` | Search/filter validation, fetch error handling, pagination | FE-210 – FE-230 | 21 |
+| **Total** | | | **230** |
+
 ### 10.2 Backend Testing
 
 Because our data is highly intertwined and consists of many complex relations, tests must be executed in order and thoroughly to prevent data inconsistencies.

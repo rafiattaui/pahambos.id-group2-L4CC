@@ -60,12 +60,9 @@ Main features:
 
 ### 5.1 Architecture Diagram
 
-![](./docs/1.png)
-![](./docs/2.png)
-![](./docs/3.png)
-![](./docs/4.png)
-![](./docs/5.png)
 ![](./docs/6.png)
+![](./docs/data.png)
+![](./docs/session.png)
 
 ### 5.2 Architecture Explanation
 

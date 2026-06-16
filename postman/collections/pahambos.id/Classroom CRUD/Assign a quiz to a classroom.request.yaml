@@ -1,5 +1,6 @@
 $kind: http-request
-url: localhost:3000/api/class/assignment/42c6c1f4-fbc3-4bb4-a883-b323038d16de
+name: Assign a quiz to a classroom
+url: localhost:3000/api/class/assignment/{{classroomId}}
 method: POST
 body:
   type: json
@@ -10,4 +11,36 @@ body:
     \    \"dueDate\": \"2027-06-09T12:48:06.000Z\"\r
 
     }"
-order: 5000
+scripts:
+  - type: afterResponse
+    code: "const jsonData = pm.response.json();\r
+
+      \r
+
+      pm.test(\"Status is 200 and success\", () => {\r
+
+      \    pm.response.to.have.status(200);\r
+
+      \    pm.expect(jsonData.success).to.be.equal(true);\r
+
+      \    pm.expect(jsonData.message).to.be.equal(\"Quiz assigned to classroom successfully.\")\r
+
+      })\r
+
+      \r
+
+      pm.test(\"Correct due date\", () => {\r
+
+      \    const dueDate = new Date(jsonData.data.dueDate);\r
+
+      \    const expectedDueDate = new Date(\"2027-06-09T12:48:06.000Z\");\r
+
+      \    pm.expect(dueDate).to.deep.equal(expectedDueDate);\r
+
+      })\r
+
+      \r
+
+      pm.collectionVariables.set(\"assignmentId\", jsonData.data.id);"
+    language: text/javascript
+order: 7000

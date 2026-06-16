@@ -1,3 +1,10 @@
 $kind: collection
+name: pahambos.id
 variables:
   latestPerformanceId: ""
+  userId: ""
+  userEmail: ""
+  sessionId: ""
+  classId: ""
+  classroomId: ""
+  assignmentId: ""

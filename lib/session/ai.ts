@@ -117,25 +117,30 @@ Provide feedback in the following structure:
 4. **Study Recommendations** (bullet points): Concrete next steps based on their weak areas.
 5. **Encouragement** (1-2 sentences): A motivating closing remark.
 
-Keep the tone supportive and constructive. Be specific — reference actual questions and answers where helpful.
+Keep the tone supportive and constructive, while having a gen z style of communication. Be specific — reference actual questions and answers where helpful.
 `.trim();
+  let feedback: string | null = null;
 
-  const response = await generateText({
-    model,
-    prompt,
-    providerOptions: {
-      groq: {} satisfies GroqLanguageModelOptions,
-    },
-    system:
-      'You are a helpful and encouraging educational coach providing feedback on quiz performance.',
-    output: Output.object({
-      schema: z.object({
-        feedback: z.string().describe('The generated feedback for the user.'),
+  try {
+    const response = await generateText({
+      model,
+      prompt,
+      providerOptions: {
+        groq: {} satisfies GroqLanguageModelOptions,
+      },
+      system:
+        'You are a helpful and encouraging educational coach providing feedback on quiz performance.',
+      output: Output.object({
+        schema: z.object({
+          feedback: z.string().describe('The generated feedback for the user.'),
+        }),
       }),
-    }),
-  });
+    });
 
-  const feedback = response.output.feedback;
-
+    feedback = response.output.feedback;
+  } catch (error) {
+    console.error('Error generating feedback:', error);
+    throw error; // or return a default feedback message if desired
+  }
   return feedback; // return parsed AI response
 }

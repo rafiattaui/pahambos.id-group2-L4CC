@@ -77,7 +77,7 @@ export const DELETE = WithAuth(async (req, { user, params }) => {
       }
     }
 
-    return NextResponse.json({ sucess: true }, { status: 200 });
+    return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {
     return handleError(error);
   }

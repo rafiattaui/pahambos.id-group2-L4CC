@@ -1,0 +1,156 @@
+$kind: http-request
+name: Fetch leaderboard of a quiz
+url: "{{baseUrl}}/api/leaderboard/29955e49-b640-4117-8d0c-d1f267a01215"
+method: GET
+scripts:
+  - type: afterResponse
+    code: "// Get the response status code\r
+
+      const statusCode = pm.response.code;\r
+
+      \r
+
+      switch (statusCode) {\r
+
+      \    case 200:\r
+
+      \        // Parse the JSON body once\r
+
+      \        const resData = pm.response.json();\r
+
+      \        \r
+
+      \        pm.test(\"Status code is 200 (OK)\", () => {\r
+
+      \            pm.response.to.have.status(200);\r
+
+      \        });\r
+
+      \        \r
+
+      \        pm.test(\"Contains success bool\", () => {\r
+
+      \            pm.expect(resData).to.have.property('success');\r
+
+      \            pm.expect(resData.success).to.be.equal(true);\r
+
+      \        });\r
+
+      \r
+
+      \        // 3. Test the top-level structure (Fixed: changed 'response' to 'resData')\r
+
+      \        pm.test(\"Response has success true and data array\", function () {\r
+
+      \            pm.expect(resData.success).to.be.true;\r
+
+      \            pm.expect(resData.data).to.be.an('array').that.is.not.empty;\r
+
+      \        });\r
+
+      \r
+
+      \        // 4. Test the structure and data types of the leaderboard items (Fixed: changed 'response' to 'resData')\r
+
+      \        pm.test(\"Data items have correct structure and types\", function () {\r
+
+      \            resData.data.forEach((item, index) => {\r
+
+      \                // Ensure keys exist\r
+
+      \                pm.expect(item).to.have.all.keys('rank', 'userId', 'userName', 'finalScore');\r
+
+      \                \r
+
+      \                // Validate data types\r
+
+      \                pm.expect(item.rank).to.be.a('number');\r
+
+      \                pm.expect(item.userId).to.be.a('string');\r
+
+      \                pm.expect(item.userName).to.be.a('string');\r
+
+      \                pm.expect(item.finalScore).to.be.a('number');\r
+
+      \                \r
+
+      \                // Optional: Validate UUID format for userId\r
+
+      \                const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;\r
+
+      \                pm.expect(item.userId).to.match(uuidRegex, `Item at index ${index} has an invalid UUID format`);\r
+
+      \            });\r
+
+      \        });\r
+
+      \r
+
+      \        // 5. Test specific data logic (Fixed: changed 'response' to 'resData')\r
+
+      \        pm.test(\"Ranks are ordered sequentially starting from 1\", function () {\r
+
+      \            resData.data.forEach((item, index) => {\r
+
+      \                pm.expect(item.rank).to.equal(index + 1);\r
+
+      \            });\r
+
+      \        });\r
+
+      \r
+
+      \        pm.test(\"All top users have a finalScore of 750\", function () {\r
+
+      \            resData.data.forEach((item) => {\r
+
+      \                pm.expect(item.finalScore).to.equal(750);\r
+
+      \            });\r
+
+      \        });\r
+
+      \        break;\r
+
+      \    \r
+
+      \    case 404:\r
+
+      \        pm.test(\"False success bool and invalid UUID message.\", () => {\r
+
+      \            const json = pm.response.json();\r
+
+      \            pm.expect(json.success).to.be.equal(false);\r
+
+      \            pm.expect(json.message).to.contain(\"invalid\");\r
+
+      \        });\r
+
+      \        break;\r
+
+      \    \r
+
+      \    case 401:\r
+
+      \        pm.test(\"Status code is 401 (Unauthorized)\", () => {\r
+
+      \            pm.response.to.have.status(401);\r
+
+      \        });\r
+
+      \        break;\r
+
+      \r
+
+      \    default:\r
+
+      \        pm.test(`Unexpected Status Code: ${statusCode}`, () => {\r
+
+      \            pm.expect.fail(`Received an unhandled status code: ${statusCode}`);\r
+
+      \        });\r
+
+      }"
+    language: text/javascript
+examples: .resources/Fetch leaderboard of a quiz.resources/examples
+order: 3238462716118677

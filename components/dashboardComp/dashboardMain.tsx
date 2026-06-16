@@ -28,7 +28,7 @@ export function usePerformance(userId: string) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch(`/api/performance/${userId}`)
+    fetch(`/api/performance`)
       .then((res) => res.json())
       .then((json) => {
         if (json.success) setPerformance(json.data);
@@ -41,6 +41,14 @@ export function usePerformance(userId: string) {
   return { performance, loading, error };
 }
 
+function toPercent(value: number | string): string {
+  const num = typeof value === 'string' ? parseFloat(value) : value;
+  if (isNaN(num)) return '0%';
+  // if value is a decimal (0–1), convert to percent; if already 0–100, leave as-is
+  const percent = num <= 1 ? num * 100 : num;
+  return `${percent.toFixed(0)}%`;
+}
+
 export default function DashboardMain({
   userId,
   userName,
@@ -48,11 +56,12 @@ export default function DashboardMain({
 }: DashboardMainProps) {
   const router = useRouter();
   const { performance, loading } = usePerformance(userId);
-
+  const userAvatarImage = userAvatar ?? '/avatar_placeholder.jpg';
+  const accuracyRate = toPercent(performance?.accuracyRate ?? '0%');
   return (
     <section className="space-y-6">
       <div className="grid gap-4 md:grid-cols-3">
-        <div className="relative col-span-1 h-99 overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 via-blue-400 to-blue-200 p-6">
+        <div className="relative col-span-2 h-99 overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 via-blue-400 to-blue-200 p-6 md:col-span-1">
           {/* Dot pattern overlay */}
           <div
             className="pointer-events-none absolute inset-0 opacity-10"
@@ -255,7 +264,7 @@ export default function DashboardMain({
           </div>
         </div>
 
-        <div className="relative col-span-2 h-99 overflow-hidden rounded-2xl bg-gradient-to-tr from-blue-200 via-blue-400 to-blue-600 p-6">
+        <div className="relative col-span-2 h-108 overflow-hidden rounded-2xl bg-gradient-to-tr from-blue-200 via-blue-400 to-blue-600 p-6 sm:h-99">
           <div
             className="pointer-events-none absolute inset-0 opacity-10"
             style={{
@@ -508,7 +517,7 @@ export default function DashboardMain({
               Performance Summary
             </h2>
             <Avatar className="mt-2 h-15 w-15">
-              <AvatarImage src={userAvatar} alt={`${userName}'s avatar`} />
+              <AvatarImage src={userAvatarImage} alt={`${userName}'s avatar`} />
               <AvatarFallback>{userName.charAt(0)}</AvatarFallback>
             </Avatar>
             <div>
@@ -528,13 +537,13 @@ export default function DashboardMain({
                 <div className="mt-4 grid grid-cols-2 justify-center gap-3">
                   {[
                     {
-                      label: 'Final Score',
+                      label: 'Highest Score',
                       value: performance?.finalScore ?? '—',
                       icon: <Trophy className="h-5 w-5" />,
                     },
                     {
-                      label: 'Accuracy Rate',
-                      value: performance?.accuracyRate ?? '—',
+                      label: 'Average Accuracy',
+                      value: accuracyRate ?? '—',
                       icon: <ChartNoAxesCombined className="h-5 w-5" />,
                     },
                     {
@@ -543,7 +552,7 @@ export default function DashboardMain({
                       icon: <Flame className="h-5 w-5" />,
                     },
                     {
-                      label: 'Quizzes Done',
+                      label: 'Quiz Attempts',
                       value: performance?.totalQuizzes ?? '—',
                       icon: <NotebookPen className="h-5 w-5" />,
                     },
@@ -564,7 +573,12 @@ export default function DashboardMain({
               )}
             </div>
 
-            <Button className="font-body mt-4 h-11 w-full max-w-xs bg-white font-bold text-blue-600 transition-all hover:scale-105 hover:bg-orange-50">
+            <Button
+              className="font-body mt-4 h-11 w-full max-w-xs bg-white font-bold text-blue-600 transition-all hover:scale-105 hover:bg-orange-50"
+              onClick={() => {
+                router.push(dashboardHref('/profile?tab=performance'));
+              }}
+            >
               View Your Performance
             </Button>
           </div>

@@ -1,10 +1,20 @@
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import Cropper, { type Area } from 'react-easy-crop';
 import { toast } from 'sonner';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from 'recharts';
 
-type Tab = 'profile' | 'security';
+type Tab = 'profile' | 'security' | 'performance';
 
 type User = {
   name: string;
@@ -42,6 +52,22 @@ const LockIcon = () => (
   >
     <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
     <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+  </svg>
+);
+
+const ChartIcon = () => (
+  <svg
+    width="16"
+    height="16"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M3 3v18h18" />
+    <path d="M18.7 8.7l-5.2 5.2-2-2L7 16" />
   </svg>
 );
 
@@ -449,16 +475,541 @@ function StrengthBar({ password }: { password: string }) {
   );
 }
 
+// ── performance types ────────────────────────────────────────────────────────
+type PerformanceRecord = {
+  id: string;
+  quizId: string;
+  finalScore: number;
+  accuracyRate: string;
+  longestStreak: number;
+  timeTaken: number;
+  completedAt: string;
+};
+
+type PerformanceResponse = {
+  success: boolean;
+  message?: string;
+  data?: PerformanceRecord[];
+  pagination?: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  };
+};
+
+function ActivityHeatmap({ data }: { data: PerformanceRecord[] }) {
+  const [hoveredDay, setHoveredDay] = useState<string | null>(null);
+  const [popupPos, setPopupPos] = useState<{ x: number; y: number } | null>(
+    null
+  );
+
+  const toLocalDayKey = (date: Date) => {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  };
+
+  const dayMap = new Map<
+    string,
+    { count: number; sumAcc: number; sumScore: number }
+  >();
+  data.forEach((r) => {
+    const dayKey = toLocalDayKey(new Date(r.completedAt));
+    const accuracy = parseFloat(toPercent(r.accuracyRate));
+    const existing = dayMap.get(dayKey);
+    if (existing) {
+      existing.count += 1;
+      existing.sumAcc += accuracy;
+      existing.sumScore += r.finalScore;
+    } else {
+      dayMap.set(dayKey, {
+        count: 1,
+        sumAcc: accuracy,
+        sumScore: r.finalScore,
+      });
+    }
+  });
+
+  const days: {
+    dayKey: string;
+    count: number;
+    avgAccuracy: number;
+    totalScore: number;
+  }[] = [];
+  const today = new Date();
+  for (let i = 34; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const dayKey = toLocalDayKey(d);
+    const entry = dayMap.get(dayKey);
+    days.push({
+      dayKey,
+      count: entry?.count ?? 0,
+      avgAccuracy: entry ? Math.round(entry.sumAcc / entry.count) : 0,
+      totalScore: entry?.sumScore ?? 0,
+    });
+  }
+
+  function getColor(count: number) {
+    if (count === 0) return 'bg-gray-100';
+    if (count >= 5) return 'bg-blue-500';
+    if (count >= 3) return 'bg-blue-300';
+    return 'bg-blue-100';
+  }
+
+  const hovered = days.find((d) => d.dayKey === hoveredDay);
+
+  return (
+    <div className="flex flex-col gap-2">
+      <h3 className="font-body text-sm font-bold text-gray-700">
+        Activity (Last 5 Weeks)
+      </h3>
+
+      <div className="relative rounded-xl bg-gray-50 p-3 ring-1 ring-gray-100">
+        {/* Day-of-week header (x-axis) */}
+        <div className="font-body mb-1 grid grid-cols-7 gap-1 px-4">
+          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d) => (
+            <div
+              key={d}
+              className="text-center text-[9px] font-bold text-gray-400"
+            >
+              {d}
+            </div>
+          ))}
+        </div>
+
+        {/* Grid with week labels (y-axis) */}
+        <div className="flex gap-1.5">
+          <div className="font-body flex flex-col gap-1.5">
+            {['W1', 'W2', 'W3', 'W4', 'W5'].map((w) => (
+              <div
+                key={w}
+                className="flex h-6 w-6 items-center justify-end pr-1 text-[9px] font-bold text-gray-400"
+              >
+                {w}
+              </div>
+            ))}
+          </div>
+          <div className="grid flex-1 grid-cols-7 gap-1.5">
+            {days.map((d) => (
+              <div
+                key={d.dayKey}
+                onMouseEnter={(e) => {
+                  setHoveredDay(d.dayKey);
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  const parentRect = e.currentTarget
+                    .closest('.relative')!
+                    .getBoundingClientRect();
+                  setPopupPos({
+                    x: rect.left - parentRect.left + rect.width / 2,
+                    y: rect.top - parentRect.top,
+                  });
+                }}
+                onMouseLeave={() => setHoveredDay(null)}
+                className={`h-6 w-6 cursor-pointer rounded-sm transition-all ${getColor(d.count)} ${
+                  hoveredDay === d.dayKey ? 'ring-2 ring-blue-400' : ''
+                }`}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Floating popup */}
+        {hovered && popupPos && (
+          <div
+            className="pointer-events-none absolute z-10 w-44 -translate-x-1/2 -translate-y-full rounded-lg bg-blue-50 px-3 py-2 text-xs text-blue-600 shadow-lg"
+            style={{
+              left: Math.max(88, Math.min(popupPos.x, 999)),
+              top: popupPos.y - 8,
+            }}
+          >
+            <p className="font-body font-bold">
+              {new Date(hovered.dayKey).toLocaleDateString('en-US', {
+                weekday: 'short',
+                month: 'short',
+                day: 'numeric',
+              })}
+            </p>
+            {hovered.count > 0 ? (
+              <>
+                <ul className="font-body list-disc pl-5">
+                  <li className="mt-0.5 text-blue-300">
+                    {hovered.count} quiz{hovered.count > 1 ? 'zes' : ''} taken
+                  </li>
+                  <li className="text-blue-300">
+                    {hovered.avgAccuracy}% avg accuracy
+                  </li>
+                  <li className="text-blue-300">
+                    {hovered.totalScore} pts earned
+                  </li>
+                </ul>
+              </>
+            ) : (
+              <p className="mt-0.5 text-blue-300">No quizzes taken</p>
+            )}
+            {/* Arrow */}
+            <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-blue-500" />
+          </div>
+        )}
+
+        {/* Legend */}
+        <div className="font-body mt-3 flex items-center justify-end gap-2 text-xs text-gray-400">
+          <span>Less</span>
+          <div className="h-3 w-3 rounded-sm bg-gray-100" />
+          <div className="h-3 w-3 rounded-sm bg-blue-100" />
+          <div className="h-3 w-3 rounded-sm bg-blue-300" />
+          <div className="h-3 w-3 rounded-sm bg-blue-500" />
+          <span>More</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function toPercent(value: number | string): string {
+  const num = typeof value === 'string' ? parseFloat(value) : value;
+  if (isNaN(num)) return '0%';
+  // if value is a decimal (0–1), convert to percent; if already 0–100, leave as-is
+  const percent = num <= 1 ? num * 100 : num;
+  return `${percent.toFixed(0)}%`;
+}
+
+function formatMs(ms: number): string {
+  if (!ms || ms <= 0) return '0s';
+  const totalSeconds = Math.floor(ms / 1000);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  if (minutes === 0) return `${seconds}s`;
+  return `${minutes}m ${seconds}s`;
+}
+
+// ── performance tab ─────────────────────────────────────────────────────────
+function PerformanceTab() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
+
+  const [tableData, setTableData] = useState<PerformanceRecord[]>([]);
+  const [pagination, setPagination] = useState<
+    PerformanceResponse['pagination'] | null
+  >(null);
+  const [chartData, setChartData] = useState<PerformanceRecord[]>([]);
+  const [loadingTable, setLoadingTable] = useState(true);
+  const [loadingChart, setLoadingChart] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch paginated table data — re-runs whenever ?page= changes
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadTable() {
+      setLoadingTable(true);
+      try {
+        const res = await fetch(
+          `/api/quiz/user/performance?page=${page}&limit=10`
+        );
+        const json: PerformanceResponse = await res.json();
+        if (cancelled) return;
+        if (json.success && json.data) {
+          setTableData(json.data);
+          setPagination(json.pagination ?? null);
+        } else {
+          setTableData([]);
+          setPagination(null);
+          setError(json.message ?? null);
+        }
+      } catch {
+        if (!cancelled) setError('Failed to load performance records.');
+      } finally {
+        if (!cancelled) setLoadingTable(false);
+      }
+    }
+
+    loadTable();
+    return () => {
+      cancelled = true;
+    };
+  }, [page]);
+
+  // Fetch a wider window for the chart — last 50 records, oldest→newest
+  // Independent of table pagination; only fetched once on mount
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadChart() {
+      setLoadingChart(true);
+      try {
+        const res = await fetch('/api/quiz/user/performance?page=1&limit=50');
+        const json: PerformanceResponse = await res.json();
+        if (cancelled) return;
+        if (json.success && json.data) {
+          const sorted = [...json.data].sort(
+            (a, b) =>
+              new Date(a.completedAt).getTime() -
+              new Date(b.completedAt).getTime()
+          );
+          setChartData(sorted);
+        }
+      } catch {
+        // chart failing silently is acceptable — table error is shown instead
+      } finally {
+        if (!cancelled) setLoadingChart(false);
+      }
+    }
+
+    loadChart();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  function goToPage(p: number) {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('tab', 'performance');
+    params.set('page', String(p));
+    router.push(`${pathname}?${params.toString()}`);
+  }
+
+  const toLocalDayKey = (date: Date) => {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  };
+
+  const chartPoints = (() => {
+    const grouped = new Map<string, { sum: number; count: number }>();
+
+    chartData.forEach((r) => {
+      // Use local date — same logic as ActivityHeatmap's toLocalDayKey
+      // to avoid UTC vs local timezone mismatch producing duplicate labels
+      const dayKey = toLocalDayKey(new Date(r.completedAt));
+      const accuracy = parseFloat(toPercent(r.accuracyRate));
+
+      const existing = grouped.get(dayKey);
+      if (existing) {
+        existing.sum += accuracy;
+        existing.count += 1;
+      } else {
+        grouped.set(dayKey, { sum: accuracy, count: 1 });
+      }
+    });
+
+    return Array.from(grouped.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([dayKey, { sum, count }]) => ({
+        // Append T12:00:00 so local noon — avoids midnight DST edge cases
+        date: new Date(dayKey + 'T12:00:00').toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric',
+        }),
+        accuracy: Math.round(sum / count),
+        attempts: count,
+      }));
+  })();
+
+  return (
+    <div className="flex flex-col gap-6 p-6">
+      {/* ── growth chart ── */}
+      <div className="flex flex-col gap-2">
+        <h3 className="font-body text-sm font-bold text-gray-700">
+          Accuracy Trend
+        </h3>
+        <div className="h-48 w-full rounded-xl bg-gray-50 p-2 ring-1 ring-gray-100">
+          {loadingChart ? (
+            <div className="flex h-full items-center justify-center">
+              <Spinner />
+            </div>
+          ) : chartPoints.length === 0 ? (
+            <div className="font-body flex h-full items-center justify-center text-sm text-gray-400">
+              No quiz history yet
+            </div>
+          ) : (
+            <ResponsiveContainer
+              width="100%"
+              height="100%"
+              className="font-body"
+            >
+              <LineChart data={chartPoints}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <XAxis
+                  dataKey="date"
+                  tick={{ fontSize: 11, fill: '#9ca3af' }}
+                  tickLine={false}
+                  axisLine={{ stroke: '#e5e7eb' }}
+                />
+                <YAxis
+                  domain={[0, 100]}
+                  tick={{ fontSize: 11, fill: '#9ca3af' }}
+                  tickLine={false}
+                  axisLine={false}
+                  width={32}
+                />
+                <Tooltip
+                  contentStyle={{
+                    fontSize: '12px',
+                    borderRadius: '8px',
+                    border: '1px solid #e5e7eb',
+                  }}
+                  formatter={(value) => [
+                    toPercent(value as number),
+                    'Accuracy',
+                  ]}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="accuracy"
+                  stroke="#3b82f6"
+                  strokeWidth={2.5}
+                  dot={{ r: 3, fill: '#3b82f6' }}
+                  activeDot={{ r: 5 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          )}
+        </div>
+      </div>
+
+      {/* ── activity heatmap ── */}
+      <ActivityHeatmap data={chartData} />
+
+      {/* ── history table ── */}
+      <div className="flex flex-col gap-2">
+        <h3 className="font-body text-sm font-bold text-gray-700">
+          Quiz History
+        </h3>
+
+        {loadingTable ? (
+          <div className="flex justify-center py-8">
+            <Spinner />
+          </div>
+        ) : error ? (
+          <p className="font-body rounded-lg bg-gray-50 px-4 py-6 text-center text-sm text-gray-400 ring-1 ring-gray-100">
+            {error}
+          </p>
+        ) : tableData.length === 0 ? (
+          <p className="font-body rounded-lg bg-gray-50 px-4 py-6 text-center text-sm text-gray-400 ring-1 ring-gray-100">
+            No quiz history yet — go take a quiz!
+          </p>
+        ) : (
+          <div className="overflow-hidden rounded-xl ring-1 ring-gray-100">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="font-body bg-gray-50 text-left text-xs font-bold text-gray-400">
+                  <th className="px-4 py-2.5">Date</th>
+                  <th className="px-4 py-2.5 text-right">Score</th>
+                  <th className="px-4 py-2.5 text-right">Accuracy</th>
+                  <th className="px-4 py-2.5 text-right">Streak</th>
+                  <th className="px-4 py-2.5 text-right">Time</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {tableData.map((r) => (
+                  <tr key={r.id} className="text-slate-700">
+                    <td className="font-body px-4 py-2.5 text-slate-400">
+                      {new Date(r.completedAt).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                        timeZone:
+                          Intl.DateTimeFormat().resolvedOptions().timeZone,
+                      })}
+                    </td>
+                    <td className="font-body px-4 py-2.5 text-right font-bold">
+                      {r.finalScore}
+                    </td>
+                    <td className="font-body px-4 py-2.5 text-right">
+                      {toPercent(r.accuracyRate)}
+                    </td>
+                    <td className="font-body px-4 py-2.5 text-right">
+                      {r.longestStreak}
+                    </td>
+                    <td className="font-body px-4 py-2.5 text-right text-slate-400">
+                      {formatMs(r.timeTaken)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* ── pagination controls ── */}
+        {pagination && pagination.totalPages > 1 && (
+          <div className="mt-2 flex items-center justify-between">
+            <button
+              onClick={() => goToPage(page - 1)}
+              disabled={!pagination.hasPrev}
+              className="font-body rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-bold text-gray-500 transition-colors hover:border-blue-300 hover:text-blue-500 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              ← Prev
+            </button>
+            <span className="font-body text-xs font-bold text-gray-400">
+              Page {pagination.page} of {pagination.totalPages}
+            </span>
+            <button
+              onClick={() => goToPage(page + 1)}
+              disabled={!pagination.hasNext}
+              className="font-body rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-bold text-gray-500 transition-colors hover:border-blue-300 hover:text-blue-500 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Next →
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// useSearchParams requires a Suspense boundary in Next.js App Router
+export default function AccountCard(props: { user: User }) {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex w-full max-w-lg items-center justify-center rounded-2xl bg-white p-12 shadow-xl ring-1 shadow-blue-900/10 ring-black/5">
+          <Spinner />
+        </div>
+      }
+    >
+      <AccountCardInner {...props} />
+    </Suspense>
+  );
+}
+
 // ── main component ───────────────────────────────────────────────────────────
-export default function AccountCard({ user }: { user: User }) {
-  const [tab, setTab] = useState<Tab>('profile');
+function AccountCardInner({ user }: { user: User }) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  const tabParam = searchParams.get('tab') as Tab | null;
+  const tab: Tab =
+    tabParam === 'security' || tabParam === 'performance'
+      ? tabParam
+      : 'profile';
+
+  function setTab(t: Tab) {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('tab', t);
+    // reset page when switching tabs
+    if (t !== 'performance') params.delete('page');
+    router.push(`${pathname}?${params.toString()}`);
+  }
 
   // profile state
   const [username, setUsername] = useState(user.name);
   const [email, setEmail] = useState(user.email);
   const [editingUsername, setEditingUsername] = useState(false);
   const [draftUsername, setDraftUsername] = useState('');
-  const [avatarSrc, setAvatarSrc] = useState<string | null>(user.image ?? null);
+  const [avatarSrc, setAvatarSrc] = useState<string | null>(
+    user.image ?? '/avatar_placeholder.jpg'
+  );
   const [rawAvatarUrl, setRawAvatarUrl] = useState<string | null>(null);
   const [avatarUploading, setAvatarUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -509,7 +1060,7 @@ export default function AccountCard({ user }: { user: User }) {
       }
     } catch (err) {
       console.error(err);
-      setAvatarSrc(user.image ?? null);
+      setAvatarSrc(user.image ?? '/avatar_placeholder.jpg');
       toast.error('An error occurred while uploading your avatar.');
     } finally {
       setAvatarUploading(false);
@@ -588,7 +1139,7 @@ export default function AccountCard({ user }: { user: User }) {
     <div className="w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-xl ring-1 shadow-blue-900/10 ring-black/5">
       {/* ── tab bar ── */}
       <div className="flex border-b border-gray-100 bg-gray-50/60">
-        {(['profile', 'security'] as Tab[]).map((t) => (
+        {(['profile', 'security', 'performance'] as Tab[]).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -596,7 +1147,13 @@ export default function AccountCard({ user }: { user: User }) {
               tab === t ? 'text-blue-500' : 'text-gray-400 hover:text-gray-600'
             }`}
           >
-            {t === 'profile' ? <UserIcon /> : <LockIcon />}
+            {t === 'profile' ? (
+              <UserIcon />
+            ) : t === 'security' ? (
+              <LockIcon />
+            ) : (
+              <ChartIcon />
+            )}
             {t.charAt(0).toUpperCase() + t.slice(1)}
             {tab === t && (
               <span className="absolute bottom-0 left-0 h-0.5 w-full rounded-t-full bg-blue-500" />
@@ -802,6 +1359,12 @@ export default function AccountCard({ user }: { user: User }) {
               'Update password'
             )}
           </button>
+        </div>
+      )}
+      {/* ── performance tab ── */}
+      {tab === 'performance' && (
+        <div className="flex max-h-[600px] flex-col gap-6 overflow-y-auto p-6 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-200">
+          <PerformanceTab />
         </div>
       )}
     </div>

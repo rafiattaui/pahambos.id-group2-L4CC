@@ -1,0 +1,23 @@
+$kind: http-request
+name: Delete session
+url: localhost:3000/api/session
+method: DELETE
+headers:
+  User-Agent: insomnia/12.6.0
+scripts:
+  - type: afterResponse
+    code: "pm.test(\"Session should automatically be deleted after finished.\", () => {\r
+
+      \    const jsonData = pm.response.json();\r
+
+      \    pm.expect(jsonData.success).to.be.false;\r
+
+      \    pm.expect(jsonData.message).to.be.equal(\"No active session found for user.\")\r
+
+      })"
+    language: text/javascript
+settings:
+  followRedirects: true
+  disableUrlEncoding: false
+  disableCookies: false
+order: 2102513774241757

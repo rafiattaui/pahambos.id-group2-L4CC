@@ -1,0 +1,25 @@
+$kind: http-request
+name: Log-In
+url: localhost:3000/api/auth/sign-in/email
+method: POST
+headers:
+  Content-Type: application/json
+  User-Agent: insomnia/12.6.0
+  Origin: http://localhost:3000
+body:
+  type: json
+  content: |-
+    {
+        "email":"test@gmail.com",
+        "password":""
+    }
+scripts:
+  - type: afterResponse
+    code: pm.environment.set("userId", pm.response.json().user.id);
+    language: text/javascript
+settings:
+  followRedirects: true
+  disableUrlEncoding: false
+  disableCookies: false
+examples: ./.resources/Log-In.resources/examples
+order: 1000

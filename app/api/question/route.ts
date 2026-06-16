@@ -26,11 +26,11 @@ export const POST = WithAuth(async (req, { user }) => {
     const formData = await req.formData();
 
     const rawData = {
-      order: Number(formData.get('question.order')), // order is ignored by backend but we still want to validate it if provided
+      order: Number(formData.get('question.order')),
       question: formData.get('question.question'),
       imageFile: formData.get('question.imageFile') ?? undefined,
       answers: formData.getAll('question.answers') as string[],
-      time: Number(formData.get('question.time')), // time limit in seconds
+      time: Number(formData.get('question.time')),
       type: formData.get('question.type'),
       correctAnswers: formData
         .getAll('question.correctAnswers')
@@ -52,8 +52,8 @@ export const POST = WithAuth(async (req, { user }) => {
     }
 
     // ── 4. Upload image if provided ───────────────────────────────────────
-    let imageUrl = PLACEHOLDER_IMAGE_URL;
-    let imageKey = PLACEHOLDER_IMAGE_KEY;
+    let imageUrl: string | null = null;
+    let imageKey: string | null = null;
 
     if (data.imageFile) {
       const uploaded = await uploadImage(data.imageFile, 'quiz-app/questions');
@@ -64,7 +64,6 @@ export const POST = WithAuth(async (req, { user }) => {
 
     // ── 5. Persist ────────────────────────────────────────────────────────
     const question = await prisma.$transaction(async (tx) => {
-      // Auto-assign order as next available
       const lastQuestion = await tx.quizQuestion.findFirst({
         where: { quizId },
         orderBy: { order: 'desc' },

@@ -1,9 +1,9 @@
-import ClassroomDetails from '@/components/class/ClassPage';
+import ClassroomPage from '@/components/class/ClassPage';
 
 export default function ClassPage() {
   return (
     <div>
-      <ClassroomDetails />
+      <ClassroomPage />
     </div>
   );
 }

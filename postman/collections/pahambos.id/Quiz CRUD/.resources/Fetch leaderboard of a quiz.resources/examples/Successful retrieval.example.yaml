@@ -1,0 +1,54 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/api/leaderboard/29955e49-b640-4117-8d0c-d1f267a01215"
+  method: GET
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    x-ratelimit-remaining: "97"
+    vary: rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch
+    content-type: application/json
+    date: Mon, 15 Jun 2026 17:32:11 GMT
+    connection: keep-alive
+    keep-alive: timeout=5
+    transfer-encoding: chunked
+  body:
+    type: json
+    content: |-
+      {
+        "success": true,
+        "data": [
+          {
+            "rank": 1,
+            "userId": "f0ec9f5a-3d7b-4623-9249-1501261b47b8",
+            "userName": "testing",
+            "finalScore": 750
+          },
+          {
+            "rank": 2,
+            "userId": "8515bf93-6e47-45a5-8f95-2cf8013af977",
+            "userName": "King",
+            "finalScore": 750
+          },
+          {
+            "rank": 3,
+            "userId": "842edfba-bc8f-4a14-a9b1-bef77de8e49e",
+            "userName": "boat",
+            "finalScore": 750
+          },
+          {
+            "rank": 4,
+            "userId": "38044ffc-4a78-496e-8669-09a6202c391b",
+            "userName": "Tolah",
+            "finalScore": 750
+          },
+          {
+            "rank": 5,
+            "userId": "16f89ba5-9449-4faf-ac7f-758d266182b6",
+            "userName": "c.salomo7",
+            "finalScore": 750
+          }
+        ]
+      }
+order: 3871354786217170

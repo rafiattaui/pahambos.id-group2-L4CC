@@ -1,0 +1,37 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/api/quiz/ai"
+  method: POST
+  body:
+    type: json
+    content: "{\r
+
+      \    \"title\": \"Multiplication Math Quiz\",\r
+
+      \    \"description\": \"Simple Multiplication quiz ranging from single digit to three digit.\",\r
+
+      \    \"numQuestions\": 4,\r
+
+      \    \"difficulty\": 3\r
+
+      }"
+response:
+  statusCode: 500
+  statusText: Internal Server Error
+  headers:
+    x-ratelimit-remaining: "95"
+    vary: rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch
+    content-type: application/json
+    date: Mon, 15 Jun 2026 17:48:17 GMT
+    connection: keep-alive
+    keep-alive: timeout=5
+    transfer-encoding: chunked
+  body:
+    type: json
+    content: |-
+      {
+        "success": false,
+        "message": "Failed to generate quiz with AI. Please try again.",
+        "code": "AI_GENERATION_FAILED"
+      }
+order: 4497994753698733

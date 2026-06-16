@@ -1,5 +1,6 @@
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
 import z, { success } from 'zod';
+import { AISDKError } from 'ai';
 
 export class APIError extends Error {
   public readonly statusCode: number;
@@ -84,6 +85,20 @@ const ERROR_HANDLERS: Array<{
           details: z.flattenError(err),
         },
         { status: 400 }
+      ),
+  },
+  // ai errors
+  {
+    check: (err) => err instanceof AISDKError,
+    handle: (err: AISDKError) =>
+      Response.json(
+        {
+          success: false,
+          message: 'AI error occurred',
+          code: 'AI_ERROR',
+          details: err.message,
+        },
+        { status: 500 }
       ),
   },
   {

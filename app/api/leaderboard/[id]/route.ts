@@ -4,7 +4,10 @@ import { prisma } from '@/lib/prisma';
 import { getLeaderboard } from '@/lib/leaderboard';
 import { NextResponse } from 'next/server';
 
-export const GET = WithAuth(async (req, { params }) => {
+export async function GET(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
     const { id } = await params;
 
@@ -30,4 +33,4 @@ export const GET = WithAuth(async (req, { params }) => {
   } catch (error) {
     return handleError(error);
   }
-});
+}

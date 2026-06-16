@@ -1,10 +1,164 @@
 $kind: http-request
-url: localhost:3000/api/quiz/
+name: Create a quiz
+url: "{{baseUrl}}/api/quiz/"
 method: POST
-headers:
-  Content-Type: application/json
-  User-Agent: insomnia/12.6.0
 body:
   type: formdata
-  content: []
-order: 5000
+  content:
+    - type: text
+      key: quiz.title
+      value: General Knowledge Blitz
+      description: ""
+      disabled: false
+    - type: text
+      key: quiz.description
+      value: A quick test quiz with 2 questions.
+      description: ""
+      disabled: false
+    - type: text
+      key: quiz.category
+      value: General
+      description: ""
+      disabled: false
+    - type: text
+      key: questions[0].order
+      value: "0"
+      description: ""
+      disabled: false
+    - type: text
+      key: questions[0].question
+      value: What is the capital of France?
+      description: ""
+      disabled: false
+    - type: text
+      key: questions[0].type
+      value: MultiSelect
+      description: ""
+      disabled: false
+    - type: text
+      key: questions[0].time
+      value: "3"
+      description: ""
+      disabled: false
+    - type: text
+      key: questions[0].answers[0]
+      value: London
+      description: ""
+      disabled: false
+    - type: text
+      key: questions[0].answers[1]
+      value: Paris
+      description: ""
+      disabled: false
+    - type: text
+      key: questions[0].answers[2]
+      value: Berlin
+      description: ""
+      disabled: false
+    - type: text
+      key: questions[0].correctAnswers[0]
+      value: "1"
+      description: ""
+      disabled: false
+    - type: text
+      key: questions[1].order
+      value: "1"
+      description: ""
+      disabled: false
+    - type: text
+      key: questions[1].question
+      value: Which of these are prime numbers?
+      description: ""
+      disabled: false
+    - type: text
+      key: questions[1].type
+      value: MultiSelect
+      description: ""
+      disabled: false
+    - type: text
+      key: questions[1].time
+      value: "30"
+      description: ""
+      disabled: false
+    - type: text
+      key: questions[1].answers[0]
+      value: "4"
+      description: ""
+      disabled: false
+    - type: text
+      key: questions[1].answers[1]
+      value: "7"
+      description: ""
+      disabled: false
+    - type: text
+      key: questions[1].answers[2]
+      value: "9"
+      description: ""
+      disabled: false
+    - type: text
+      key: questions[1].answers[3]
+      value: "11"
+      description: ""
+      disabled: false
+    - type: text
+      key: questions[1].correctAnswers[0]
+      value: "1"
+      description: ""
+      disabled: false
+    - type: text
+      key: questions[1].correctAnswers[1]
+      value: "3"
+      description: ""
+      disabled: false
+scripts:
+  - type: afterResponse
+    code: "const responseCode = pm.response.code;\r
+
+      \r
+
+      switch (responseCode) {\r
+
+      \    case 200:\r
+
+      \        pm.test(\"Proper response contents\", () => {\r
+
+      \            const jsonData = pm.response.json();\r
+
+      \            pm.expect(jsonData.success).to.be.equal(true)\r
+
+      \            pm.expect(jsonData.quizId).to.be.a(\"string\");\r
+
+      \        })\r
+
+      \        break\r
+
+      \    case 400:\r
+
+      \        pm.test(\"Validation Error format\", () => {\r
+
+      \            const jsonData = pm.response.json();\r
+
+      \            pm.expect(jsonData.success).to.be.equal(false);\r
+
+      \            pm.expect(jsonData.message).to.be.equal(\"Validation failed\");\r
+
+      \            pm.expect(jsonData.details).to.have.property(\"formErrors\")\r
+
+      \            pm.expect(jsonData.details).to.have.property(\"fieldErrors\")\r
+
+      \        })\r
+
+      }\r
+
+      \r
+
+      \r
+
+      const jsonData = pm.response.json();\r
+
+      \r
+
+      pm.environment.set(\"quizId\", jsonData.quizId)"
+    language: text/javascript
+examples: .resources/Create a quiz.resources/examples
+order: 873

@@ -2,3 +2,7 @@ name: Local Dev
 values:
   - key: baseUrl
     value: ''
+  - key: quizId
+    value: ''
+  - key: userId
+    value: ''

@@ -1,4 +1,5 @@
 $kind: http-request
+name: Generate questions using AI
 url: "{{baseUrl}}/api/quiz/ai"
 method: POST
 body:
@@ -14,5 +15,139 @@ body:
     \    \"difficulty\": 3\r
 
     }"
+scripts:
+  - type: afterResponse
+    code: "// Get the response status code\r
+
+      const statusCode = pm.response.code;\r
+
+      \r
+
+      switch (statusCode) {\r
+
+      \    case 200:\r
+
+      \        // Proceed with full data and schema validation\r
+
+      \        pm.test(\"Status code is 200 OK\", function () {\r
+
+      \            pm.response.to.have.status(200);\r
+
+      \        });\r
+
+      \r
+
+      \        const response = pm.response.json();\r
+
+      \r
+
+      \        // Validate top-level structure\r
+
+      \        pm.test(\"Response contains successful payload structure\", function () {\r
+
+      \            pm.expect(response).to.have.property(\"success\").that.is.true;\r
+
+      \            pm.expect(response).to.have.property(\"data\").that.is.an(\"array\");\r
+
+      \        });\r
+
+      \r
+
+      \        // Validate individual question objects\r
+
+      \        pm.test(\"Each question schema and index mapping is valid\", function () {\r
+
+      \            response.data.forEach((item, index) => {\r
+
+      \                pm.expect(item.order).to.equal(index);\r
+
+      \                pm.expect(item.question).to.be.a(\"string\");\r
+
+      \                pm.expect(item.type).to.be.a(\"string\");\r
+
+      \                pm.expect(item.time).to.be.a(\"number\");\r
+
+      \                pm.expect(item.answers).to.be.an(\"array\");\r
+
+      \                pm.expect(item.correctAnswers).to.be.an(\"array\");\r
+
+      \r
+
+      \                // Ensure indices in correctAnswers are bound to existing answers\r
+
+      \                item.correctAnswers.forEach((ansIndex) => {\r
+
+      \                    pm.expect(ansIndex).to.be.at.least(0);\r
+
+      \                    pm.expect(ansIndex).to.be.below(item.answers.length);\r
+
+      \                });\r
+
+      \            });\r
+
+      \        });\r
+
+      \        break;\r
+
+      \r
+
+      \    case 429:\r
+
+      \        const json = pm.response.json();\r
+
+      \        pm.test(\"Maximum AI Request Limit\", () => {\r
+
+      \            pm.expect(json).to.have.property(\"success\")\r
+
+      \            pm.expect(json.success).to.be.equal(false);\r
+
+      \        })\r
+
+      \        break\r
+
+      \    \r
+
+      \    case 500:\r
+
+      \        const data = pm.response.json();\r
+
+      \        pm.test(\"AI Generation Fail\", () => {\r
+
+      \            pm.expect(data).to.have.property(\"success\")\r
+
+      \            pm.expect(data.success).to.be.equal(false);\r
+
+      \            pm.expect(data.code).to.be.equal(\"AI_GENERATION_FAILED\")\r
+
+      \        })\r
+
+      \        break\r
+
+      \r
+
+      \    case 404:\r
+
+      \        pm.test(\"Not Found - The requested resource could not be found\", function () {\r
+
+      \            pm.response.to.have.status(404);\r
+
+      \        });\r
+
+      \        break;\r
+
+      \r
+
+      \    default:\r
+
+      \        pm.test(`Unexpected status code encountered: ${statusCode}`, function () {\r
+
+      \            pm.expect.fail(`Received unhandled status code: ${statusCode}`);\r
+
+      \        });\r
+
+      \        break;\r
+
+      }"
+    language: text/javascript
 examples: .resources/Generate questions using AI.resources/examples
 order: 4487746137583348

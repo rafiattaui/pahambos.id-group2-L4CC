@@ -36,7 +36,7 @@ export default function Learn() {
 
         {/* Image/Video + Button — right */}
         <div className="flex flex-col items-center p-3">
-          <div className="relative mr-8 aspect-[3/2] w-full max-w-[700px] overflow-hidden rounded-lg shadow-[-14px_14px_10px_rgba(0,0,0,0.28)]">
+          <div className="relative aspect-[3/2] w-full max-w-[700px] overflow-hidden rounded-lg p-3 shadow-[-14px_14px_10px_rgba(0,0,0,0.28)] sm:mr-8">
             <video
               autoPlay
               muted
@@ -48,7 +48,7 @@ export default function Learn() {
             </video>
           </div>
           <Button
-            className="font-body mt-6 mr-8 w-full max-w-[700px] cursor-pointer bg-blue-600 px-4 py-6 font-bold hover:scale-105 hover:bg-blue-700"
+            className="font-body mt-6 w-full max-w-[700px] cursor-pointer bg-blue-600 px-4 py-6 font-bold hover:scale-105 hover:bg-blue-700 sm:mr-8"
             onClick={() => router.push('/dashboard/search')}
           >
             Start Learning!

@@ -101,7 +101,7 @@ function MobileBurgerMenu(props: {
               className="flex-1"
               onClick={() => setIsOpen(false)}
             >
-              <Button className="w-full bg-blue-600 font-bold text-white hover:bg-blue-700">
+              <Button className="font-body w-full bg-blue-600 font-bold text-white hover:bg-blue-700">
                 Register
               </Button>
             </Link>
@@ -112,7 +112,7 @@ function MobileBurgerMenu(props: {
             >
               <Button
                 variant="outline"
-                className="w-full font-bold text-slate-700"
+                className="font-body w-full font-bold text-slate-700"
               >
                 Log In
               </Button>

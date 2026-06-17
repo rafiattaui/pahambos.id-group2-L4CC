@@ -1,0 +1,37 @@
+$kind: http-example
+request:
+  url: localhost:3000/api/session/question
+  method: POST
+  headers:
+    Content-Type: application/json
+    User-Agent: insomnia/12.6.0
+  body:
+    type: json
+    content: |-
+      {
+      	"answer": [
+              0,
+              2
+      	]
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    x-ratelimit-remaining: "92"
+    vary: rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch
+    content-type: application/json
+    date: Mon, 15 Jun 2026 19:37:51 GMT
+    connection: keep-alive
+    keep-alive: timeout=5
+    transfer-encoding: chunked
+  body:
+    type: json
+    content: |-
+      {
+        "success": true,
+        "isCorrect": false,
+        "isTimedOut": true,
+        "points": 0
+      }
+order: 3000

@@ -19,7 +19,7 @@ COPY . .
 
 # prisma generate does not open a DB connection; fixed placeholder satisfies prisma.config.ts only.
 ENV DATABASE_URL=postgresql://build:build@127.0.0.1:5432/build?sslmode=disable
-RUN pnpm dlx prisma generate
+RUN pnpm exec prisma generate
 
 # Values come from compose `build.args` — single source: .env.production + compose defaults.
 ARG NEXT_PUBLIC_APP_URL
@@ -37,12 +37,12 @@ RUN pnpm build
 # Uses DATABASE_URL from `.env.production` (or compose environment).
 FROM base AS migrator
 COPY package.json pnpm-lock.yaml ./
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --frozen-lockfile --prod
 COPY prisma ./prisma
 COPY prisma.config.ts ./
 ENV DATABASE_URL=postgresql://migrate:migrate@127.0.0.1:5432/migrate?sslmode=disable
-RUN pnpm dlx prisma generate
-CMD ["pnpm", "dlx", "prisma", "migrate", "deploy"]
+RUN pnpm exec prisma generate
+CMD ["pnpm", "exec", "prisma", "migrate", "deploy"]
 
 FROM base AS runner
 

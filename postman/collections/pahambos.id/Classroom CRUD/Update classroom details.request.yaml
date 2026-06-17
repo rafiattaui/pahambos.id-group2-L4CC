@@ -1,0 +1,34 @@
+$kind: http-request
+url: localhost:3000/api/class
+method: PATCH
+body:
+  type: json
+  content: "{\r
+
+    \    \"classroomId\": \"{{classroomId}}\",\r
+
+    \    \"name\": \"Postman Test Classroom\"\r
+
+    }"
+scripts:
+  - type: afterResponse
+    code: "pm.test(\"Status is 200\", () => {\r
+
+      \    pm.response.to.have.status(200)\r
+
+      })\r
+
+      \r
+
+      const jsonData = pm.response.json();\r
+
+      \r
+
+      pm.test(\"Classroom name is correct\", () => {\r
+
+      \    pm.expect(jsonData.classroom.name).to.eql(\"Postman Test Classroom\")\r
+
+      });"
+    language: text/javascript
+examples: ./.resources/Update classroom details.resources/examples
+order: 4000

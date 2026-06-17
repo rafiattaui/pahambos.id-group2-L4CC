@@ -1,0 +1,5 @@
+$kind: http-request
+url: localhost:3000/api/user
+method: GET
+examples: ./.resources/Retrieve user details.resources/examples
+order: 1000

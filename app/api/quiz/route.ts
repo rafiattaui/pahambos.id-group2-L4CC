@@ -53,33 +53,30 @@ export const POST = WithAuth(async (req, { user }) => {
     // answers are sent as questions[0].answers[0], questions[0].answers[1], etc.
     // re-group them into an array
     const rawQuestions = Array.from(questionsMap.entries())
-      .sort(([a], [b]) => a - b)
-      .map(([, q]) => {
+      .sort(([, a], [, b]) => Number(a.order) - Number(b.order))
+      .map(([, q], normalizedIndex) => {
         const answers: string[] = [];
-        const cleaned: Record<string, unknown> = {};
 
         for (const [k, v] of Object.entries(q)) {
           const answerMatch = k.match(/^answers\[(\d+)\]$/);
-          const correctAnswerMatch = k.match(/^correctAnswers\[(\d+)\]$/);
           if (answerMatch) {
             answers[Number(answerMatch[1])] = v as string;
-          } else if (correctAnswerMatch) {
-            // Handle correct answers
-          } else {
-            cleaned[k] = v;
           }
         }
 
         return {
-          ...cleaned,
-          order: Number(cleaned.order),
-          time: Number(cleaned.time), // ← add this
+          // Explicitly cast every field — never spread `cleaned` since
+          // FormData values are always strings and Zod expects numbers where needed
+          order: normalizedIndex, // 0-based, sequential, no gaps
+          question: q.question as string,
+          type: q.type as string,
+          time: q.time !== undefined ? Number(q.time) : undefined,
           correctAnswers: Object.entries(q)
             .filter(([k]) => k.match(/^correctAnswers\[(\d+)\]$/))
             .sort(([a], [b]) => a.localeCompare(b))
             .map(([, v]) => Number(v)),
           answers,
-          imageFile: cleaned.imageFile ?? undefined,
+          imageFile: (q.imageFile as File | undefined) ?? undefined,
         };
       });
 
@@ -187,6 +184,11 @@ export async function GET(req: NextRequest) {
             }
           : undefined,
       },
+      include: {
+        creator: {
+          select: { name: true },
+        },
+      },
     });
 
     let nextCursor: typeof cursor | null = null;
@@ -196,7 +198,12 @@ export async function GET(req: NextRequest) {
       nextCursor = nextQuiz!.id;
     }
 
-    return NextResponse.json({ data: quizList, nextCursor }, { status: 200 });
+    const data = quizList.map(({ creator, ...quiz }) => ({
+      ...quiz,
+      creatorName: creator?.name ?? 'Anonymous',
+    }));
+
+    return NextResponse.json({ data, nextCursor }, { status: 200 });
   } catch (error) {
     return handleError(error);
   }

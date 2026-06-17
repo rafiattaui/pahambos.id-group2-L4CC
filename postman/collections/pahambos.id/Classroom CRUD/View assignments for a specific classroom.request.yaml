@@ -1,0 +1,166 @@
+$kind: http-request
+url: localhost:3000/api/class/assignment/{{classroomId}}
+method: GET
+scripts:
+  - type: afterResponse
+    code: "const jsonData = pm.response.json();\r
+
+      const targetId = pm.collectionVariables.get(\"assignmentId\");\r
+
+      \r
+
+      // ✅ Status Code\r
+
+      pm.test(\"Status code is 200\", () => {\r
+
+      \    pm.response.to.have.status(200);\r
+
+      });\r
+
+      \r
+
+      // ✅ Response structure\r
+
+      pm.test(\"Response has success flag and data array\", () => {\r
+
+      \    pm.expect(jsonData).to.have.property(\"success\");\r
+
+      \    pm.expect(jsonData).to.have.property(\"data\");\r
+
+      \    pm.expect(jsonData.success).to.be.true;\r
+
+      \    pm.expect(jsonData.data).to.be.an(\"array\");\r
+
+      });\r
+
+      \r
+
+      // ✅ Find assignment by saved collection variable ID\r
+
+      const foundAssignment = jsonData.data.find(a => a.id === targetId);\r
+
+      \r
+
+      pm.test(`Assignment with id \"${targetId}\" exists in data`, () => {\r
+
+      \    pm.expect(foundAssignment, `No assignment found with id ${targetId}`).to.not.be.undefined;\r
+
+      });\r
+
+      \r
+
+      // ✅ Assignment structure\r
+
+      pm.test(\"Found assignment has required fields\", () => {\r
+
+      \    pm.expect(foundAssignment).to.have.property(\"id\");\r
+
+      \    pm.expect(foundAssignment).to.have.property(\"quiz\");\r
+
+      \    pm.expect(foundAssignment).to.have.property(\"dueDate\");\r
+
+      \    pm.expect(foundAssignment).to.have.property(\"isOverdue\");\r
+
+      \    pm.expect(foundAssignment).to.have.property(\"isAssigner\");\r
+
+      \    pm.expect(foundAssignment).to.have.property(\"userHasCompleted\");\r
+
+      \    pm.expect(foundAssignment).to.have.property(\"numLearnersCompleted\");\r
+
+      \    pm.expect(foundAssignment).to.have.property(\"numLearnersTotal\");\r
+
+      \    pm.expect(foundAssignment).to.have.property(\"learnersCompleted\");\r
+
+      \    pm.expect(foundAssignment).to.have.property(\"learnersNotCompleted\");\r
+
+      });\r
+
+      \r
+
+      // ✅ Quiz fields\r
+
+      pm.test(\"Found assignment has valid quiz object\", () => {\r
+
+      \    pm.expect(foundAssignment.quiz).to.be.an(\"object\");\r
+
+      \    pm.expect(foundAssignment.quiz).to.have.property(\"id\");\r
+
+      \    pm.expect(foundAssignment.quiz).to.have.property(\"title\");\r
+
+      \    pm.expect(foundAssignment.quiz).to.have.property(\"description\");\r
+
+      \    pm.expect(foundAssignment.quiz.id).to.be.a(\"string\");\r
+
+      \    pm.expect(foundAssignment.quiz.title).to.be.a(\"string\");\r
+
+      \    pm.expect(foundAssignment.quiz.description).to.be.a(\"string\");\r
+
+      });\r
+
+      \r
+
+      // ✅ Boolean flags\r
+
+      pm.test(\"Found assignment flags are correct\", () => {\r
+
+      \    pm.expect(foundAssignment.isOverdue).to.be.false;\r
+
+      \    pm.expect(foundAssignment.isAssigner).to.be.true;\r
+
+      \    pm.expect(foundAssignment.userHasCompleted).to.be.false;\r
+
+      });\r
+
+      \r
+
+      // ✅ Learner counts\r
+
+      pm.test(\"Found assignment learner counts are valid\", () => {\r
+
+      \    pm.expect(foundAssignment.numLearnersCompleted).to.be.a(\"number\");\r
+
+      \    pm.expect(foundAssignment.numLearnersTotal).to.be.a(\"number\");\r
+
+      \    pm.expect(foundAssignment.numLearnersCompleted).to.be.at.least(0);\r
+
+      \    pm.expect(foundAssignment.numLearnersTotal).to.be.at.least(1);\r
+
+      });\r
+
+      \r
+
+      // ✅ Learner arrays\r
+
+      pm.test(\"Found assignment learner arrays are consistent\", () => {\r
+
+      \    pm.expect(foundAssignment.learnersCompleted).to.be.an(\"array\");\r
+
+      \    pm.expect(foundAssignment.learnersNotCompleted).to.be.an(\"array\");\r
+
+      \r
+
+      \    // Array lengths match the counts\r
+
+      \    pm.expect(foundAssignment.learnersCompleted.length).to.eql(foundAssignment.numLearnersCompleted);\r
+
+      \    pm.expect(foundAssignment.learnersNotCompleted.length).to.eql(\r
+
+      \        foundAssignment.numLearnersTotal - foundAssignment.numLearnersCompleted\r
+
+      \    );\r
+
+      });\r
+
+      \r
+
+      // ✅ Due date is a valid ISO string\r
+
+      pm.test(\"Found assignment dueDate is a valid ISO date\", () => {\r
+
+      \    const date = new Date(foundAssignment.dueDate);\r
+
+      \    pm.expect(date.toString()).to.not.eql(\"Invalid Date\");\r
+
+      });"
+    language: text/javascript
+order: 6000

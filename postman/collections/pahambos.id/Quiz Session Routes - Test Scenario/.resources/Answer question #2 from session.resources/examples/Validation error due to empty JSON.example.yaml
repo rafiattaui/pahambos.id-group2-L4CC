@@ -1,0 +1,41 @@
+$kind: http-example
+request:
+  url: localhost:3000/api/session/question
+  method: POST
+  headers:
+    Content-Type: application/json
+    User-Agent: insomnia/12.6.0
+  body:
+    type: json
+    content: |-
+      {
+      	"answer": [
+      	]
+      }
+response:
+  statusCode: 400
+  statusText: Bad Request
+  headers:
+    x-ratelimit-remaining: "96"
+    vary: rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch
+    content-type: application/json
+    date: Mon, 15 Jun 2026 19:30:49 GMT
+    connection: keep-alive
+    keep-alive: timeout=5
+    transfer-encoding: chunked
+  body:
+    type: json
+    content: |-
+      {
+        "success": false,
+        "message": "Validation failed",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "answer": [
+              "At least one answer must be selected"
+            ]
+          }
+        }
+      }
+order: 1000

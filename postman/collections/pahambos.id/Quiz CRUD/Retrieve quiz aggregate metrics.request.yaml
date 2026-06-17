@@ -1,0 +1,105 @@
+$kind: http-request
+url: "{{baseUrl}}/api/quiz/29955e49-b640-4117-8d0c-d1f267a01215/metrics"
+method: GET
+scripts:
+  - type: afterResponse
+    code: "// Get the response status code\r
+
+      const statusCode = pm.response.code;\r
+
+      \r
+
+      switch (statusCode) {\r
+
+      \    case 200:\r
+
+      \        const json = pm.response.json();\r
+
+      \        pm.test(\"Status code is 200 (OK)\", () => {\r
+
+      \            pm.response.to.have.status(200);\r
+
+      \        });\r
+
+      \        \r
+
+      \        pm.test(\"Contains success bool\", () => {\r
+
+      \            pm.expect(json).to.have.property('success');\r
+
+      \r
+
+      \            if (json.success === false) {\r
+
+      \                pm.test(\"Proper message if no metrics are found\", () => {\r
+
+      \                    pm.expect(json).to.have.property('message');\r
+
+      \r
+
+      \                })\r
+
+      \            } else {\r
+
+      \                pm.test(\"Proper metrics response format\", () => {\r
+
+      \                    pm.expect(json).to.have.property(\"data\")\r
+
+      \                    pm.expect(json.data).to.have.property(\"id\")\r
+
+      \                    pm.expect(json.data).to.have.property(\"attempts\")\r
+
+      \                    pm.expect(json.data).to.have.property(\"avgScore\")\r
+
+      \                    pm.expect(json.data).to.have.property(\"avgAccuracy\")\r
+
+      \                })\r
+
+      \            }\r
+
+      \        })\r
+
+      \        break;\r
+
+      \    \r
+
+      \    case 404:\r
+
+      \        pm.test(\"False success bool and invalid UUID message.\", () => {\r
+
+      \            const json = pm.response.json();\r
+
+      \            pm.expect(json.success).to.be.equal(false);\r
+
+      \            pm.expect(json.message).to.contain(\"invalid\")\r
+
+      \        })\r
+
+      \        break\r
+
+      \    \r
+
+      \    case 401:\r
+
+      \        pm.test(\"Status code is 401 (Unauthorized)\", () => {\r
+
+      \            pm.response.to.have.status(401);\r
+
+      \        });\r
+
+      \        break;\r
+
+      \r
+
+      \    default:\r
+
+      \        pm.test(`Unexpected Status Code: ${statusCode}`, () => {\r
+
+      \            pm.expect.fail(`Received an unhandled status code: ${statusCode}`);\r
+
+      \        });\r
+
+      }"
+    language: text/javascript
+examples: ./.resources/Retrieve quiz aggregate metrics.resources/examples
+order: 9000

@@ -47,12 +47,16 @@ export async function PATCH(request: NextRequest) {
     const rawData = await request.json();
     const data = UserUpdateSchema.parse(rawData);
 
+    if (!data.name) {
+      throw new APIError('Name is required', 400);
+    }
+
     const res = await auth.api.updateUser({
       body: data,
       headers: await headers(),
     });
 
-    return Response.json({ ...res }, { status: 200 });
+    return Response.json({ ...res, name: data.name }, { status: 200 });
   } catch (error) {
     return handleError(error);
   }
@@ -71,7 +75,13 @@ export async function PATCH(request: NextRequest) {
  */
 export async function PUT(request: NextRequest) {
   try {
-    const formData = await request.formData();
+    let formData: FormData;
+    try {
+      formData = await request.formData();
+    } catch (error) {
+      throw new APIError('Invalid form data', 400);
+    }
+
     const imageFile = formData.get('imageFile') as File | null;
 
     if (!imageFile) {

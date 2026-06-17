@@ -1,0 +1,98 @@
+$kind: http-request
+url: localhost:3000/api/quiz/
+method: POST
+body:
+  type: formdata
+  content:
+    - type: text
+      key: quiz.title
+      value: General Knowledge Blitz
+    - type: text
+      key: quiz.description
+      value: A quick test quiz with 2 questions.
+    - type: text
+      key: quiz.category
+      value: General
+    - type: text
+      key: questions[0].order
+      value: "0"
+    - type: text
+      key: questions[0].question
+      value: What is the capital of France?
+    - type: text
+      key: questions[0].type
+      value: MultiSelect
+    - type: text
+      key: questions[0].time
+      value: "3"
+    - type: text
+      key: questions[0].answers[0]
+      value: London
+    - type: text
+      key: questions[0].answers[1]
+      value: Paris
+    - type: text
+      key: questions[0].answers[2]
+      value: Berlin
+    - type: text
+      key: questions[0].correctAnswers[0]
+      value: "1"
+    - type: text
+      key: questions[1].order
+      value: "1"
+    - type: text
+      key: questions[1].question
+      value: Which of these are prime numbers?
+    - type: text
+      key: questions[1].type
+      value: MultiSelect
+    - type: text
+      key: questions[1].time
+      value: "45"
+    - type: text
+      key: questions[1].answers[0]
+      value: "4"
+    - type: text
+      key: questions[1].answers[1]
+      value: "7"
+    - type: text
+      key: questions[1].answers[2]
+      value: "9"
+    - type: text
+      key: questions[1].answers[3]
+      value: "11"
+    - type: text
+      key: questions[1].correctAnswers[0]
+      value: "1"
+    - type: text
+      key: questions[1].correctAnswers[1]
+      value: ""
+scripts:
+  - type: afterResponse
+    code: "const responseCode = pm.response.code();\r
+
+      \r
+
+      switch (responseCode) {\r
+
+      \    case 200:\r
+
+      \        pm.test(\"Proper response contents\", () => {\r
+
+      \            const jsonData = pm.response.json();\r
+
+      \            pm.expect(jsonData.success).to.be.equal(true);\r
+
+      \        })\r
+
+      \        break\r
+
+      }\r
+
+      \r
+
+      \r
+
+      const jsonData = pm.response.json();"
+    language: text/javascript
+order: 5000

@@ -1,0 +1,9 @@
+$kind: collection
+variables:
+  latestPerformanceId: ""
+  userId: ""
+  userEmail: ""
+  sessionId: ""
+  classId: ""
+  classroomId: ""
+  assignmentId: ""

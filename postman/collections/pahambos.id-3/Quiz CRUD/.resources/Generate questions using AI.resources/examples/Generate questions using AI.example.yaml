@@ -1,0 +1,32 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/api/quiz/ai"
+  method: POST
+  body:
+    type: json
+    content: "{\r
+
+      \    \"title\": \"Multiplication Math Quiz\",\r
+
+      \    \"description\": \"Simple Multiplication quiz ranging from single digit to three digit.\",\r
+
+      \    \"numQuestions\": 4,\r
+
+      \    \"difficulty\": 3\r
+
+      }"
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    x-ratelimit-remaining: "99"
+    vary: rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch
+    content-type: text/plain;charset=UTF-8
+    date: Mon, 15 Jun 2026 17:37:50 GMT
+    connection: keep-alive
+    keep-alive: timeout=5
+    transfer-encoding: chunked
+  body:
+    type: text
+    content: '{"success":true,"data":[{"order":0,"question":"What is 7 × 8?","type":"SingleSelect","time":30,"answers":["54","56","58","60"],"correctAnswers":[1]},{"order":1,"question":"What is 12 × 11?","type":"SingleSelect","time":30,"answers":["132","143","121","144"],"correctAnswers":[0]},{"order":2,"question":"Select all correct products from 9 × 5, 7 × 6, and 8 × 8.","type":"MultiSelect","time":30,"answers":["45","42","64","100"],"correctAnswers":[0,1,2]},{"order":3,"question":"What is 99 × 3?","type":"SingleSelect","time":30,"answers":["297","300","291","303"],"correctAnswers":[0]}]}'
+order: 3000

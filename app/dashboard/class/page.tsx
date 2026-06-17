@@ -1,7 +1,9 @@
-//import React from 'react'
+import ClassroomPage from '@/components/class/ClassPage';
 
-const page = () => {
-  return <div>page</div>;
-};
-
-export default page;
+export default function ClassPage() {
+  return (
+    <div>
+      <ClassroomPage />
+    </div>
+  );
+}

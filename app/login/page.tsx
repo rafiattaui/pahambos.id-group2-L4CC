@@ -1,6 +1,7 @@
 import { LoginForm } from '@/components/login-form';
 import ImageSlideshow from '@/components/image-slideshow';
 import NavbarLogin from '@/components/header/navbarlogin';
+import { Suspense } from 'react';
 
 export default function loginPage() {
   return (
@@ -13,7 +14,9 @@ export default function loginPage() {
         <div className="flex flex-col gap-4 p-6 md:p-10">
           <div className="flex flex-1 items-center justify-center">
             <div className="w-full max-w-xs rounded-2xl bg-white p-6 shadow-lg">
-              <LoginForm />
+              <Suspense fallback={<div>Loading...</div>}>
+                <LoginForm />
+              </Suspense>
             </div>
           </div>
         </div>

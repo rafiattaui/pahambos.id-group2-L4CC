@@ -1,0 +1,26 @@
+$kind: http-example
+request:
+  url: localhost:3000/api/user
+  method: GET
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    x-ratelimit-remaining: "98"
+    vary: rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch
+    content-type: application/json
+    date: Tue, 09 Jun 2026 14:01:59 GMT
+    connection: keep-alive
+    keep-alive: timeout=5
+    transfer-encoding: chunked
+  body:
+    type: json
+    content: |-
+      {
+        "emailVerified": false,
+        "email": "atta@test.com",
+        "name": "test",
+        "createdAt": "2026-06-06T13:22:30.735Z",
+        "id": "f947b7e6-9b68-4f35-8334-4da308681d71"
+      }
+order: 1000

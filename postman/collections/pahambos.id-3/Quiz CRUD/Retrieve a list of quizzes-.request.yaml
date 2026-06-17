@@ -1,0 +1,8 @@
+$kind: http-request
+name: Retrieve a list of quizzes.
+url: "{{baseUrl}}/api/quiz"
+method: GET
+auth:
+  type: noauth
+examples: ./.resources/Retrieve a list of quizzes-.resources/examples
+order: 6000

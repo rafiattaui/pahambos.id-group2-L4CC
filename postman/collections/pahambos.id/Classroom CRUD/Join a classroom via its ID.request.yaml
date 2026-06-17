@@ -1,0 +1,20 @@
+$kind: http-request
+url: localhost:3000/api/class/{{classroomId}}
+method: POST
+scripts:
+  - type: afterResponse
+    code: "pm.test(\"Status code is 403\", () => {\r
+
+      \    pm.response.to.have.status(403);\r
+
+      });\r
+
+      \r
+
+      pm.test(\"Educator cannot join their own class\", () => {\r
+
+      \    pm.expect(pm.response.json().message).to.eql(\"You are the educator of this class.\");\r
+
+      })"
+    language: text/javascript
+order: 7000

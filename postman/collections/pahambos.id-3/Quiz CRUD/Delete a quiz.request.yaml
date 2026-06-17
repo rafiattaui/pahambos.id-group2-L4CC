@@ -1,0 +1,10 @@
+$kind: http-request
+url: "{{baseUrl}}/api/quiz/{{quizId}}"
+method: DELETE
+headers:
+  User-Agent: insomnia/12.6.0
+settings:
+  followRedirects: true
+  disableUrlEncoding: false
+  disableCookies: false
+order: 10000

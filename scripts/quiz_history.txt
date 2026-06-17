@@ -1,0 +1,52 @@
+[quiz]
+title=World History Milestones
+description=Key events and figures that shaped the modern world
+category=History
+
+[question]
+question=In what year did World War II end?
+type=SingleSelect
+answers=1943|1944|1945|1946
+correctAnswers=2
+
+[question]
+question=Who was the first President of the United States?
+type=SingleSelect
+answers=John Adams|Benjamin Franklin|Thomas Jefferson|George Washington
+correctAnswers=3
+
+[question]
+question=Which empire was ruled by Julius Caesar?
+type=SingleSelect
+answers=Greek Empire|Ottoman Empire|Roman Empire|Byzantine Empire
+correctAnswers=2
+
+[question]
+question=Which of these events occurred in the 20th century?
+type=MultiSelect
+answers=Moon Landing|French Revolution|Fall of the Berlin Wall|World War I
+correctAnswers=0|2|3
+
+[question]
+question=The Renaissance originated in which country?
+type=SingleSelect
+answers=France|Spain|England|Italy
+correctAnswers=3
+
+[question]
+question=Who wrote the Communist Manifesto?
+type=SingleSelect
+answers=Lenin and Stalin|Marx and Engels|Rousseau and Voltaire|Trotsky and Mao
+correctAnswers=1
+
+[question]
+question=What ancient wonder was located in Alexandria?
+type=SingleSelect
+answers=The Colossus|The Hanging Gardens|The Great Lighthouse|The Statue of Zeus
+correctAnswers=2
+
+[question]
+question=Which countries were part of the Allied Powers in WWII?
+type=MultiSelect
+answers=USA|Germany|Soviet Union|United Kingdom
+correctAnswers=0|2|3

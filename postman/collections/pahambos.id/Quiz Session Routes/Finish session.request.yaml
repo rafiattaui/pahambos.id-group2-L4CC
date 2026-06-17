@@ -1,0 +1,10 @@
+$kind: http-request
+url: localhost:3000/api/session/finish
+method: POST
+headers:
+  User-Agent: insomnia/12.6.0
+settings:
+  followRedirects: true
+  disableUrlEncoding: false
+  disableCookies: false
+order: 5000

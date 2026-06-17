@@ -1,0 +1,26 @@
+$kind: http-example
+request:
+  url: localhost:3000/api/performance/29955e49-b640-4117-8d0c-d1wada
+  method: GET
+  headers:
+    User-Agent: insomnia/12.6.0
+response:
+  statusCode: 404
+  statusText: Not Found
+  headers:
+    x-ratelimit-remaining: "99"
+    vary: rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch
+    content-type: application/json
+    Date: Mon, 08 Jun 2026 13:17:12 GMT
+    Connection: keep-alive
+    Keep-Alive: timeout=5
+    Transfer-Encoding: chunked
+  body:
+    type: text
+    content: |-
+      {
+          "success": false,
+          "message": "Query validation error, invalid UUID",
+          "code": "P2007"
+      }
+order: 2000

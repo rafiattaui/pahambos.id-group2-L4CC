@@ -1,0 +1,5 @@
+$kind: http-request
+url: localhost:3000/api/quiz/29955e49-b640-4117-8d0c-d1f267a01215/metrics
+method: GET
+examples: ./.resources/Retrieve quiz aggregate metrics.resources/examples
+order: 9000

@@ -134,10 +134,6 @@ export function SignupForm({
               className="font-body bg-white/10"
               required
             />
-            <FieldDescription className="font-body text-black">
-              We&apos;ll use this to contact you. We will not share your email
-              with anyone else.
-            </FieldDescription>
           </Field>
           <Field>
             <FieldLabel htmlFor="password" className="font-body">

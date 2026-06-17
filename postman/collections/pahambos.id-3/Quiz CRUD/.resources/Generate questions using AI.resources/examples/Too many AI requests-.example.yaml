@@ -1,0 +1,33 @@
+$kind: http-example
+name: Too many AI requests.
+request:
+  url: "{{baseUrl}}/api/quiz/ai"
+  method: POST
+  body:
+    type: json
+    content: "{\r
+
+      \    \"title\": \"Multiplication Math Quiz\",\r
+
+      \    \"description\": \"Simple Multiplication quiz ranging from single digit to three digit.\",\r
+
+      \    \"numQuestions\": 4,\r
+
+      \    \"difficulty\": 3\r
+
+      }"
+response:
+  statusCode: 429
+  statusText: Too Many Requests
+  headers:
+    x-ratelimit-remaining: "95"
+    vary: rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch
+    content-type: text/plain;charset=UTF-8
+    date: Mon, 15 Jun 2026 17:41:55 GMT
+    connection: keep-alive
+    keep-alive: timeout=5
+    transfer-encoding: chunked
+  body:
+    type: text
+    content: '{"success":false,"message":"You have hit the maximum AI request limit. Please try again later."}'
+order: 2000

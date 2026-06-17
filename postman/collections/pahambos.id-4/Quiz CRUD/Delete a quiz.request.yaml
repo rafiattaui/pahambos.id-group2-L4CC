@@ -1,0 +1,10 @@
+$kind: http-request
+url: localhost:3000/api/quiz/6bbbd294-6320-4d94-9d60-559208ec73aa
+method: DELETE
+headers:
+  User-Agent: insomnia/12.6.0
+settings:
+  followRedirects: true
+  disableUrlEncoding: false
+  disableCookies: false
+order: 6000

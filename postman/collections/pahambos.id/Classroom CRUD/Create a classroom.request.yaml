@@ -1,0 +1,56 @@
+$kind: http-request
+url: localhost:3000/api/class
+method: POST
+body:
+  type: json
+  content: "{\r
+
+    \    \"name\": \"Test Classroom\"\r
+
+    }"
+scripts:
+  - type: afterResponse
+    code: "pm.test(\"Response status code 201\", () => {\r
+
+      \    pm.response.to.have.status(201)\r
+
+      })\r
+
+      \r
+
+      pm.test(\"Response is valid JSON\", () => {\r
+
+      \    pm.response.to.be.json;\r
+
+      });\r
+
+      \r
+
+      const jsonData = pm.response.json();\r
+
+      pm.test(\"Correct properties\", () => {\r
+
+      \    pm.expect(jsonData).to.have.property('id');\r
+
+      \    pm.expect(jsonData).to.have.property('name');\r
+
+      \    pm.expect(jsonData).to.have.property('owner');\r
+
+      \    pm.expect(jsonData).to.have.property('members');\r
+
+      })\r
+
+      \r
+
+      pm.test(\"Members should be empty\", () => {\r
+
+      \    pm.expect(jsonData.members).to.be.empty;\r
+
+      })\r
+
+      \r
+
+      pm.collectionVariables.set(\"classroomId\", jsonData.id);"
+    language: text/javascript
+examples: ./.resources/Create a classroom.resources/examples
+order: 2000

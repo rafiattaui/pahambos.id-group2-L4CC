@@ -1,0 +1,18 @@
+owner: "44146836"
+team: "7378555"
+lastUpdatedBy: "44146836"
+lastRevision: 1781593283000
+name: Local Dev
+color: null
+values:
+  - key: baseUrl
+    value: ""
+    enabled: true
+  - key: quizId
+    value: ""
+    enabled: true
+  - key: userId
+    value: ""
+    enabled: true
+createdAt: 2026-06-14T08:59:18.000Z
+updatedAt: 2026-06-16T07:01:23.000Z

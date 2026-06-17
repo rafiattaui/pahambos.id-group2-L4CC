@@ -9,6 +9,7 @@ import {
 import { NextRequest, NextResponse } from 'next/server';
 import { APIError } from '@/lib/api/errors';
 import { deleteImage, uploadImage } from '@/lib/cloudinary';
+import { invalidateQuestionCache } from '@/lib/read-with-cache';
 
 const PLACEHOLDER_IMAGE_URL =
   'https://res.cloudinary.com/dbj2tvfzg/image/upload/v1778493470/landscape-placeholder_vrw20c.svg';
@@ -84,6 +85,8 @@ export const DELETE = WithAuth(async (req, { user, params }) => {
         },
       });
 
+      await invalidateQuestionCache(quizId);
+
       return { success: true };
     });
 
@@ -126,6 +129,9 @@ export const PATCH = WithAuth(async (req, { user, params }) => {
     });
 
     const res = PublicQuestionSchema.parse(updatedQuestion);
+
+    await invalidateQuestionCache(question.quizId);
+
     return NextResponse.json(
       {
         success: true,

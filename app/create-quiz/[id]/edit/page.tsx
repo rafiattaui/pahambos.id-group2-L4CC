@@ -9,6 +9,7 @@ import { headers } from 'next/headers';
 import CreateQuizForm, {
   type InitialQuizData,
 } from '@/components/createpages/createquiz';
+import { toast } from 'sonner';
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -30,11 +31,17 @@ export default async function EditQuizPage({ params }: PageProps) {
   });
 
   // Quiz doesn't exist
-  if (!quiz) notFound();
+  if (!quiz) {
+    toast.error('It seems like this quiz does not exist.');
+    notFound();
+  }
 
   // ── 3. Ownership check ───────────────────────────────────────────────────
   // If the user is not the creator they should not be able to see the edit page
-  if (quiz.createdBy !== session.user.id) notFound();
+  if (quiz.createdBy !== session.user.id) {
+    toast.error('Access denied. You do not have permission to edit this quiz.');
+    notFound();
+  }
 
   // ── 4. Map DB shape → InitialQuizData ────────────────────────────────────
   const initialData: InitialQuizData = {

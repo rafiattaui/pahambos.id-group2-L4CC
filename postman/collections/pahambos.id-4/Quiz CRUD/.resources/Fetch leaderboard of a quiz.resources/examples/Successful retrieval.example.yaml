@@ -1,0 +1,30 @@
+$kind: http-example
+request:
+  url: localhost:3000/api/leaderboard/29955e49-b640-4117-8d0c-d1f267a01215
+  method: GET
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    x-ratelimit-remaining: "99"
+    vary: rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch
+    content-type: application/json
+    date: Wed, 10 Jun 2026 05:25:18 GMT
+    connection: keep-alive
+    keep-alive: timeout=5
+    transfer-encoding: chunked
+  body:
+    type: json
+    content: |-
+      {
+        "success": true,
+        "data": [
+          {
+            "rank": 1,
+            "userId": "16f89ba5-9449-4faf-ac7f-758d266182b6",
+            "userName": "c.salomo7",
+            "finalScore": 500
+          }
+        ]
+      }
+order: 1000

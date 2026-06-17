@@ -1,0 +1,25 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/api/quiz/29955e49-b640-4117-8d0c-d1f267a01215/session"
+  method: POST
+  headers:
+    User-Agent: insomnia/12.6.0
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    x-ratelimit-remaining: "96"
+    vary: rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch
+    content-type: application/json
+    date: Mon, 15 Jun 2026 19:25:59 GMT
+    connection: keep-alive
+    keep-alive: timeout=5
+    transfer-encoding: chunked
+  body:
+    type: json
+    content: |-
+      {
+        "success": true,
+        "sessionId": "3e5a9190-48d5-467e-942a-35170b3a4c6c"
+      }
+order: 1000

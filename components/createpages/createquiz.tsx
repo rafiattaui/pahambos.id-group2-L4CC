@@ -27,6 +27,8 @@ import {
   Crop,
   X,
   ImageIcon,
+  NotebookPen,
+  Sparkles,
 } from 'lucide-react';
 import { useState, useEffect, useRef, useMemo } from 'react';
 import DraftPopup, { QuizDraft } from '@/components/createpages/draftpopup';
@@ -36,6 +38,7 @@ import { useRouter } from 'next/navigation';
 import { Spinner } from '../ui/spinner';
 import { Textarea } from '../ui/textarea';
 import { toast } from 'sonner';
+import AiQuizPanel from './AiQuizPanel';
 
 // Maps to schema's 'SingleSelect' | 'MultiSelect'
 type QuestionType = 'multiple-choice' | 'multiple-select-choice';
@@ -68,7 +71,7 @@ type validationErrors = {
   questionsError?: string; // for form-level question errors (e.g. no questions added)
 };
 
-function validateForm(
+export function validateForm(
   title: string,
   category: string,
   questions: Question[]
@@ -450,7 +453,7 @@ function ImageUploader({
             <button
               type="button"
               onClick={handleRemove}
-              className="font-body flex h-7 items-center gap-1 rounded-md bg-black/50 px-2 text-xs font-medium text-white backdrop-blur-sm transition-colors hover:bg-red-500/80"
+              className="font-body flex h-7 items-center gap-1 rounded-md bg-black/50 px-2 text-xs font-medium text-white backdrop-blur-sm transition-colors hover:bg-orange-500/80"
             >
               <X className="h-3 w-3" /> Remove
             </button>
@@ -504,7 +507,7 @@ function QuestionEditor({
         type="button"
         variant="ghost"
         size="icon"
-        className="absolute top-2 right-2 max-w-8 text-red-500"
+        className="absolute top-2 right-2 max-w-8 text-orange-500"
         onClick={onRemove}
       >
         <Trash2 className="h-4 w-4" />
@@ -513,6 +516,11 @@ function QuestionEditor({
       <FieldLabel className="font-body font-bold">
         Question {index + 1}
       </FieldLabel>
+      <span className="font-body text-muted-foreground text-xs leading-none">
+        note: You can create true or false question by: <br />
+        selecting &quot;Single Answer&quot; and providing &quot;True&quot; and
+        &quot;False&quot; as options
+      </span>
 
       {/* Question type selector */}
       <Select
@@ -598,12 +606,12 @@ function QuestionEditor({
           onChange={(e) => onChange({ question: e.target.value })}
           className={
             validationErrors?.question
-              ? 'font-body border-red-400'
+              ? 'font-body border-orange-400'
               : 'font-body'
           }
         />
         {validationErrors?.question && (
-          <p className="font-body mt-1 text-xs text-red-500">
+          <p className="font-body mt-1 text-xs text-orange-500">
             {validationErrors.question}
           </p>
         )}
@@ -627,7 +635,7 @@ function QuestionEditor({
               />
             ))}
             {validationErrors?.answer && (
-              <p className="font-body mt-1 text-xs text-red-500">
+              <p className="font-body mt-1 text-xs text-orange-500">
                 {validationErrors.answer}
               </p>
             )}
@@ -649,7 +657,7 @@ function QuestionEditor({
               <SelectTrigger
                 className={
                   validationErrors?.correctAnswers
-                    ? 'font-body border-red-400'
+                    ? 'font-body border-orange-400'
                     : 'font-body'
                 }
               >
@@ -664,7 +672,7 @@ function QuestionEditor({
               </SelectContent>
             </Select>
             {validationErrors?.correctAnswers && (
-              <p className="font-body mt-1 text-xs text-red-500">
+              <p className="font-body mt-1 text-xs text-orange-500">
                 {validationErrors.correctAnswers}
               </p>
             )}
@@ -690,7 +698,7 @@ function QuestionEditor({
               />
             ))}
             {validationErrors?.answer && (
-              <p className="font-body mt-1 text-xs text-red-500">
+              <p className="font-body mt-1 text-xs text-orange-500">
                 {validationErrors.answer}
               </p>
             )}
@@ -727,7 +735,7 @@ function QuestionEditor({
               })}
             </div>
             {validationErrors?.correctAnswers && (
-              <p className="font-body mt-1 text-xs text-red-500">
+              <p className="font-body mt-1 text-xs text-orange-500">
                 {validationErrors.correctAnswers}
               </p>
             )}
@@ -735,6 +743,160 @@ function QuestionEditor({
         </FieldGroup>
       )}
     </Field>
+  );
+}
+
+// ── AI Generate Modal ─────────────────────────────────────────────────────────
+
+type AIGenerateModalProps = {
+  title: string;
+  description: string;
+  onGenerate: (numQuestions: number, difficulty: number) => Promise<void>;
+  onClose: () => void;
+  isGenerating: boolean;
+};
+
+const DIFFICULTY_LABELS = ['Very Easy', 'Easy', 'Medium', 'Hard', 'Very Hard'];
+
+function AIGenerateModal({
+  title,
+  description,
+  onGenerate,
+  onClose,
+  isGenerating,
+}: AIGenerateModalProps) {
+  const [numQuestions, setNumQuestions] = useState(3);
+  const [difficulty, setDifficulty] = useState(2);
+
+  const canGenerate = title.trim().length >= 5;
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
+      onClick={(e) =>
+        e.target === e.currentTarget && !isGenerating && onClose()
+      }
+    >
+      <div className="flex w-full max-w-sm flex-col gap-5 rounded-2xl bg-white p-6 shadow-2xl ring-1 ring-black/5">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600">
+              <Sparkles className="h-4 w-4 text-white" />
+            </div>
+            <h3 className="font-body text-sm font-semibold text-gray-900">
+              Generate Questions with Bos
+            </h3>
+          </div>
+          <button
+            onClick={onClose}
+            disabled={isGenerating}
+            className="flex h-7 w-7 items-center justify-center rounded-full text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 disabled:opacity-40"
+            aria-label="Close"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        {/* Context preview */}
+        <div className="rounded-xl border border-blue-100 bg-blue-50 p-3 text-xs text-blue-700">
+          <p className="font-body font-semibold">{title || 'No title yet'}</p>
+          {description?.trim() && (
+            <p className="mt-0.5 line-clamp-2 text-blue-500">{description}</p>
+          )}
+          {!canGenerate && (
+            <p className="font-body mt-1 font-medium text-orange-500">
+              Quiz title must be at least 5 characters to generate.
+            </p>
+          )}
+        </div>
+
+        {/* Number of questions */}
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center justify-between">
+            <label className="font-body text-sm font-medium text-gray-700">
+              Number of questions
+            </label>
+            <span className="font-body text-sm font-bold text-blue-600">
+              {numQuestions}
+            </span>
+          </div>
+          <input
+            title="Number of questions"
+            type="range"
+            min={1}
+            max={6}
+            step={1}
+            value={numQuestions}
+            onChange={(e) => setNumQuestions(Number(e.target.value))}
+            className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-gray-200 accent-blue-600"
+          />
+          <div className="flex justify-between text-xs text-gray-400">
+            <span>1</span>
+            <span>6</span>
+          </div>
+        </div>
+
+        {/* Difficulty */}
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center justify-between">
+            <label className="font-body text-sm font-medium text-gray-700">
+              Difficulty
+            </label>
+            <span className="font-body text-sm font-bold text-blue-600">
+              {DIFFICULTY_LABELS[difficulty - 1]}
+            </span>
+          </div>
+          <input
+            title="Difficulty"
+            type="range"
+            min={1}
+            max={5}
+            step={1}
+            value={difficulty}
+            onChange={(e) => setDifficulty(Number(e.target.value))}
+            className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-gray-200 accent-blue-600"
+          />
+          <div className="font-body flex justify-between text-xs text-gray-400">
+            <span>Very Easy</span>
+            <span>Very Hard</span>
+          </div>
+        </div>
+
+        {/* Warning if questions already exist */}
+        <p className="font-body text-center text-xs text-gray-400">
+          This will{' '}
+          <span className="font-body font-medium text-orange-500">replace</span>{' '}
+          any questions you&apos;ve already added.
+        </p>
+
+        {/* Actions */}
+        <div className="flex gap-2">
+          <button
+            onClick={onClose}
+            disabled={isGenerating}
+            className="font-body flex-1 rounded-xl border border-gray-200 py-2.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50 disabled:opacity-50"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={() => onGenerate(numQuestions, difficulty)}
+            disabled={!canGenerate || isGenerating}
+            className="font-body flex flex-1 items-center justify-center gap-2 rounded-xl bg-blue-600 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-blue-700 active:scale-[0.98] disabled:opacity-50"
+          >
+            {isGenerating ? (
+              <>
+                <Spinner className="h-4 w-4" /> Generating…
+              </>
+            ) : (
+              <>
+                <Sparkles className="h-4 w-4" /> Generate
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -800,6 +962,8 @@ export default function CreateQuizForm({
   const [draftOpen, setDraftOpen] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [aiModalOpen, setAiModalOpen] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
   const [validationErrors, setvalidationErrors] = useState<validationErrors>(
     {}
   );
@@ -858,7 +1022,7 @@ export default function CreateQuizForm({
     setQuestions((prev) => [
       ...prev,
       {
-        order: prev.length + 1,
+        order: prev.length,
         type: newType,
         time: 30,
         question: '',
@@ -879,7 +1043,7 @@ export default function CreateQuizForm({
       (prev) =>
         prev
           .filter((q) => q.order !== order)
-          .map((q, i) => ({ ...q, order: i + 1 })) // re-number after removal
+          .map((q, i) => ({ ...q, order: i })) // re-number after removal
     );
   };
 
@@ -895,6 +1059,59 @@ export default function CreateQuizForm({
         answer: padAnswers(q.answer),
       }))
     );
+  };
+
+  const handleAIGenerate = async (numQuestions: number, difficulty: number) => {
+    setIsGenerating(true);
+    try {
+      const res = await fetch('/api/quiz/ai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          title,
+          description: description?.trim() || undefined,
+          numQuestions,
+          difficulty,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        toast.error(data.message || 'Failed to generate questions');
+        return;
+      }
+
+      // Map AI response → local Question shape
+      const generated: Question[] = data.data.map(
+        (q: {
+          order: number;
+          question: string;
+          type: 'SingleSelect' | 'MultiSelect';
+          time: number;
+          answers: string[];
+          correctAnswers: number[];
+        }) => ({
+          order: q.order,
+          type: toLocalType(q.type),
+          question: q.question,
+          time: q.time,
+          answer: padAnswers(q.answers),
+          correctAnswers: q.correctAnswers,
+          imageUrl: null,
+          rawImageUrl: null,
+        })
+      );
+
+      setQuestions(generated);
+      setAiModalOpen(false);
+      toast.success(`Generated ${generated.length} questions!`);
+    } catch {
+      toast.error('Something went wrong. Please try again.');
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const handleSubmit = async () => {
@@ -1200,7 +1417,9 @@ export default function CreateQuizForm({
 
   return (
     <div className="flex justify-center">
-      <main className="relative mt-4 h-full w-full max-w-2xl items-center justify-center rounded-2xl bg-linear-to-br from-blue-400 from-5% to-white to-30% p-10">
+      <main className="relative mt-4 h-full w-full max-w-2xl items-center justify-center overflow-hidden rounded-2xl border border-slate-100 bg-white bg-linear-to-b from-white to-blue-100 p-10 shadow-sm">
+        <div className="absolute inset-0 h-1.5 bg-gradient-to-r from-blue-600 to-orange-400" />{' '}
+        {/* color bar */}
         <Button
           variant="ghost"
           className="absolute top-4 left-4 mb-4 flex items-center gap-2 rounded-4xl"
@@ -1208,10 +1427,16 @@ export default function CreateQuizForm({
         >
           <ArrowLeft />
         </Button>
-
         <FieldGroup className="mt-4">
           <FieldTitle>
-            <h1 className="font-body text-2xl font-bold">Quiz Creation Form</h1>
+            <div className="mb-6 flex items-center gap-2">
+              <h1 className="font-body text-2xl font-bold text-slate-800">
+                Quiz Creation Form
+              </h1>
+              <div className="rounded-xl bg-blue-600 p-2">
+                <NotebookPen className="h-5 w-5 text-white" />
+              </div>
+            </div>
           </FieldTitle>
 
           <FieldSet>
@@ -1254,12 +1479,12 @@ export default function CreateQuizForm({
                 onChange={(e) => setTitle(e.target.value)}
                 className={
                   validationErrors.title
-                    ? 'font-body border-red-400'
-                    : 'font-body'
+                    ? 'font-body border-orange-400'
+                    : 'font-body focus:border-blue-500 focus:ring-2 focus:ring-blue-500'
                 }
               />
               {validationErrors.title && (
-                <p className="font-body mt-1 text-xs text-red-500">
+                <p className="font-body mt-1 text-xs text-orange-500">
                   {validationErrors.title}
                 </p>
               )}
@@ -1280,7 +1505,7 @@ export default function CreateQuizForm({
                 onChange={(e) => setDescription(e.target.value)}
                 className={
                   validationErrors.description
-                    ? 'font-body border-red-400'
+                    ? 'font-body border-orange-400'
                     : 'font-body'
                 }
               />
@@ -1294,7 +1519,7 @@ export default function CreateQuizForm({
                 <SelectTrigger
                   className={
                     validationErrors.category
-                      ? 'font-body border-red-400'
+                      ? 'font-body border-orange-400'
                       : 'font-body'
                   }
                 >
@@ -1311,7 +1536,7 @@ export default function CreateQuizForm({
                 </SelectContent>
               </Select>
               {validationErrors.category && (
-                <p className="font-body mt-1 text-xs text-red-500">
+                <p className="font-body mt-1 text-xs text-orange-500">
                   {validationErrors.category}
                 </p>
               )}
@@ -1330,7 +1555,7 @@ export default function CreateQuizForm({
 
               <FieldGroup>
                 {validationErrors.questionsError && (
-                  <p className="font-body mt-1 text-xs text-red-500">
+                  <p className="font-body mt-1 text-xs text-orange-500">
                     {validationErrors.questionsError}
                   </p>
                 )}
@@ -1370,7 +1595,7 @@ export default function CreateQuizForm({
                 </Field>
 
                 <Button
-                  className="font-body bg-blue-500 font-bold hover:scale-105 hover:bg-blue-700"
+                  className="font-body bg-blue-600 font-bold hover:scale-105 hover:bg-blue-700"
                   ref={addButtonRef}
                   onClick={addQuestion}
                 >
@@ -1378,14 +1603,22 @@ export default function CreateQuizForm({
                 </Button>
                 {!isEditMode && (
                   <Button
+                    className="font-body border border-blue-600 bg-white font-bold text-blue-600 hover:scale-105 hover:bg-blue-50"
+                    onClick={() => setAiModalOpen(true)}
+                  >
+                    Generate Question With Bos <Sparkles className="h-4 w-4" />
+                  </Button>
+                )}
+                {!isEditMode && (
+                  <Button
                     onClick={() => setDraftOpen(true)}
-                    className="font-body bg-blue-500 font-bold hover:scale-105 hover:bg-blue-700"
+                    className="font-body border border-blue-600 bg-white font-bold text-blue-600 hover:scale-105 hover:bg-blue-50"
                   >
                     Save Draft <Save className="h-4 w-4" />
                   </Button>
                 )}
                 <Button
-                  className="font-body bg-blue-500 font-bold hover:scale-105 hover:bg-blue-700"
+                  className="font-body bg-blue-800 font-bold text-white hover:scale-105 hover:bg-blue-900"
                   onClick={handleSubmit}
                   disabled={isSubmitting}
                 >
@@ -1411,6 +1644,22 @@ export default function CreateQuizForm({
           formState={formState}
           onLoad={handleLoadDraft}
           onClose={() => setDraftOpen(false)}
+        />
+      )}
+
+      <AiQuizPanel
+        questions={questions}
+        onQuestionsChange={setQuestions}
+        title={title}
+        description={description}
+      />
+      {aiModalOpen && (
+        <AIGenerateModal
+          title={title}
+          description={description ?? ''}
+          onGenerate={handleAIGenerate}
+          onClose={() => !isGenerating && setAiModalOpen(false)}
+          isGenerating={isGenerating}
         />
       )}
     </div>

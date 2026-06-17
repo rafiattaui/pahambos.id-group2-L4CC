@@ -1,0 +1,67 @@
+$kind: http-request
+url: "{{baseUrl}}/api/quiz/29955e49-b640-4117-8d0c-d1f267a01215/session"
+method: POST
+headers:
+  User-Agent: insomnia/12.6.0
+scripts:
+  - type: afterResponse
+    code: "const statusCode = pm.response.code;\r
+
+      \r
+
+      switch (statusCode) {\r
+
+      \    case 200:\r
+
+      \        pm.test(\"Status code is 200 (OK)\", () => {\r
+
+      \            pm.response.to.have.status(200);\r
+
+      \        });\r
+
+      \        \r
+
+      \        pm.test(\"Response contains correct data\", () => {\r
+
+      \            const jsonData = pm.response.json();\r
+
+      \            pm.expect(jsonData.success).to.be.equal(true);\r
+
+      \            pm.expect(jsonData).to.have.property('sessionId');\r
+
+      \            pm.collectionVariables.set(\"sessionId\", jsonData.sessionId);\r
+
+      \        });\r
+
+      \        break;\r
+
+      \    \r
+
+      \    case 401:\r
+
+      \        pm.test(\"Status code is 401 (Unauthorized)\", () => {\r
+
+      \            pm.response.to.have.status(401);\r
+
+      \        });\r
+
+      \        break;\r
+
+      \r
+
+      \    default:\r
+
+      \        pm.test(`Unexpected Status Code: ${statusCode}`, () => {\r
+
+      \            pm.expect.fail(`Received an unhandled status code: ${statusCode}`);\r
+
+      \        });\r
+
+      }"
+    language: text/javascript
+settings:
+  followRedirects: true
+  disableUrlEncoding: false
+  disableCookies: false
+examples: ./.resources/Start a session.resources/examples
+order: 2000

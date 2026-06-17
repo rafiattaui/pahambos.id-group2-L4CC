@@ -1,0 +1,52 @@
+[quiz]
+title=Science Essentials
+description=Physics, chemistry, and biology fundamentals
+category=Science
+
+[question]
+question=What is the atomic number of carbon?
+type=SingleSelect
+answers=4|6|8|12
+correctAnswers=1
+
+[question]
+question=Which of Newton's laws states that every action has an equal and opposite reaction?
+type=SingleSelect
+answers=First Law|Second Law|Third Law|Law of Gravitation
+correctAnswers=2
+
+[question]
+question=What is the powerhouse of the cell?
+type=SingleSelect
+answers=Nucleus|Ribosome|Mitochondria|Golgi Apparatus
+correctAnswers=2
+
+[question]
+question=Which of these are noble gases?
+type=MultiSelect
+answers=Helium|Oxygen|Argon|Neon
+correctAnswers=0|2|3
+
+[question]
+question=What is the speed of light in a vacuum (approximately)?
+type=SingleSelect
+answers=300,000 km/s|150,000 km/s|450,000 km/s|3,000 km/s
+correctAnswers=0
+
+[question]
+question=DNA stands for?
+type=SingleSelect
+answers=Deoxyribonucleic Acid|Diribonucleic Acid|Deoxyribonitric Acid|Dynamic Nucleic Acid
+correctAnswers=0
+
+[question]
+question=Which planet has the most moons?
+type=SingleSelect
+answers=Jupiter|Neptune|Saturn|Uranus
+correctAnswers=2
+
+[question]
+question=Which of these are states of matter?
+type=MultiSelect
+answers=Plasma|Energy|Liquid|Solid
+correctAnswers=0|2|3
